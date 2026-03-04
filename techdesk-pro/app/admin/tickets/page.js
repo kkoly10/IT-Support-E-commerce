@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -9,7 +9,7 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-export default function AdminTickets() {
+function AdminTicketsContent() {
   const searchParams = useSearchParams()
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
@@ -174,5 +174,13 @@ export default function AdminTickets() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminTickets() {
+  return (
+    <Suspense fallback={<div className="admin-loading">Loading tickets...</div>}>
+      <AdminTicketsContent />
+    </Suspense>
   )
 }
