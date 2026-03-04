@@ -126,19 +126,21 @@ export default function Home() {
             ))}
           </ul>
           <div className="nav-actions">
+            <a href="/login" style={{ fontSize: '0.88rem', color: 'var(--ink-light)', textDecoration: 'none', fontWeight: 500 }}>Client Portal</a>
             <button className="nav-cta" onClick={() => scrollTo('contact')}>Book a Call</button>
           </div>
           <button
             className={`hamburger ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <span></span><span></span><span></span>
+            <span /><span /><span />
           </button>
         </div>
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
           {['Services', 'Pricing', 'About', 'FAQ'].map((link) => (
             <a key={link} onClick={() => scrollTo(link.toLowerCase())}>{link}</a>
           ))}
+          <a href="/login" style={{ color: 'var(--teal)', fontWeight: 600 }}>Client Portal</a>
           <button
             className="nav-cta"
             style={{ textAlign: 'center', marginTop: 8 }}
@@ -317,7 +319,7 @@ export default function Home() {
                     <span className="bar-label-val">{b.val}%</span>
                   </div>
                   <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${b.val}%` }}></div>
+                    <div className="bar-fill" style={{ width: `${b.val}%` }} />
                   </div>
                 </div>
               ))}
@@ -392,6 +394,7 @@ export default function Home() {
             {['Services', 'Pricing', 'About', 'Contact'].map((link) => (
               <a key={link} onClick={() => scrollTo(link.toLowerCase())}>{link}</a>
             ))}
+            <a href="/login" style={{ color: 'var(--teal)' }}>Client Portal</a>
           </div>
           <div className="footer-copy">© 2025 TechDesk Pro. Stafford, VA.</div>
         </div>
