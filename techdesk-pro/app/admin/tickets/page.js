@@ -1,0 +1,178 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
+export default function AdminTickets() {
+  const searchParams = useSearchParams()
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all')
+  const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') || 'all')
+
+  useEffect(() => {
+    loadTickets()
+  }, [statusFilter, priorityFilter])
+
+  async function loadTickets() {
+    setLoading(true)
+    try {
+      let query = supabase
+        .from('tickets')
+        .select('id, title, status, priority, category, platform, created_at, updated_at, organization:organizations(name), assigned_agent:profiles!tickets_assigned_to_fkey(full_name)')
+        .order('created_at', { ascending: false })
+
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter)
+      }
+      if (priorityFilter !== 'all') {
+        query = query.eq('priority', priorityFilter)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+      setTickets(data || [])
+    } catch (err) {
+      console.error('Error loading tickets:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = tickets.filter(t =>
+    t.title.toLowerCase().includes(search.toLowerCase()) ||
+    t.organization?.name?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const statusColor = (status) => {
+    const colors = {
+      open: '#e74c3c',
+      in_progress: '#f39c12',
+      waiting_on_client: '#9b59b6',
+      resolved: '#27ae60',
+      closed: '#95a5a6',
+    }
+    return colors[status] || '#8a8a8a'
+  }
+
+  const priorityLabel = (p) => {
+    const labels = { low: '🟢', medium: '🟡', high: '🟠', urgent: '🔴' }
+    return labels[p] || ''
+  }
+
+  const timeAgo = (date) => {
+    const mins = Math.floor((Date.now() - new Date(date)) / 60000)
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ago`
+  }
+
+  return (
+    <div>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">All Tickets</h1>
+          <p className="admin-page-desc">{filtered.length} ticket{filtered.length !== 1 ? 's' : ''}</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="admin-filters">
+        <input
+          type="text"
+          placeholder="Search tickets or clients..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="admin-search-input"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="admin-filter-select"
+        >
+          <option value="all">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="waiting_on_client">Waiting on Client</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className="admin-filter-select"
+        >
+          <option value="all">All Priorities</option>
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+
+      {/* Tickets table */}
+      <div className="admin-card" style={{ padding: 0 }}>
+        {loading ? (
+          <div className="admin-loading" style={{ padding: 40 }}>Loading tickets...</div>
+        ) : filtered.length === 0 ? (
+          <div className="admin-empty-text" style={{ padding: 40 }}>No tickets found</div>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Client</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Assigned To</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((ticket) => (
+                  <tr
+                    key={ticket.id}
+                    onClick={() => window.location.href = `/admin/tickets/${ticket.id}`}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>
+                      <div className="admin-table-title">{ticket.title}</div>
+                    </td>
+                    <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
+                    <td className="admin-table-muted">{ticket.category || '—'}</td>
+                    <td>
+                      <span className="admin-table-sm">{priorityLabel(ticket.priority)} {ticket.priority}</span>
+                    </td>
+                    <td>
+                      <span
+                        className="admin-status-badge"
+                        style={{ background: statusColor(ticket.status) + '18', color: statusColor(ticket.status) }}
+                      >
+                        {ticket.status.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="admin-table-muted">
+                      {ticket.assigned_agent?.full_name || 'Unassigned'}
+                    </td>
+                    <td className="admin-table-muted">{timeAgo(ticket.created_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
