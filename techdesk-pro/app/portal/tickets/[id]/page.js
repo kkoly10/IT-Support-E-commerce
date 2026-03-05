@@ -1,3 +1,5 @@
+// File: app/portal/tickets/[id]/page.js (replace existing)
+
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
@@ -12,15 +14,22 @@ export default function TicketDetailPage() {
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState(null)
+  const [orgId, setOrgId] = useState(null)
   const messagesEndRef = useRef(null)
   const supabase = createClient()
+
+  // Rating state
+  const [existingRating, setExistingRating] = useState(null)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [selectedRating, setSelectedRating] = useState(0)
+  const [ratingComment, setRatingComment] = useState('')
+  const [submittingRating, setSubmittingRating] = useState(false)
+  const [ratingSubmitted, setRatingSubmitted] = useState(false)
 
   useEffect(() => {
     loadTicket()
     setupRealtime()
-    return () => {
-      supabase.removeAllChannels()
-    }
+    return () => { supabase.removeAllChannels() }
   }, [id])
 
   useEffect(() => {
@@ -31,6 +40,14 @@ export default function TicketDetailPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     setUserId(user.id)
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) setOrgId(profile.organization_id)
 
     const { data: ticket } = await supabase
       .from('tickets')
@@ -54,6 +71,20 @@ export default function TicketDetailPage() {
       .eq('ticket_id', id)
 
     setAttachments(atts || [])
+
+    // Check for existing rating
+    const { data: rating } = await supabase
+      .from('ticket_ratings')
+      .select('*')
+      .eq('ticket_id', id)
+      .eq('rated_by', user.id)
+      .single()
+
+    if (rating) {
+      setExistingRating(rating)
+      setSelectedRating(rating.rating)
+    }
+
     setLoading(false)
   }
 
@@ -93,7 +124,29 @@ export default function TicketDetailPage() {
 
     setNewMessage('')
     setSending(false)
-    loadTicket() // Refresh to get the profile join data
+    loadTicket()
+  }
+
+  async function handleSubmitRating() {
+    if (!selectedRating || !userId || !orgId) return
+    setSubmittingRating(true)
+
+    try {
+      await supabase.from('ticket_ratings').insert({
+        ticket_id: id,
+        organization_id: orgId,
+        rated_by: userId,
+        rating: selectedRating,
+        comment: ratingComment.trim() || null,
+      })
+
+      setExistingRating({ rating: selectedRating, comment: ratingComment })
+      setRatingSubmitted(true)
+    } catch (err) {
+      console.error('Rating error:', err)
+    } finally {
+      setSubmittingRating(false)
+    }
   }
 
   const statusColor = (status) => {
@@ -115,8 +168,12 @@ export default function TicketDetailPage() {
     })
   }
 
+  const starLabels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent']
+
   if (loading) return <div className="portal-page-loading">Loading ticket...</div>
   if (!ticket) return <div className="portal-page-loading">Ticket not found.</div>
+
+  const isResolved = ticket.status === 'resolved' || ticket.status === 'closed'
 
   return (
     <div className="ticket-detail">
@@ -135,16 +192,96 @@ export default function TicketDetailPage() {
           <span className="ticket-priority-badge" style={{ color: priorityColor(ticket.priority) }}>
             {ticket.priority}
           </span>
-          <span className="ticket-category">{ticket.category.replace('_', ' ')}</span>
+          <span className="ticket-category">{ticket.category?.replace('_', ' ')}</span>
           {ticket.platform && <span className="ticket-platform">{ticket.platform}</span>}
           <span className="ticket-date">Created {formatDate(ticket.created_at)}</span>
         </div>
       </div>
 
       {/* Resolved Banner */}
-      {(ticket.status === 'resolved' || ticket.status === 'closed') && (
+      {isResolved && (
         <div className="ticket-resolved-banner">
           This ticket was {ticket.status} on {formatDate(ticket.resolved_at || ticket.closed_at || ticket.updated_at)}.
+        </div>
+      )}
+
+      {/* Satisfaction Survey */}
+      {isResolved && !existingRating && !ratingSubmitted && (
+        <div style={{
+          background: 'white', border: '2px solid var(--teal)', borderRadius: 14,
+          padding: 24, marginBottom: 24, textAlign: 'center',
+        }}>
+          <div style={{ fontSize: '1.2rem', marginBottom: 4 }}>⭐</div>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>How was your experience?</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', marginBottom: 16 }}>
+            Your feedback helps us improve our service.
+          </p>
+
+          {/* Stars */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 8 }}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onMouseEnter={() => setHoverRating(star)}
+                onMouseLeave={() => setHoverRating(0)}
+                onClick={() => setSelectedRating(star)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '2rem', transition: 'transform 0.15s',
+                  transform: (hoverRating || selectedRating) >= star ? 'scale(1.15)' : 'scale(1)',
+                  filter: (hoverRating || selectedRating) >= star ? 'none' : 'grayscale(1) opacity(0.3)',
+                }}
+              >
+                ⭐
+              </button>
+            ))}
+          </div>
+          {(hoverRating || selectedRating) > 0 && (
+            <div style={{ fontSize: '0.85rem', color: 'var(--teal)', fontWeight: 600, marginBottom: 12 }}>
+              {starLabels[hoverRating || selectedRating]}
+            </div>
+          )}
+
+          {selectedRating > 0 && (
+            <>
+              <textarea
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                placeholder="Any additional feedback? (optional)"
+                rows={2}
+                style={{
+                  width: '100%', maxWidth: 400, padding: '10px 14px',
+                  border: '1px solid var(--border)', borderRadius: 8,
+                  fontSize: '0.88rem', fontFamily: 'Outfit, sans-serif',
+                  resize: 'none', margin: '0 auto', display: 'block',
+                }}
+              />
+              <button
+                onClick={handleSubmitRating}
+                disabled={submittingRating}
+                style={{
+                  marginTop: 12, padding: '10px 24px', background: 'var(--teal)',
+                  color: 'white', border: 'none', borderRadius: 8,
+                  fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
+                  fontFamily: 'Outfit, sans-serif',
+                }}
+              >
+                {submittingRating ? 'Submitting...' : 'Submit Rating'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Already rated */}
+      {(existingRating || ratingSubmitted) && (
+        <div style={{
+          background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 14,
+          padding: '16px 24px', marginBottom: 24, textAlign: 'center',
+        }}>
+          <span style={{ fontSize: '0.9rem', color: '#059669' }}>
+            {'⭐'.repeat(existingRating?.rating || selectedRating)} — Thanks for your feedback!
+          </span>
         </div>
       )}
 
