@@ -1,3 +1,5 @@
+// File: app/portal/layout.js (replace existing)
+
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '../../lib/supabase/client'
@@ -6,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
   { label: 'Tickets', href: '/portal/tickets', icon: '🎫' },
+  { label: 'Atlas AI', href: '/portal/atlas', icon: '🧠' },
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
   { label: 'Billing', href: '/portal/billing', icon: '💳' },
   { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
