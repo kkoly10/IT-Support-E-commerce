@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
   { label: 'Tickets', href: '/portal/tickets', icon: '🎫' },
   { label: 'Atlas AI', href: '/portal/atlas', icon: '🧠' },
+  { label: 'Training', href: '/portal/training', icon: '🎓' },
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
   { label: 'System Health', href: '/portal/health', icon: '🛡️' },
   { label: 'Billing', href: '/portal/billing', icon: '💳' },
