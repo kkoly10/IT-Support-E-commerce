@@ -17,6 +17,8 @@ const NAV_ITEMS = [
   { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
   { label: 'Documents', href: '/admin/documents', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
+  { label: 'Reports & CSAT', href: '/admin/reports', icon: '📈' },
+  { label: 'Compliance', href: '/admin/compliance', icon: '📋' },
   { label: 'Training Hub', href: '/admin/training', icon: '🎓' },
   { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ]
