@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
   { label: 'Documents', href: '/admin/documents', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
+  { label: 'Training Hub', href: '/admin/training', icon: '🎓' },
   { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ]
 
