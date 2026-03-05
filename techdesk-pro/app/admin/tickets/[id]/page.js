@@ -91,14 +91,13 @@ export default function AdminTicketDetail() {
         .insert({
           ticket_id: id,
           sender_id: currentUser.id,
-          message: reply.trim(),
-          message_type: 'agent',
+          body: reply.trim(),
+          sender_type: 'agent',
         })
 
       if (error) throw error
       setReply('')
 
-      // Auto-set to in_progress if was open
       if (status === 'open') {
         await supabase.from('tickets').update({ status: 'in_progress' }).eq('id', id)
         setStatus('in_progress')
@@ -187,13 +186,11 @@ export default function AdminTicketDetail() {
 
   return (
     <div>
-      {/* Breadcrumb */}
       <div className="admin-breadcrumb">
         <a href="/admin/tickets">← All Tickets</a>
       </div>
 
       <div className="admin-ticket-layout">
-        {/* Main conversation */}
         <div className="admin-ticket-main">
           <div className="admin-card">
             <div className="admin-ticket-header">
@@ -214,26 +211,24 @@ export default function AdminTicketDetail() {
               )}
             </div>
 
-            {/* Messages */}
             <div className="admin-messages">
               {messages.map((msg, i) => (
-                <div key={msg.id || i} className={`admin-message ${msg.message_type}`}>
+                <div key={msg.id || i} className={`admin-message ${msg.sender_type}`}>
                   <div className="admin-message-header">
                     <span className="admin-message-sender">
                       {msg.sender?.full_name || 'System'}
                     </span>
-                    <span className={`admin-message-badge ${msg.message_type}`}>
-                      {msg.message_type}
+                    <span className={`admin-message-badge ${msg.sender_type}`}>
+                      {msg.sender_type}
                     </span>
                     <span className="admin-message-time">{formatTime(msg.created_at)}</span>
                   </div>
-                  <div className="admin-message-body">{msg.message}</div>
+                  <div className="admin-message-body">{msg.body}</div>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Reply box */}
             {status !== 'closed' && (
               <div className="admin-reply-box">
                 <form onSubmit={handleReply}>
@@ -269,9 +264,7 @@ export default function AdminTicketDetail() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="admin-ticket-sidebar">
-          {/* Details card */}
           <div className="admin-card">
             <h4 className="admin-card-section-title">Details</h4>
 
@@ -332,7 +325,6 @@ export default function AdminTicketDetail() {
             </div>
           </div>
 
-          {/* Client card */}
           <div className="admin-card" style={{ marginTop: 16 }}>
             <h4 className="admin-card-section-title">Client</h4>
             <div className="admin-client-row" style={{ padding: 0, border: 'none' }}>
