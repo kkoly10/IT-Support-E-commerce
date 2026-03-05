@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Tickets', href: '/portal/tickets', icon: '🎫' },
   { label: 'Atlas AI', href: '/portal/atlas', icon: '🧠' },
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
+  { label: 'System Health', href: '/portal/health', icon: '🛡️' },
   { label: 'Billing', href: '/portal/billing', icon: '💳' },
   { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
 ]
@@ -63,7 +64,6 @@ export default function PortalLayout({ children }) {
 
   return (
     <div className="portal-wrapper">
-      {/* Sidebar */}
       <aside className={`portal-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <a href="/" className="sidebar-logo">
@@ -108,10 +108,8 @@ export default function PortalLayout({ children }) {
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
-      {/* Main Content */}
       <div className="portal-main">
         <header className="portal-topbar">
           <button className="topbar-menu" onClick={() => setSidebarOpen(true)}>

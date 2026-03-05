@@ -14,6 +14,7 @@ const supabase = createBrowserClient(
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
   { label: 'Tickets', href: '/admin/tickets', icon: '🎫' },
+  { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
   { label: 'Documents', href: '/admin/documents', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
   { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
@@ -48,7 +49,6 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="admin-layout">
-      {/* Mobile header */}
       <div className="admin-mobile-header">
         <button className="admin-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
           <span /><span /><span />
@@ -56,12 +56,10 @@ export default function AdminLayout({ children }) {
         <span className="admin-mobile-title">TechDesk Admin</span>
       </div>
 
-      {/* Sidebar overlay for mobile */}
       {sidebarOpen && (
         <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
           <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -114,7 +112,6 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="admin-main">
         {children}
       </main>
