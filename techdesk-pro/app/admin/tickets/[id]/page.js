@@ -1,3 +1,5 @@
+// File: app/admin/tickets/[id]/page.js (replace existing)
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'

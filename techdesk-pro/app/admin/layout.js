@@ -1,3 +1,5 @@
+// File: app/admin/layout.js (replace existing)
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -12,6 +14,7 @@ const supabase = createBrowserClient(
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
   { label: 'Tickets', href: '/admin/tickets', icon: '🎫' },
+  { label: 'Documents', href: '/admin/documents', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
   { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ]
