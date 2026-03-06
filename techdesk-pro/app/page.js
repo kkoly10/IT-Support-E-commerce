@@ -51,6 +51,7 @@ const SECONDARY_SERVICES = [
     title: 'E-Commerce Support & Integrations',
     desc: 'Store setup help, platform fixes, app integrations, payment support, inventory workflows, and ongoing operational support for businesses that sell online.',
     price: 'From $250/mo add-on or $750/project',
+    note: 'Available as an add-on, standalone retainer, or scoped project.',
     cta: 'Explore E-Commerce Services',
     href: '/ecommerce',
   },
@@ -58,6 +59,7 @@ const SECONDARY_SERVICES = [
     title: 'AI Workflow Automation',
     desc: 'AI-assisted workflows for forms, documents, intake routing, repetitive admin tasks, reporting, and process improvement across your operations.',
     price: 'From $750/project',
+    note: 'Available as an assessment, project build, or maintenance support.',
     cta: 'Explore Automation Services',
     href: '/automation',
   },
@@ -161,6 +163,13 @@ const HERO_POINTS = [
   { title: 'Human-supervised AI', desc: 'AI helps speed up workflows, but human oversight remains part of delivery' },
 ]
 
+const BEST_FIT = [
+  '1–15 user teams',
+  'Remote-first businesses',
+  'Google Workspace or Microsoft 365 environments',
+  'Businesses needing support plus operational help',
+]
+
 const STEPS = [
   {
     n: '01',
@@ -184,6 +193,24 @@ const STEPS = [
   },
 ]
 
+const ASSESSMENT_FLOW = [
+  {
+    n: '01',
+    t: 'We review your current setup',
+    d: 'We look at your tools, support needs, team size, and operational friction points.',
+  },
+  {
+    n: '02',
+    t: 'We recommend the right support path',
+    d: 'You get a sensible recommendation instead of being pushed into the biggest plan.',
+  },
+  {
+    n: '03',
+    t: 'You decide whether to move forward',
+    d: 'No-pressure next step. Move ahead only if the scope and approach make sense for your business.',
+  },
+]
+
 const ABOUT_FEATURES = [
   { icon: '📍', text: 'Founder-led, based in Virginia' },
   { icon: '💻', text: 'Remote-first support model' },
@@ -196,6 +223,21 @@ const ABOUT_BARS = [
   { label: 'Remote-first delivery', val: 100 },
   { label: 'Human oversight', val: 100 },
   { label: 'Pilot-stage honesty', val: 100 },
+]
+
+const FOUNDER_PROOF = [
+  {
+    title: 'Founder-led support model',
+    desc: 'Built by a founder actively developing the public site, client portal, admin workflows, and AI-assisted support systems behind the service.',
+  },
+  {
+    title: 'Platform-minded operations',
+    desc: 'The business is designed around actual workflows — tickets, portal access, documents, training, and operational visibility — not just marketing copy.',
+  },
+  {
+    title: 'Practical over performative',
+    desc: 'Where client performance history is still being built, the site prioritizes clear service boundaries and realistic expectations over inflated claims.',
+  },
 ]
 
 export default function Home() {
@@ -286,18 +328,18 @@ export default function Home() {
             <div className="hero-tag">Remote-First Tech Support · U.S. Small Businesses</div>
 
             <h1>
-              Managed tech support and operations for <em>growing small businesses</em>.
+              Remote-first tech support, cloud administration, and <em>workflow help</em> for small businesses.
             </h1>
 
             <p className="hero-desc">
-              TechDesk Pro provides remote-first IT helpdesk support, cloud administration, and
-              workflow help for small businesses — with AI-assisted workflows, human oversight, and
-              clear service boundaries.
+              TechDesk Pro helps small businesses handle day-to-day support, cloud tools, and
+              operational friction without hiring a full internal IT team — with AI-assisted
+              workflows, human oversight, and clear service boundaries.
             </p>
 
             <div className="hero-btns">
               <button className="btn-primary" onClick={() => scrollTo('contact')}>
-                Get Free Assessment →
+                Request Free Assessment →
               </button>
               <button className="btn-secondary" onClick={() => scrollTo('services')}>
                 See Services
@@ -310,10 +352,11 @@ export default function Home() {
                 fontSize: '0.88rem',
                 color: 'var(--ink-muted)',
                 lineHeight: 1.7,
-                maxWidth: 520,
+                maxWidth: 540,
               }}
             >
-              Currently onboarding a limited number of pilot clients.
+              Currently onboarding a limited number of pilot clients while support workflows,
+              onboarding, and client experience continue to be refined.
             </div>
           </div>
 
@@ -359,6 +402,48 @@ export default function Home() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ——— BEST FIT ——— */}
+      <section className="section section-alt">
+        <div className="section-inner">
+          <div className="section-header" style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div className="section-tag">Best Fit</div>
+            <h2 className="section-title">Built for businesses that need practical support without full-time internal IT.</h2>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {BEST_FIT.map((item, i) => (
+              <div
+                key={i}
+                className="stat"
+                style={{
+                  padding: 22,
+                  textAlign: 'center',
+                  borderRadius: 16,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Source Serif 4', serif",
+                    fontSize: '1.02rem',
+                    fontWeight: 600,
+                    color: 'var(--ink)',
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {item}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -425,8 +510,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— SECONDARY SERVICES ——— */}
+      {/* ——— WHAT HAPPENS NEXT ——— */}
       <section className="section">
+        <div className="section-inner">
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-tag">What Happens Next</div>
+            <h2 className="section-title">A free assessment is a conversation, not a trap.</h2>
+            <p className="section-desc" style={{ margin: '12px auto 0' }}>
+              The goal is to understand your setup, recommend the most sensible path, and let you
+              decide whether moving forward makes sense.
+            </p>
+          </div>
+
+          <div className="steps">
+            {ASSESSMENT_FLOW.map((item, i) => (
+              <div key={i} className="step">
+                <div className="step-num">{item.n}</div>
+                <div className="step-title">{item.t}</div>
+                <div className="step-desc">{item.d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ——— SECONDARY SERVICES ——— */}
+      <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Specialized Services</div>
@@ -444,7 +553,8 @@ export default function Home() {
                 <div className="plan-name" style={{ fontSize: '1.35rem' }}>
                   {service.title}
                 </div>
-                <div className="plan-desc" style={{ marginTop: 10, marginBottom: 20 }}>
+
+                <div className="plan-desc" style={{ marginTop: 10, marginBottom: 18 }}>
                   {service.desc}
                 </div>
 
@@ -454,10 +564,21 @@ export default function Home() {
                     fontSize: '1.35rem',
                     fontWeight: 600,
                     color: 'var(--teal)',
-                    marginBottom: 24,
+                    marginBottom: 10,
                   }}
                 >
                   {service.price}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '0.84rem',
+                    color: 'var(--ink-muted)',
+                    lineHeight: 1.65,
+                    marginBottom: 24,
+                  }}
+                >
+                  {service.note}
                 </div>
 
                 <a href={service.href} className="plan-btn plan-btn-outline">
@@ -470,7 +591,7 @@ export default function Home() {
       </section>
 
       {/* ——— PRICING ——— */}
-      <section id="pricing" className="section section-alt">
+      <section id="pricing" className="section">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Pricing</div>
@@ -526,9 +647,39 @@ export default function Home() {
           </div>
 
           <p className="pricing-note">
+            Not sure which plan fits? Start with a free assessment and we’ll recommend the most sensible support path.
+          </p>
+          <p className="pricing-note" style={{ marginTop: 8 }}>
             Standard support covers routine support requests. Projects, migrations, e-commerce
             builds, custom automations, major remediation, and after-hours work are scoped separately.
           </p>
+        </div>
+      </section>
+
+      {/* ——— FOUNDER / TRUST ——— */}
+      <section className="section section-alt">
+        <div className="section-inner">
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-tag">Why This Approach</div>
+            <h2 className="section-title">Founder-led, platform-minded, and built around real operations.</h2>
+            <p className="section-desc" style={{ margin: '12px auto 0' }}>
+              TechDesk Pro is being built as an actual support platform — not just a sales page —
+              with client access, admin workflows, documents, training, and AI-assisted support systems behind it.
+            </p>
+          </div>
+
+          <div className="pricing-grid" style={{ alignItems: 'stretch' }}>
+            {FOUNDER_PROOF.map((item, i) => (
+              <div key={i} className="plan">
+                <div className="plan-name" style={{ fontSize: '1.28rem' }}>
+                  {item.title}
+                </div>
+                <div className="plan-desc" style={{ marginTop: 12, lineHeight: 1.75 }}>
+                  {item.desc}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -590,7 +741,7 @@ export default function Home() {
                 }}
               >
                 Public metrics are intentionally conservative. Where performance data is not yet backed
-                by real client history, we prefer process clarity over inflated claims.
+                by real client history, the site prioritizes process clarity over inflated claims.
               </div>
             </div>
           </div>
@@ -629,7 +780,10 @@ export default function Home() {
           </p>
 
           <div className="cta-btns">
-            <button className="cta-btn-white" onClick={() => window.location.assign('/support-transparency')}>
+            <button
+              className="cta-btn-white"
+              onClick={() => window.location.assign('/support-transparency')}
+            >
               Review Support Policy
             </button>
             <a href="mailto:hello@techdeskpro.com" className="cta-btn-ghost">
