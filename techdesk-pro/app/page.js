@@ -1,48 +1,65 @@
-// File: app/page.js (replace existing)
-
 'use client'
 import { useState, useEffect } from 'react'
 
-const SERVICES = [
+const CORE_SERVICES = [
   {
     num: '01',
     title: 'IT Helpdesk & Support',
-    desc: 'Email issues, account lockouts, software troubleshooting, hardware guidance, remote desktop support — your team gets fast, reliable IT help without hiring in-house.',
-    features: ['Email & account support', 'Software troubleshooting', 'Remote desktop access', 'Device management', 'Same-day response'],
+    desc: 'Remote-first support for the day-to-day issues that slow teams down — login problems, email issues, software troubleshooting, device guidance, and routine user support.',
+    features: [
+      'Email & account support',
+      'Software troubleshooting',
+      'Remote desktop help',
+      'Device guidance',
+      'Routine user support',
+    ],
     price: 'Included',
-    priceNote: 'in every plan',
+    priceNote: 'in monthly plans',
   },
   {
     num: '02',
     title: 'Cloud & SaaS Management',
-    desc: 'We manage your cloud stack — Google Workspace, Microsoft 365, Slack, Zoom, CRM, project management tools. Setup, migrations, user provisioning, and ongoing support.',
-    features: ['Google Workspace & M365', 'SaaS app management', 'User provisioning', 'Cloud migrations', 'License optimization'],
+    desc: 'Support for the platforms your business already depends on — Google Workspace, Microsoft 365, Slack, Zoom, CRM tools, and other core business software.',
+    features: [
+      'Google Workspace & M365',
+      'User provisioning',
+      'Platform admin help',
+      'Routine SaaS support',
+      'Cloud environment guidance',
+    ],
     price: 'Included',
     priceNote: 'in Growth+',
   },
   {
     num: '03',
-    title: 'Business Process Automation',
-    desc: 'AI-powered document processing, workflow automation, and data extraction. Turn manual tasks into automated pipelines — invoices, forms, reports, and more.',
-    features: ['AI document processing', 'Workflow automation', 'Data extraction & entry', 'Custom integrations', 'Monthly reporting'],
-    price: '$500–$3,000',
-    priceNote: 'per project',
+    title: 'Workflow Support & Automation',
+    desc: 'Operational help for businesses doing too much manually. We help improve workflows, reduce repetitive admin work, and scope automation opportunities when needed.',
+    features: [
+      'Workflow review',
+      'Process improvement',
+      'Automation scoping',
+      'Reporting support',
+      'Project-based automation builds',
+    ],
+    price: 'Quoted',
+    priceNote: 'as needed',
+  },
+]
+
+const SECONDARY_SERVICES = [
+  {
+    title: 'E-Commerce Support & Integrations',
+    desc: 'Store setup help, platform fixes, app integrations, payment support, inventory workflows, and ongoing operational support for businesses that sell online.',
+    price: 'From $250/mo add-on or $750/project',
+    cta: 'Explore E-Commerce Services',
+    href: '/ecommerce',
   },
   {
-    num: '04',
-    title: 'Cybersecurity Essentials',
-    desc: 'Protect your business with proactive security monitoring, threat detection, employee training, and incident response. Enterprise-grade protection at small business prices.',
-    features: ['Security monitoring', 'Threat detection', 'Employee training', 'Incident response', 'Compliance support'],
-    price: '+$300',
-    priceNote: 'added to any plan',
-  },
-  {
-    num: '05',
-    title: 'E-Commerce Operations',
-    desc: 'Shopify, Wix, WooCommerce, Squarespace — we build, manage, and optimize your online store. From setup to ongoing support, integrations, and performance tuning.',
-    features: ['Store setup & launch', 'Platform migrations', 'App integrations', 'Performance optimization', 'Ongoing maintenance'],
-    price: '$500–$5,000',
-    priceNote: 'per project',
+    title: 'AI Workflow Automation',
+    desc: 'AI-assisted workflows for forms, documents, intake routing, repetitive admin tasks, reporting, and process improvement across your operations.',
+    price: 'From $750/project',
+    cta: 'Explore Automation Services',
+    href: '/automation',
   },
 ]
 
@@ -50,66 +67,135 @@ const PLANS = [
   {
     name: 'Starter',
     price: '499',
-    desc: 'For small teams getting started',
-    features: ['10 support tickets/mo', 'IT helpdesk support', 'Email & account help', 'AI-powered Atlas copilot', '24hr response time'],
-    cta: 'Get Started',
+    desc: 'Best for 1–5 users',
+    features: [
+      'Up to 10 standard support tickets per month',
+      'Business-hours IT helpdesk support',
+      'Email, login, and account troubleshooting',
+      'Remote software and device guidance',
+      'Client portal access',
+      'First response within 1 business day',
+    ],
+    cta: 'Book Free Assessment',
     featured: false,
   },
   {
     name: 'Growth',
     price: '999',
-    desc: 'For growing businesses',
-    features: ['30 support tickets/mo', 'Full cloud & SaaS management', 'AI document processing', 'Sentinel AI monitoring', 'Priority support — 4hr response', 'Monthly strategy call'],
-    cta: 'Start Growing',
+    desc: 'Best for 5–15 users',
+    features: [
+      'Up to 30 standard support tickets per month',
+      'Business-hours IT helpdesk support',
+      'Cloud & SaaS administration',
+      'User onboarding and offboarding support',
+      'Routine admin help for supported platforms',
+      'Monthly review call',
+      'First response within 4 business hours',
+    ],
+    cta: 'Start with Growth',
     featured: true,
   },
   {
     name: 'Scale',
+    priceLabel: 'Starting at',
     price: '1,999',
-    desc: 'For established companies',
-    features: ['Unlimited tickets', 'All services included', 'Cybersecurity essentials', 'Dedicated account manager', '1hr response time', 'Weekly check-in call', 'Custom automation builds'],
-    cta: "Let's Talk",
+    desc: 'Best for 15+ users or more complex environments',
+    features: [
+      'Custom support volume based on team size and environment',
+      'Priority business-hours support',
+      'Broader cloud and systems administration',
+      'Workflow planning and operational support',
+      'Optional security-focused support',
+      'Strategic check-ins',
+      'First response within 2 business hours',
+    ],
+    cta: 'Talk About Scale',
     featured: false,
   },
 ]
 
 const FAQS = [
-  { q: 'Do I need to sign a long-term contract?', a: 'No. All plans are month-to-month. You can cancel anytime with 30 days notice.' },
-  { q: "We're not an e-commerce business. Can you still help?", a: "Absolutely. Most of our clients are regular businesses — law firms, agencies, medical offices, startups. E-commerce is just one of our specialties. Our IT support, cloud management, and automation services work for any industry." },
-  { q: 'How does the AI-powered support work?', a: 'When you submit a ticket, our AI (AutoResolve) analyzes it instantly. Simple issues get resolved automatically — password resets, how-to questions, configuration help. Complex issues get routed to our team with AI-generated context, so we resolve them faster. You also get Atlas AI, a business copilot you can chat with anytime.' },
-  { q: 'What size businesses do you work with?', a: 'From solo founders to 200+ employee companies. Our plans scale with your needs. Starter works great for 1-10 people, Growth for 10-50, and Scale for 50+.' },
-  { q: 'How is this different from hiring an IT person?', a: 'An in-house IT hire costs $60-100K/year plus benefits. You get a full team of specialists plus AI-powered tools for a fraction of that. We handle everything from helpdesk to cloud management to automation — no single hire covers all of that.' },
-  { q: 'What does the free assessment include?', a: "We review your current IT infrastructure, cloud tools, security posture, and workflows — then give you a prioritized list of improvements with cost estimates. No strings attached." },
+  {
+    q: 'Do I need a long-term contract?',
+    a: 'No. Monthly support plans are designed to be straightforward and flexible. Final billing, notice periods, and service terms are governed by your written agreement.',
+  },
+  {
+    q: 'What counts as a support ticket?',
+    a: 'A standard support ticket is one routine request for help involving one issue, one user, or one related service interruption requiring review, triage, and action.',
+  },
+  {
+    q: 'What is not included as a standard ticket?',
+    a: 'Projects, migrations, custom automations, website or store builds, major remediation, onsite work, and planned after-hours work are scoped separately unless specifically included in a written agreement.',
+  },
+  {
+    q: 'What counts as an emergency?',
+    a: 'An emergency is a business-critical outage, suspected security incident, or major service disruption with material operational impact and no reasonable workaround. Routine one-user issues usually do not qualify as emergencies.',
+  },
+  {
+    q: 'How does AI fit into the service?',
+    a: 'We use AI-assisted tools to speed up triage, organize requests, support workflow automation, and help surface answers faster. Human oversight remains part of service delivery.',
+  },
+  {
+    q: 'Do you provide on-site support?',
+    a: 'TechDesk Pro is currently a remote-first service. On-site support is not part of the standard offering at this stage.',
+  },
 ]
 
-const TOOLS = ['Google Workspace', 'Microsoft 365', 'Slack', 'Shopify', 'QuickBooks', 'Salesforce', 'Zoom', 'Zapier', 'HubSpot', 'AWS', 'Stripe', 'Notion']
+const TOOLS = [
+  'Google Workspace',
+  'Microsoft 365',
+  'Slack',
+  'Zoom',
+  'Shopify',
+  'QuickBooks',
+  'HubSpot',
+  'Stripe',
+  'Notion',
+  'Zapier',
+]
 
-const STATS = [
-  { val: '< 4hr', label: 'Avg Response' },
-  { val: '98%', label: 'Satisfaction' },
-  { val: '70%', label: 'Auto-Resolved' },
-  { val: '$0', label: 'Setup Fee' },
+const HERO_POINTS = [
+  { title: 'Business-hours support', desc: 'Monday–Friday, 9:00 AM–6:00 PM ET' },
+  { title: 'Remote-first model', desc: 'Built for U.S. small businesses that need practical support without an internal IT team' },
+  { title: 'Clear scope boundaries', desc: 'Standard support, project work, and specialized services are defined separately' },
+  { title: 'Human-supervised AI', desc: 'AI helps speed up workflows, but human oversight remains part of delivery' },
 ]
 
 const STEPS = [
-  { n: '01', t: 'Free Assessment', d: 'We audit your IT setup, tools, and workflows. You get a clear picture of where things stand.' },
-  { n: '02', t: 'Custom Plan', d: 'We recommend the right plan and services based on your actual business needs.' },
-  { n: '03', t: 'Onboarding', d: 'Connect your platforms, set up your support portal, and meet your AI copilot — all within 24 hours.' },
-  { n: '04', t: 'We Handle It', d: 'Submit tickets anytime. AI handles the easy stuff instantly. Our team tackles the rest.' },
-]
-
-const BARS = [
-  { label: 'Response Speed', val: 95 },
-  { label: 'Issue Resolution', val: 98 },
-  { label: 'Client Satisfaction', val: 100 },
-  { label: 'Uptime Guarantee', val: 99 },
+  {
+    n: '01',
+    t: 'Request a Free Assessment',
+    d: 'Tell us about your business, tools, and support needs so we can understand the environment you are working with.',
+  },
+  {
+    n: '02',
+    t: 'Get a Clear Recommendation',
+    d: 'We recommend the right support path based on team size, support volume, and operational complexity.',
+  },
+  {
+    n: '03',
+    t: 'Onboard Your Team',
+    d: 'We align on access, support scope, communication flow, and the platforms that will be supported.',
+  },
+  {
+    n: '04',
+    t: 'Use Support as Needed',
+    d: 'Submit routine requests through the support workflow, and scope larger projects separately when needed.',
+  },
 ]
 
 const ABOUT_FEATURES = [
-  { icon: '📍', text: 'Stafford, VA based' },
-  { icon: '🤖', text: 'AI-powered operations' },
-  { icon: '🔒', text: 'Security-first approach' },
-  { icon: '📋', text: 'No long-term contracts' },
+  { icon: '📍', text: 'Founder-led, based in Virginia' },
+  { icon: '💻', text: 'Remote-first support model' },
+  { icon: '🤖', text: 'AI-assisted, human-supervised workflows' },
+  { icon: '📋', text: 'Clear support boundaries and scoped projects' },
+]
+
+const ABOUT_BARS = [
+  { label: 'Clarity of scope', val: 100 },
+  { label: 'Remote-first delivery', val: 100 },
+  { label: 'Human oversight', val: 100 },
+  { label: 'Pilot-stage honesty', val: 100 },
 ]
 
 export default function Home() {
@@ -137,6 +223,7 @@ export default function Home() {
             <div className="logo-mark">T</div>
             TechDesk Pro
           </div>
+
           <ul className="nav-links">
             {['Services', 'Pricing', 'About', 'FAQ'].map((link) => (
               <li key={link} style={{ listStyle: 'none' }}>
@@ -144,22 +231,44 @@ export default function Home() {
               </li>
             ))}
           </ul>
+
           <div className="nav-actions">
-            <a href="/login" style={{ fontSize: '0.88rem', color: 'var(--ink-light)', textDecoration: 'none', fontWeight: 500 }}>Client Portal</a>
-            <button className="nav-cta" onClick={() => scrollTo('contact')}>Free Assessment</button>
+            <a
+              href="/login"
+              style={{
+                fontSize: '0.88rem',
+                color: 'var(--ink-light)',
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
+              Client Portal
+            </a>
+            <button className="nav-cta" onClick={() => scrollTo('contact')}>
+              Free Assessment
+            </button>
           </div>
+
           <button
             className={`hamburger ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Open navigation menu"
           >
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
           </button>
         </div>
+
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
           {['Services', 'Pricing', 'About', 'FAQ'].map((link) => (
-            <a key={link} onClick={() => scrollTo(link.toLowerCase())}>{link}</a>
+            <a key={link} onClick={() => scrollTo(link.toLowerCase())}>
+              {link}
+            </a>
           ))}
-          <a href="/login" style={{ color: 'var(--teal)', fontWeight: 600 }}>Client Portal</a>
+          <a href="/login" style={{ color: 'var(--teal)', fontWeight: 600 }}>
+            Client Portal
+          </a>
           <button
             className="nav-cta"
             style={{ textAlign: 'center', marginTop: 8 }}
@@ -174,14 +283,18 @@ export default function Home() {
       <section className="hero">
         <div className="hero-inner">
           <div>
-            <div className="hero-tag">AI-Powered IT Operations · Based in Stafford, VA</div>
+            <div className="hero-tag">Remote-First Tech Support · U.S. Small Businesses</div>
+
             <h1>
-              Your IT Department — <em>Powered&nbsp;by&nbsp;AI</em> — Without&nbsp;the&nbsp;Overhead.
+              Managed tech support and operations for <em>growing small businesses</em>.
             </h1>
+
             <p className="hero-desc">
-              Managed IT support, cloud operations, and business automation for growing companies.
-              AI handles the routine. Our team handles the rest. No hiring headaches. No six-figure salaries.
+              TechDesk Pro provides remote-first IT helpdesk support, cloud administration, and
+              workflow help for small businesses — with AI-assisted workflows, human oversight, and
+              clear service boundaries.
             </p>
+
             <div className="hero-btns">
               <button className="btn-primary" onClick={() => scrollTo('contact')}>
                 Get Free Assessment →
@@ -190,21 +303,59 @@ export default function Home() {
                 See Services
               </button>
             </div>
+
+            <div
+              style={{
+                marginTop: 20,
+                fontSize: '0.88rem',
+                color: 'var(--ink-muted)',
+                lineHeight: 1.7,
+                maxWidth: 520,
+              }}
+            >
+              Currently onboarding a limited number of pilot clients.
+            </div>
           </div>
+
           <div className="hero-visual">
+            <div className="section-tag" style={{ marginBottom: 16 }}>
+              How TechDesk Pro Works
+            </div>
+
             <div className="stats-grid">
-              {STATS.map((s, i) => (
-                <div key={i} className="stat">
-                  <div className="stat-val">{s.val}</div>
-                  <div className="stat-label">{s.label}</div>
+              {HERO_POINTS.map((item, i) => (
+                <div key={i} className="stat" style={{ textAlign: 'left' }}>
+                  <div
+                    style={{
+                      fontFamily: "'Source Serif 4', serif",
+                      fontSize: '1.05rem',
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      marginBottom: 6,
+                    }}
+                  >
+                    {item.title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.82rem',
+                      color: 'var(--ink-muted)',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.desc}
+                  </div>
                 </div>
               ))}
             </div>
+
             <div className="tools-row">
-              <div className="tools-label">Platforms We Manage</div>
+              <div className="tools-label">Supported Platforms</div>
               <div className="tools-list">
-                {TOOLS.map((t) => (
-                  <span key={t} className="tool-tag">{t}</span>
+                {TOOLS.map((tool) => (
+                  <span key={tool} className="tool-tag">
+                    {tool}
+                  </span>
                 ))}
               </div>
             </div>
@@ -216,23 +367,32 @@ export default function Home() {
       <section id="services" className="section">
         <div className="section-inner">
           <div className="section-header">
-            <div className="section-tag">Services</div>
-            <h2 className="section-title">Everything your business needs to run smoothly.</h2>
-            <p className="section-desc">From IT helpdesk to cloud management to AI automation — one partner for all your technology operations.</p>
+            <div className="section-tag">Core Services</div>
+            <h2 className="section-title">Day-to-day support for the systems your business depends on.</h2>
+            <p className="section-desc">
+              Our core services are built around practical support, cloud administration, and
+              workflow help for small businesses that need reliable remote support without building
+              a full in-house IT team.
+            </p>
           </div>
+
           <div className="services-grid">
-            {SERVICES.map((s, i) => (
+            {CORE_SERVICES.map((s, i) => (
               <div key={i} className="service-card">
                 <div className="service-num">{s.num}</div>
+
                 <div>
                   <div className="service-title">{s.title}</div>
                   <p className="service-desc">{s.desc}</p>
                   <div className="service-features">
                     {s.features.map((f, j) => (
-                      <span key={j} className="service-feat">{f}</span>
+                      <span key={j} className="service-feat">
+                        {f}
+                      </span>
                     ))}
                   </div>
                 </div>
+
                 <div className="service-price">
                   <div className="service-price-val">{s.price}</div>
                   <div className="service-price-note">{s.priceNote}</div>
@@ -247,7 +407,12 @@ export default function Home() {
       <section className="section section-alt">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <div className="section-tag">How It Works</div>
-          <h2 className="section-title">Up and running in 24 hours.</h2>
+          <h2 className="section-title">A simple support path from assessment to ongoing help.</h2>
+          <p className="section-desc" style={{ margin: '12px auto 0' }}>
+            We keep the process straightforward: assess the environment, recommend the right support
+            path, onboard carefully, and define where standard support ends and project work begins.
+          </p>
+
           <div className="steps">
             {STEPS.map((s, i) => (
               <div key={i} className="step">
@@ -260,28 +425,44 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— AI SECTION ——— */}
+      {/* ——— SECONDARY SERVICES ——— */}
       <section className="section">
-        <div className="section-inner" style={{ textAlign: 'center' }}>
-          <div className="section-tag">AI-Powered</div>
-          <h2 className="section-title">Not your typical IT provider.</h2>
-          <p className="section-desc" style={{ margin: '12px auto 48px', maxWidth: 600 }}>
-            Every client gets access to our proprietary AI suite — tools that make your IT support faster, smarter, and more proactive than anything else on the market.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, textAlign: 'left' }}>
-            {[
-              { icon: '🧠', name: 'Atlas AI', desc: 'Your 24/7 business copilot. Ask it anything about your tech setup, get instant answers.' },
-              { icon: '⚡', name: 'AutoResolve', desc: 'AI solves 70% of tickets instantly — password resets, how-tos, config issues. No waiting.' },
-              { icon: '👻', name: 'Ghost Admin', desc: 'AI drafts expert replies and teaches our team how to fix complex issues faster.' },
-              { icon: '🛡️', name: 'Sentinel AI', desc: 'Monitors your systems 24/7. Catches downtime, SLA breaches, and anomalies before you do.' },
-            ].map((ai, i) => (
-              <div key={i} style={{
-                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16,
-                padding: 24, transition: 'all 0.3s'
-              }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: 10 }}>{ai.icon}</div>
-                <div style={{ fontFamily: "'Source Serif 4', serif", fontWeight: 600, fontSize: '1.1rem', marginBottom: 6, color: 'var(--ink)' }}>{ai.name}</div>
-                <div style={{ fontSize: '0.88rem', color: 'var(--ink-muted)', lineHeight: 1.6 }}>{ai.desc}</div>
+        <div className="section-inner">
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <div className="section-tag">Specialized Services</div>
+            <h2 className="section-title">Need more than support? We also build operational systems.</h2>
+            <p className="section-desc" style={{ margin: '12px auto 0' }}>
+              Beyond core tech support, we also help businesses improve e-commerce operations and
+              automate repetitive workflows. These services are scoped separately or added onto
+              ongoing support plans.
+            </p>
+          </div>
+
+          <div className="pricing-grid" style={{ alignItems: 'stretch' }}>
+            {SECONDARY_SERVICES.map((service, i) => (
+              <div key={i} className="plan">
+                <div className="plan-name" style={{ fontSize: '1.35rem' }}>
+                  {service.title}
+                </div>
+                <div className="plan-desc" style={{ marginTop: 10, marginBottom: 20 }}>
+                  {service.desc}
+                </div>
+
+                <div
+                  style={{
+                    fontFamily: "'Source Serif 4', serif",
+                    fontSize: '1.35rem',
+                    fontWeight: 600,
+                    color: 'var(--teal)',
+                    marginBottom: 24,
+                  }}
+                >
+                  {service.price}
+                </div>
+
+                <a href={service.href} className="plan-btn plan-btn-outline">
+                  {service.cta}
+                </a>
               </div>
             ))}
           </div>
@@ -293,27 +474,47 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Pricing</div>
-            <h2 className="section-title">Simple, transparent pricing.</h2>
+            <h2 className="section-title">Simple monthly support for growing businesses.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              No hidden fees. No long contracts. Scales with your business.
+              Choose the plan that fits your team size and support needs. Standard support is billed
+              monthly. Projects, migrations, custom automations, and e-commerce builds are scoped separately.
             </p>
           </div>
+
           <div className="pricing-grid">
             {PLANS.map((plan, i) => (
               <div key={i} className={`plan ${plan.featured ? 'featured' : ''}`}>
                 {plan.featured && <div className="plan-badge">Most Popular</div>}
+
                 <div className="plan-name">{plan.name}</div>
                 <div className="plan-desc">{plan.desc}</div>
+
                 <div className="plan-price">
                   <span className="plan-dollar">$</span>
                   <span className="plan-amount">{plan.price}</span>
                   <span className="plan-period">/mo</span>
                 </div>
+
+                {plan.priceLabel ? (
+                  <div
+                    style={{
+                      marginTop: -18,
+                      marginBottom: 24,
+                      fontSize: '0.82rem',
+                      color: 'var(--ink-muted)',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {plan.priceLabel}
+                  </div>
+                ) : null}
+
                 <ul className="plan-features">
                   {plan.features.map((f, j) => (
                     <li key={j}>{f}</li>
                   ))}
                 </ul>
+
                 <button
                   className={`plan-btn ${plan.featured ? 'plan-btn-primary' : 'plan-btn-outline'}`}
                   onClick={() => scrollTo('contact')}
@@ -323,8 +524,10 @@ export default function Home() {
               </div>
             ))}
           </div>
+
           <p className="pricing-note">
-            Custom projects (automation builds, migrations, store setups) are quoted separately. Cybersecurity add-on: +$300/mo.
+            Standard support covers routine support requests. Projects, migrations, e-commerce
+            builds, custom automations, major remediation, and after-hours work are scoped separately.
           </p>
         </div>
       </section>
@@ -336,17 +539,22 @@ export default function Home() {
             <div className="about-text">
               <div className="section-tag">About</div>
               <h2 className="section-title" style={{ marginBottom: 16 }}>
-                Built for businesses that can&apos;t afford downtime.
+                Built for businesses that need clarity, not tech chaos.
               </h2>
+
               <p>
-                TechDesk Pro was founded in Stafford, VA with one mission: give growing businesses
-                enterprise-grade IT operations without the enterprise price tag.
+                TechDesk Pro is a remote-first support business built to help small businesses
+                manage day-to-day tech issues, cloud tools, and operational workflows without hiring
+                a full internal tech team.
               </p>
+
               <p className="muted">
-                We combine hands-on expertise with cutting-edge AI tools to resolve issues faster,
-                automate manual work, and keep your operations running smoothly — whether you run
-                an online store, a law firm, or a 100-person company.
+                The approach is practical: clear monthly plans, honest service boundaries, AI-assisted
+                workflows where helpful, and human oversight throughout delivery. The goal is not to
+                sound bigger than reality — it is to provide structured, dependable support that businesses
+                can actually use.
               </p>
+
               <div className="about-features">
                 {ABOUT_FEATURES.map((f, i) => (
                   <div key={i} className="about-feat">
@@ -356,9 +564,10 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
             <div className="about-card">
-              <div className="about-card-label">Performance</div>
-              {BARS.map((b, i) => (
+              <div className="about-card-label">What we prioritize</div>
+              {ABOUT_BARS.map((b, i) => (
                 <div key={i} className="bar-group">
                   <div className="bar-label">
                     <span className="bar-label-text">{b.label}</span>
@@ -369,6 +578,20 @@ export default function Home() {
                   </div>
                 </div>
               ))}
+
+              <div
+                style={{
+                  marginTop: 24,
+                  paddingTop: 20,
+                  borderTop: '1px solid var(--border-light)',
+                  fontSize: '0.88rem',
+                  color: 'var(--ink-muted)',
+                  lineHeight: 1.7,
+                }}
+              >
+                Public metrics are intentionally conservative. Where performance data is not yet backed
+                by real client history, we prefer process clarity over inflated claims.
+              </div>
             </div>
           </div>
         </div>
@@ -381,13 +604,11 @@ export default function Home() {
             <div className="section-tag">FAQ</div>
             <h2 className="section-title">Common questions.</h2>
           </div>
+
           <div className="faq-list">
             {FAQS.map((faq, i) => (
               <div key={i} className="faq-item">
-                <button
-                  className="faq-q"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                >
+                <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   {faq.q}
                   <span className={`faq-arrow ${openFaq === i ? 'open' : ''}`}>+</span>
                 </button>
@@ -401,27 +622,24 @@ export default function Home() {
       {/* ——— CONTACT CTA ——— */}
       <section id="contact" className="cta-section">
         <div className="cta-card">
-          <h2>Ready to upgrade your IT operations?</h2>
+          <h2>Ready to improve your support operations?</h2>
           <p>
-            Book a free assessment. We&apos;ll audit your current setup and show you exactly
-            where AI-powered IT support can save you time, money, and headaches.
+            Start with a free assessment. We’ll review your current support needs, tools, and
+            operational pain points, then recommend the most sensible next step.
           </p>
+
           <div className="cta-btns">
-            <a
-              href="https://calendly.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cta-btn-white"
-            >
-              Book Free Assessment →
-            </a>
+            <button className="cta-btn-white" onClick={() => window.location.assign('/support-transparency')}>
+              Review Support Policy
+            </button>
             <a href="mailto:hello@techdeskpro.com" className="cta-btn-ghost">
               Send an Email
             </a>
           </div>
+
           <div className="cta-info">
-            <span>📍 Stafford, VA</span>
-            <span>✉️ hello@techdeskpro.com</span>
+            <span>Remote-first, U.S. small businesses</span>
+            <span>hello@techdeskpro.com</span>
             <span>Mon–Fri, 9am–6pm ET</span>
           </div>
         </div>
@@ -431,18 +649,30 @@ export default function Home() {
       <footer className="footer">
         <div className="footer-inner">
           <div className="logo" style={{ fontSize: '1rem' }}>
-            <div className="logo-mark" style={{ width: 28, height: 28, fontSize: '0.75rem', borderRadius: 7 }}>
+            <div
+              className="logo-mark"
+              style={{ width: 28, height: 28, fontSize: '0.75rem', borderRadius: 7 }}
+            >
               T
             </div>
             TechDesk Pro
           </div>
+
           <div className="footer-links">
             {['Services', 'Pricing', 'About', 'Contact'].map((link) => (
-              <a key={link} onClick={() => scrollTo(link.toLowerCase())}>{link}</a>
+              <a key={link} onClick={() => scrollTo(link.toLowerCase())}>
+                {link}
+              </a>
             ))}
-            <a href="/login" style={{ color: 'var(--teal)' }}>Client Portal</a>
+            <a href="/support-transparency">Support &amp; AI Transparency</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/login" style={{ color: 'var(--teal)' }}>
+              Client Portal
+            </a>
           </div>
-          <div className="footer-copy">© 2025 TechDesk Pro. Stafford, VA.</div>
+
+          <div className="footer-copy">© 2026 TechDesk Pro. Remote-first, based in Virginia.</div>
         </div>
       </footer>
     </main>
