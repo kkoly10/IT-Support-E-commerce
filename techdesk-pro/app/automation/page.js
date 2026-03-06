@@ -1,509 +1,148 @@
-'use client'
-import { useEffect, useState } from 'react'
+// File: app/automation/page.js (new — mkdir -p app/automation)
 
-const SERVICE_BLOCKS = [
-  {
-    num: '01',
-    title: 'Workflow Audits',
-    desc: 'Review the repetitive tasks, disconnected tools, and manual handoffs slowing your business down. We identify where automation makes sense and where a simpler process fix may be better.',
-    features: [
-      'Process review',
-      'Workflow bottleneck analysis',
-      'Tool-stack review',
-      'Automation opportunity mapping',
-      'Practical next-step recommendations',
-    ],
-    price: 'From $250',
-    priceNote: 'assessment',
-  },
-  {
-    num: '02',
-    title: 'Automation Builds',
-    desc: 'Design and implement scoped workflows for intake, routing, notifications, data movement, document handling, reporting, and other repetitive operational tasks.',
-    features: [
-      'Intake and routing workflows',
-      'Notifications and status updates',
-      'Data handoff automation',
-      'Document and form workflows',
-      'Operational workflow builds',
-    ],
-    price: 'From $750',
-    priceNote: 'project-based',
-  },
-  {
-    num: '03',
-    title: 'Ongoing Maintenance',
-    desc: 'Keep existing automations working as your tools, processes, and business needs change. Best for businesses that already rely on connected workflows and need ongoing support.',
-    features: [
-      'Automation monitoring',
-      'Broken workflow fixes',
-      'Light updates and tune-ups',
-      'Connection maintenance',
-      'Change support as processes evolve',
-    ],
-    price: 'From $150/mo',
-    priceNote: 'add-on support',
-  },
-]
-
-const PRICING_OPTIONS = [
-  {
-    name: 'Workflow Audit',
-    desc: 'Best for businesses still figuring out where automation would actually help',
-    price: '$250',
-    features: [
-      'Review current workflow pain points',
-      'Identify manual tasks worth fixing',
-      'Recommend practical next steps',
-      'Can be credited toward approved project work',
-    ],
-  },
-  {
-    name: 'Automation Projects',
-    desc: 'Best for businesses ready to build a defined workflow',
-    price: 'From $750',
-    features: [
-      'Scoped build based on business need',
-      'Quoted by complexity and tool stack',
-      'Good fit for intake, routing, reporting, and admin flows',
-      'Larger multi-step systems quoted separately',
-    ],
-    featured: true,
-  },
-  {
-    name: 'Maintenance & Support',
-    desc: 'Best for businesses with existing workflows that need upkeep',
-    price: 'From $150/mo',
-    features: [
-      'Available as an add-on or standalone support',
-      'Fix broken connections and light issues',
-      'Small updates and workflow tuning',
-      'Larger rebuilds scoped separately',
-    ],
-  },
-]
-
-const TOOL_TAGS = [
-  'Zapier',
-  'Make',
-  'Google Sheets',
-  'Notion',
-  'Slack',
-  'Stripe',
-  'QuickBooks',
-  'HubSpot',
-  'Shopify',
-  'Email workflows',
-]
-
-const USE_CASES = [
-  {
-    title: 'Businesses buried in repetitive admin work',
-    desc: 'A strong fit for teams copying data between tools, re-entering information, or managing too many manual handoffs.',
-  },
-  {
-    title: 'Teams with disconnected systems',
-    desc: 'Useful when forms, inboxes, spreadsheets, portals, and core apps are not working together cleanly.',
-  },
-  {
-    title: 'Operators who need practical workflows, not hype',
-    desc: 'Best for businesses that want AI-assisted automation where it helps, while keeping human oversight and process clarity.',
-  },
-]
-
-const FAQS = [
-  {
-    q: 'What kinds of workflows do you automate?',
-    a: 'Typical examples include intake routing, notifications, document handling, data transfer between tools, status updates, repetitive admin flows, and reporting support.',
-  },
-  {
-    q: 'Do you charge monthly or per project?',
-    a: 'Automation work is usually scoped as an assessment plus project fee, with optional monthly maintenance if ongoing support is needed.',
-  },
-  {
-    q: 'Do you include third-party software costs?',
-    a: 'No. Clients typically pay directly for third-party software such as automation platforms, store apps, or other tools. Our fees cover scoping, setup, implementation, and support.',
-  },
-  {
-    q: 'Does AI run everything automatically?',
-    a: 'No. We use AI-assisted tools where useful for classification, drafting, extraction, routing, or process support, but human oversight remains part of the workflow design and service delivery.',
-  },
-  {
-    q: 'Can this be added to ongoing IT support?',
-    a: 'Yes. Automation services can be scoped as separate projects or added onto a broader TechDesk Pro relationship when appropriate.',
-  },
-]
+export const metadata = {
+  title: 'AI Workflow Automation | TechDesk Pro',
+  description:
+    'Workflow audits, automation builds, AI-assisted process improvement, and ongoing maintenance for small businesses.',
+}
 
 export default function AutomationPage() {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [openFaq, setOpenFaq] = useState(null)
-  const [scrolled, setScrolled] = useState(false)
+  const projectPricing = [
+    { name: 'Simple Automation', range: '$750 – $1,500', desc: 'Single-workflow automation builds (e.g. form-to-spreadsheet, email triggers, basic routing)' },
+    { name: 'Standard System', range: '$1,500 – $3,500', desc: 'Multi-step automation systems connecting 2-3 platforms with error handling and notifications' },
+    { name: 'Advanced / AI-Assisted', range: '$3,500 – $7,500+', desc: 'Complex multi-platform workflows, AI-assisted document processing, custom routing logic' },
+  ]
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const scrollTo = (id) => {
-    setMenuOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const maintenancePricing = [
+    { name: 'Add-on (IT clients)', price: '+$150 – $400/mo', desc: 'Monitoring, updates, and support for existing automations' },
+    { name: 'Standalone', price: '$300 – $750/mo', desc: 'Full automation maintenance without an IT plan' },
+  ]
 
   return (
-    <main>
-      {/* ——— NAV ——— */}
-      <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
-        <div className="nav-inner">
-          <a href="/" className="logo" style={{ textDecoration: 'none' }}>
-            <div className="logo-mark">T</div>
-            TechDesk Pro
-          </a>
+    <main style={{ background: 'var(--bg)', minHeight: '100vh', padding: '120px 20px 80px' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto' }}>
+        <a href="/" style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', textDecoration: 'none', display: 'inline-block', marginBottom: 24 }}>← Back to homepage</a>
 
-          <ul className="nav-links">
-            {['Services', 'Pricing', 'FAQ', 'Contact'].map((link) => (
-              <li key={link} style={{ listStyle: 'none' }}>
-                <a onClick={() => scrollTo(link.toLowerCase())}>{link}</a>
-              </li>
-            ))}
-          </ul>
-
-          <div className="nav-actions">
-            <a
-              href="/"
-              style={{
-                fontSize: '0.88rem',
-                color: 'var(--ink-light)',
-                textDecoration: 'none',
-                fontWeight: 500,
-              }}
-            >
-              Back to Main Site
-            </a>
-            <button className="nav-cta" onClick={() => scrollTo('contact')}>
-              Workflow Assessment
-            </button>
-          </div>
-
-          <button
-            className={`hamburger ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Open navigation menu"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-        </div>
-
-        <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
-          {['Services', 'Pricing', 'FAQ', 'Contact'].map((link) => (
-            <a key={link} onClick={() => scrollTo(link.toLowerCase())}>
-              {link}
-            </a>
-          ))}
-          <a href="/" style={{ color: 'var(--teal)', fontWeight: 600 }}>
-            Back to Main Site
-          </a>
-          <button
-            className="nav-cta"
-            style={{ textAlign: 'center', marginTop: 8 }}
-            onClick={() => scrollTo('contact')}
-          >
-            Workflow Assessment
-          </button>
-        </div>
-      </nav>
-
-      {/* ——— HERO ——— */}
-      <section className="hero">
-        <div className="hero-inner">
-          <div>
-            <div className="hero-tag">Specialized Service · AI Workflow Automation</div>
-
-            <h1>
-              AI workflow automation for businesses doing <em>too much manually</em>.
-            </h1>
-
-            <p className="hero-desc">
-              We help businesses reduce repetitive admin work, improve handoffs, and build more
-              efficient operational workflows — with AI-assisted systems where useful and human
-              oversight where it matters.
-            </p>
-
-            <div className="hero-btns">
-              <button className="btn-primary" onClick={() => scrollTo('contact')}>
-                Book Workflow Assessment →
-              </button>
-              <button className="btn-secondary" onClick={() => scrollTo('services')}>
-                See Automation Services
-              </button>
-            </div>
-          </div>
-
-          <div className="hero-visual">
-            <div className="section-tag" style={{ marginBottom: 16 }}>
-              Best Fit
-            </div>
-
-            <div style={{ display: 'grid', gap: 14 }}>
-              {USE_CASES.map((item, i) => (
-                <div key={i} className="stat" style={{ textAlign: 'left' }}>
-                  <div
-                    style={{
-                      fontFamily: "'Source Serif 4', serif",
-                      fontSize: '1.02rem',
-                      fontWeight: 600,
-                      color: 'var(--ink)',
-                      marginBottom: 6,
-                    }}
-                  >
-                    {item.title}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.83rem',
-                      color: 'var(--ink-muted)',
-                      lineHeight: 1.65,
-                    }}
-                  >
-                    {item.desc}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="tools-row">
-              <div className="tools-label">Tools & Workflow Environments</div>
-              <div className="tools-list">
-                {TOOL_TAGS.map((tag) => (
-                  <span key={tag} className="tool-tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ——— SERVICES ——— */}
-      <section id="services" className="section">
-        <div className="section-inner">
-          <div className="section-header">
-            <div className="section-tag">Services</div>
-            <h2 className="section-title">Practical workflow systems for growing operations.</h2>
-            <p className="section-desc">
-              This service line is built for businesses that need more than advice. We help audit,
-              design, implement, and maintain operational workflows that reduce manual work and make
-              day-to-day processes more reliable.
-            </p>
-          </div>
-
-          <div className="services-grid">
-            {SERVICE_BLOCKS.map((s, i) => (
-              <div key={i} className="service-card">
-                <div className="service-num">{s.num}</div>
-
-                <div>
-                  <div className="service-title">{s.title}</div>
-                  <p className="service-desc">{s.desc}</p>
-                  <div className="service-features">
-                    {s.features.map((f, j) => (
-                      <span key={j} className="service-feat">
-                        {f}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="service-price">
-                  <div className="service-price-val">{s.price}</div>
-                  <div className="service-price-note">{s.priceNote}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ——— PRICING ——— */}
-      <section id="pricing" className="section section-alt">
-        <div className="section-inner" style={{ textAlign: 'center' }}>
-          <div className="section-tag">How Pricing Works</div>
-          <h2 className="section-title">Assessment first, then scoped build or support.</h2>
-          <p className="section-desc" style={{ margin: '12px auto 0' }}>
-            Automation work is usually sold as a workflow audit, a defined implementation project,
-            and optional ongoing maintenance. This keeps pricing aligned with scope and avoids vague,
-            all-inclusive promises.
-          </p>
-
-          <div className="pricing-grid" style={{ marginTop: 48 }}>
-            {PRICING_OPTIONS.map((option, i) => (
-              <div key={i} className={`plan ${option.featured ? 'featured' : ''}`}>
-                {option.featured && <div className="plan-badge">Best Starting Point</div>}
-
-                <div className="plan-name">{option.name}</div>
-                <div className="plan-desc">{option.desc}</div>
-
-                <div
-                  style={{
-                    fontFamily: "'Source Serif 4', serif",
-                    fontSize: '2.6rem',
-                    fontWeight: 600,
-                    color: 'var(--ink)',
-                    lineHeight: 1.05,
-                    marginBottom: 28,
-                    paddingBottom: 24,
-                    borderBottom: '1px solid var(--border-light)',
-                  }}
-                >
-                  {option.price}
-                </div>
-
-                <ul className="plan-features">
-                  {option.features.map((f, j) => (
-                    <li key={j}>{f}</li>
-                  ))}
-                </ul>
-
-                <button
-                  className={`plan-btn ${option.featured ? 'plan-btn-primary' : 'plan-btn-outline'}`}
-                  onClick={() => scrollTo('contact')}
-                >
-                  Discuss This Option
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <p className="pricing-note">
-            Third-party software subscriptions are typically paid directly by the client. TechDesk Pro
-            fees cover scoping, setup, implementation, and support.
+        <div style={{ marginBottom: 40 }}>
+          <div style={tagStyle}>Specialized Service</div>
+          <h1 style={h1Style}>AI Workflow Automation</h1>
+          <p style={{ fontSize: '1.05rem', color: 'var(--ink-light)', lineHeight: 1.7, maxWidth: 640 }}>
+            AI-assisted workflows for forms, documents, intake routing, repetitive admin tasks,
+            reporting, and process improvement across your operations.
           </p>
         </div>
-      </section>
 
-      {/* ——— HOW THIS HELPS ——— */}
-      <section className="section">
-        <div className="section-inner">
-          <div className="section-header" style={{ textAlign: 'center' }}>
-            <div className="section-tag">What This Helps With</div>
-            <h2 className="section-title">Reduce manual work without creating new chaos.</h2>
-            <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              The goal is not to automate everything. The goal is to improve the parts of your
-              operation that are repetitive, error-prone, or slowing your team down.
-            </p>
-          </div>
-
-          <div className="steps">
+        {/* How it works */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>How It Works</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 12 }}>
             {[
-              {
-                n: '01',
-                t: 'Forms & Intake',
-                d: 'Route submissions, collect the right data, and reduce manual follow-up after leads, requests, or internal submissions come in.',
-              },
-              {
-                n: '02',
-                t: 'Handoffs & Notifications',
-                d: 'Move information between people and tools more cleanly so work does not get stuck in inboxes or forgotten across apps.',
-              },
-              {
-                n: '03',
-                t: 'Documents & Data',
-                d: 'Support document handling, structured data extraction, and repetitive admin tasks that should not require the same manual steps every time.',
-              },
-              {
-                n: '04',
-                t: 'Reporting & Visibility',
-                d: 'Improve visibility into workflow status, recurring issues, or routine operational activity without depending entirely on manual updates.',
-              },
-            ].map((item, i) => (
-              <div key={i} className="step">
-                <div className="step-num">{item.n}</div>
-                <div className="step-title">{item.t}</div>
-                <div className="step-desc">{item.d}</div>
+              { n: '01', t: 'Workflow Audit', d: 'We review your current processes and identify where manual work, bottlenecks, or repetitive tasks can be improved or automated. The audit is $250 and can be credited toward project work.' },
+              { n: '02', t: 'Scope & Build', d: 'We scope the automation, select the right tools, build the workflow, test it, and document how it works.' },
+              { n: '03', t: 'Handoff & Maintenance', d: 'You get a working system with documentation. Optional ongoing maintenance keeps it running and adapts as your business changes.' },
+            ].map((step, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                  background: 'var(--teal-light)', color: 'var(--teal)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: '0.85rem',
+                }}>{step.n}</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--ink)', marginBottom: 4 }}>{step.t}</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--ink-light)', lineHeight: 1.65 }}>{step.d}</div>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ——— FAQ ——— */}
-      <section id="faq" className="section section-alt">
-        <div className="section-inner">
-          <div className="section-header" style={{ textAlign: 'center' }}>
-            <div className="section-tag">FAQ</div>
-            <h2 className="section-title">Common questions.</h2>
-          </div>
+        {/* What we automate */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>What We Help Automate</h2>
+          <ul style={ulStyle}>
+            <li>Form submissions and intake routing</li>
+            <li>Document processing and data extraction</li>
+            <li>Invoice and receipt handling</li>
+            <li>Client onboarding workflows</li>
+            <li>Report generation and delivery</li>
+            <li>Email and notification triggers</li>
+            <li>CRM and platform data sync</li>
+            <li>Repetitive admin tasks and manual data entry</li>
+            <li>Approval and escalation workflows</li>
+          </ul>
+        </section>
 
-          <div className="faq-list">
-            {FAQS.map((faq, i) => (
-              <div key={i} className="faq-item">
-                <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                  {faq.q}
-                  <span className={`faq-arrow ${openFaq === i ? 'open' : ''}`}>+</span>
-                </button>
-                {openFaq === i && <div className="faq-a">{faq.a}</div>}
-              </div>
+        {/* Tools */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Tools We Work With</h2>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {['Zapier', 'Make', 'Google Apps Script', 'Anthropic API', 'Webhooks', 'Custom integrations'].map(p => (
+              <span key={p} style={tagBadge}>{p}</span>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ——— CONTACT CTA ——— */}
-      <section id="contact" className="cta-section">
-        <div className="cta-card">
-          <h2>Need help cleaning up your workflows?</h2>
-          <p>
-            Start with a workflow assessment. We’ll review your current process pain points, tool
-            stack, and opportunities for practical automation before recommending a scoped next step.
+          <p style={{ ...pStyle, marginTop: 14 }}>
+            Clients pay directly for third-party tool subscriptions (Zapier, Make, etc.).
+            TechDesk Pro pricing covers scoping, setup, implementation, and support.
           </p>
+        </section>
 
-          <div className="cta-btns">
-            <a href="mailto:hello@techdeskpro.com?subject=Workflow%20Assessment" className="cta-btn-white">
-              Request Workflow Assessment →
-            </a>
-            <a href="/" className="cta-btn-ghost">
-              Back to Main Services
-            </a>
-          </div>
-
-          <div className="cta-info">
-            <span>Remote-first service</span>
-            <span>hello@techdeskpro.com</span>
-            <span>Assessment, build, and maintenance options</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ——— FOOTER ——— */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <a href="/" className="logo" style={{ fontSize: '1rem', textDecoration: 'none' }}>
-            <div
-              className="logo-mark"
-              style={{ width: 28, height: 28, fontSize: '0.75rem', borderRadius: 7 }}
-            >
-              T
+        {/* Audit */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Workflow Audit</h2>
+          <div style={cardStyle}>
+            <div style={{ fontFamily: "'Source Serif 4', serif", fontSize: '1.4rem', fontWeight: 600, color: 'var(--teal)', marginBottom: 6 }}>$250</div>
+            <div style={{ fontSize: '0.9rem', color: 'var(--ink-light)', lineHeight: 1.65 }}>
+              We review your current workflows, tools, and processes, then deliver a clear
+              recommendation of what to automate, estimated cost, and expected impact.
+              The audit fee can be credited toward project work if you move forward.
             </div>
-            TechDesk Pro
-          </a>
-
-          <div className="footer-links">
-            <a href="/">Main IT Services</a>
-            <a href="/ecommerce">E-Commerce Services</a>
-            <a href="/support-transparency">Support &amp; AI Transparency</a>
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/login" style={{ color: 'var(--teal)' }}>
-              Client Portal
-            </a>
           </div>
+        </section>
 
-          <div className="footer-copy">© 2026 TechDesk Pro. AI workflow automation services.</div>
+        {/* Project pricing */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Project Pricing</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 12 }}>
+            {projectPricing.map((tier, i) => (
+              <div key={i} style={cardStyle}>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--ink)' }}>{tier.name}</div>
+                <div style={{ fontFamily: "'Source Serif 4', serif", fontSize: '1.2rem', fontWeight: 600, color: 'var(--teal)', margin: '8px 0' }}>{tier.range}</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', lineHeight: 1.6 }}>{tier.desc}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Maintenance */}
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>Ongoing Maintenance</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
+            {maintenancePricing.map((tier, i) => (
+              <div key={i} style={cardStyle}>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--ink)' }}>{tier.name}</div>
+                <div style={{ fontFamily: "'Source Serif 4', serif", fontSize: '1.2rem', fontWeight: 600, color: 'var(--teal)', margin: '8px 0' }}>{tier.price}</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>{tier.desc}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA */}
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <a href="/#contact" style={{ ...ctaBtn }}>Request a Workflow Audit →</a>
         </div>
-      </footer>
+      </div>
     </main>
   )
 }
+
+const tagStyle = { fontSize: '0.75rem', fontWeight: 700, color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12, fontFamily: 'Outfit, sans-serif' }
+const h1Style = { fontFamily: "'Source Serif 4', serif", fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 600, color: 'var(--ink)', marginBottom: 12, letterSpacing: '-0.02em' }
+const h2Style = { fontFamily: "'Source Serif 4', serif", fontSize: '1.35rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 12 }
+const pStyle = { fontSize: '0.96rem', color: 'var(--ink-light)', lineHeight: 1.75, marginBottom: 12 }
+const ulStyle = { paddingLeft: 20, color: 'var(--ink-light)', lineHeight: 1.75, fontSize: '0.96rem' }
+const sectionStyle = { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '28px 24px', marginBottom: 18 }
+const cardStyle = { background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }
+const tagBadge = { padding: '6px 14px', borderRadius: 100, background: 'var(--teal-light)', color: 'var(--teal)', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Outfit, sans-serif' }
+const ctaBtn = { display: 'inline-block', padding: '14px 28px', background: 'var(--teal)', color: 'white', borderRadius: 10, textDecoration: 'none', fontWeight: 600, fontSize: '0.95rem', fontFamily: 'Outfit, sans-serif' }

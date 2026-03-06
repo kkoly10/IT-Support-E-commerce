@@ -5,22 +5,81 @@ import { useState, useEffect } from 'react'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
-  { label: 'Tickets', href: '/portal/tickets', icon: '🎫' },
-  { label: 'Atlas AI', href: '/portal/atlas', icon: '🧠' },
-  { label: 'Training', href: '/portal/training', icon: '🎓' },
-  { label: 'Documents', href: '/portal/documents', icon: '📄' },
-  { label: 'System Health', href: '/portal/health', icon: '🛡️' },
-  { label: 'Billing', href: '/portal/billing', icon: '💳' },
-  { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
-]
+// Service-aware nav configuration per README section 11
+const SERVICE_NAV = {
+  // Shared foundation — always visible
+  shared_top: [
+    { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+  ],
+  shared_bottom: [
+    { label: 'Documents', href: '/portal/documents', icon: '📄' },
+    { label: 'Billing', href: '/portal/billing', icon: '💳' },
+    { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
+  ],
+
+  // IT clients
+  it: [
+    { label: 'Support Requests', href: '/portal/tickets', icon: '🎫' },
+    { label: 'System Health', href: '/portal/health', icon: '🛡️' },
+    { label: 'Atlas Assistant', href: '/portal/atlas', icon: '🧠' },
+    { label: 'Training', href: '/portal/training', icon: '🎓' },
+  ],
+
+  // E-commerce clients
+  ecommerce: [
+    { label: 'Store Requests', href: '/portal/tickets', icon: '🛍️' },
+    { label: 'Integrations', href: '/portal/settings', icon: '🔗' },
+  ],
+
+  // Automation clients
+  automation: [
+    { label: 'Workflow Requests', href: '/portal/tickets', icon: '⚡' },
+    { label: 'Workflow Status', href: '/portal/documents', icon: '📋' },
+  ],
+}
+
+function buildNavItems(serviceTypes) {
+  const types = serviceTypes || ['it']
+  const items = [...SERVICE_NAV.shared_top]
+
+  // Track hrefs to avoid duplicates
+  const addedHrefs = new Set(items.map(i => i.href))
+
+  // Add service-specific nav items
+  // If multi-service, group them — IT items first, then ecommerce, then automation
+  const order = ['it', 'ecommerce', 'automation']
+  for (const serviceType of order) {
+    if (types.includes(serviceType) && SERVICE_NAV[serviceType]) {
+      for (const item of SERVICE_NAV[serviceType]) {
+        if (!addedHrefs.has(item.href)) {
+          items.push(item)
+          addedHrefs.add(item.href)
+        } else {
+          // If href already exists but this service has a different label,
+          // only add if it's the primary service
+          // (prevents duplicate ticket links with different labels)
+        }
+      }
+    }
+  }
+
+  // Add shared bottom items
+  for (const item of SERVICE_NAV.shared_bottom) {
+    if (!addedHrefs.has(item.href)) {
+      items.push(item)
+      addedHrefs.add(item.href)
+    }
+  }
+
+  return items
+}
 
 export default function PortalLayout({ children }) {
   const [profile, setProfile] = useState(null)
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [navItems, setNavItems] = useState([])
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -42,6 +101,10 @@ export default function PortalLayout({ children }) {
       if (profileData) {
         setProfile(profileData)
         setOrg(profileData.organizations)
+
+        // Build service-aware nav
+        const serviceTypes = profileData.organizations?.service_types || ['it']
+        setNavItems(buildNavItems(serviceTypes))
       }
       setLoading(false)
     }
@@ -82,9 +145,9 @@ export default function PortalLayout({ children }) {
         )}
 
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <a
-              key={item.href}
+              key={item.href + item.label}
               href={item.href}
               className={`sidebar-link ${pathname === item.href || pathname.startsWith(item.href + '/') ? 'active' : ''}`}
               onClick={() => setSidebarOpen(false)}
