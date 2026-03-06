@@ -258,7 +258,6 @@ export default function Home() {
 
   return (
     <main>
-      {/* ——— NAV ——— */}
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-inner">
           <div className="logo">
@@ -321,7 +320,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ——— HERO ——— */}
       <section className="hero">
         <div className="hero-inner">
           <div>
@@ -406,7 +404,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— BEST FIT ——— */}
       <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -448,7 +445,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— SERVICES ——— */}
       <section id="services" className="section">
         <div className="section-inner">
           <div className="section-header">
@@ -488,7 +484,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— HOW IT WORKS ——— */}
       <section className="section section-alt">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <div className="section-tag">How It Works</div>
@@ -510,7 +505,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— WHAT HAPPENS NEXT ——— */}
       <section className="section">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
@@ -534,7 +528,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— SECONDARY SERVICES ——— */}
       <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
@@ -590,7 +583,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— PRICING ——— */}
       <section id="pricing" className="section">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
@@ -656,7 +648,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— FOUNDER / TRUST ——— */}
       <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
@@ -683,7 +674,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— ABOUT ——— */}
       <section id="about" className="section">
         <div className="section-inner">
           <div className="about-grid">
@@ -748,7 +738,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— FAQ ——— */}
       <section id="faq" className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
@@ -770,7 +759,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— CONTACT CTA ——— */}
       <section id="contact" className="cta-section">
         <div className="cta-card">
           <h2>Ready to improve your support operations?</h2>
@@ -799,7 +787,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ——— FOOTER ——— */}
       <footer className="footer">
         <div className="footer-inner">
           <div className="logo" style={{ fontSize: '1rem' }}>
@@ -818,6 +805,8 @@ export default function Home() {
                 {link}
               </a>
             ))}
+            <a href="/ecommerce">E-Commerce</a>
+            <a href="/automation">Automation</a>
             <a href="/support-transparency">Support &amp; AI Transparency</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
