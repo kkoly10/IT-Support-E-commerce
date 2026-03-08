@@ -85,27 +85,13 @@ export default function NewTicketPage() {
         }
       }
 
-      // 1. Run AI triage first
-      fetch('/api/ai/triage-ticket', {
+      fetch('/api/ai/post-create-ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId: ticket.id }),
+      }).catch((err) => {
+        console.error('Background post-create AI workflow error:', err)
       })
-        .then(async (triageRes) => {
-          if (!triageRes.ok) return null
-          return triageRes.json()
-        })
-        .then(() => {
-          // 2. Then attempt safe auto-resolve
-          return fetch('/api/ai/auto-resolve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ticketId: ticket.id }),
-          })
-        })
-        .catch((err) => {
-          console.error('Background AI workflow error:', err)
-        })
 
       router.push(`/portal/tickets/${ticket.id}`)
     } catch (err) {
