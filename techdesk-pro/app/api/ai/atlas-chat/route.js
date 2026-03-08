@@ -1,5 +1,3 @@
-// File: app/api/ai/atlas-chat/route.js (new — mkdir -p app/api/ai/atlas-chat)
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -10,11 +8,11 @@ const supabase = createClient(
 export async function POST(request) {
   try {
     const { message, conversationHistory, userId } = await request.json()
+
     if (!message || !userId) {
       return Response.json({ error: 'Missing message or userId' }, { status: 400 })
     }
 
-    // Get user profile and org
     const { data: profile } = await supabase
       .from('profiles')
       .select('*, organization:organizations(*)')
@@ -27,7 +25,6 @@ export async function POST(request) {
 
     const org = profile.organization
 
-    // Get recent tickets for context
     const { data: recentTickets } = await supabase
       .from('tickets')
       .select('title, status, category, priority, created_at, resolved_at')
@@ -35,22 +32,26 @@ export async function POST(request) {
       .order('created_at', { ascending: false })
       .limit(10)
 
-    // Get ticket stats
     const { data: allTickets } = await supabase
       .from('tickets')
       .select('status')
       .eq('organization_id', org.id)
 
-    const openCount = allTickets?.filter(t => t.status === 'open' || t.status === 'in_progress').length || 0
-    const resolvedCount = allTickets?.filter(t => t.status === 'resolved' || t.status === 'closed').length || 0
+    const openCount =
+      allTickets?.filter((t) => t.status === 'open' || t.status === 'in_progress').length || 0
 
-    const ticketContext = (recentTickets || []).length > 0
-      ? `Recent tickets:\n${recentTickets.map(t => `- "${t.title}" (${t.status}, ${t.category}, ${t.priority})`).join('\n')}`
-      : 'No tickets yet.'
+    const resolvedCount =
+      allTickets?.filter((t) => t.status === 'resolved' || t.status === 'closed').length || 0
 
-    // Build conversation messages
+    const ticketContext =
+      (recentTickets || []).length > 0
+        ? `Recent support requests:\n${recentTickets
+            .map((t) => `- "${t.title}" (${t.status}, ${t.category}, ${t.priority})`)
+            .join('\n')}`
+        : 'No support requests yet.'
+
     const messages = [
-      ...(conversationHistory || []).map(msg => ({
+      ...(conversationHistory || []).map((msg) => ({
         role: msg.role,
         content: msg.content,
       })),
@@ -67,13 +68,13 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
-        system: `You are Atlas AI, the intelligent business copilot at TechDesk Pro. You're chatting with ${profile.full_name} from ${org.name}.
+        system: `You are Atlas AI, the remote IT support copilot at TechDesk Pro.
 
-Here's what you know about their business:
+You are chatting with ${profile.full_name} from ${org.name}.
+
+Known account context:
 - Company: ${org.name}
 - Plan: ${org.plan || 'starter'}
-- Platform: ${org.platform || 'Not specified'}
-- Store URL: ${org.store_url || 'Not specified'}
 - Open tickets: ${openCount}
 - Resolved tickets: ${resolvedCount}
 - Monthly ticket limit: ${org.monthly_ticket_limit || 10}
@@ -81,20 +82,20 @@ Here's what you know about their business:
 
 ${ticketContext}
 
-Your capabilities:
-- Answer questions about their account, plan, and ticket status
-- Provide e-commerce advice (Shopify, Wix, SEO, marketing, integrations)
-- Troubleshoot common IT issues with step-by-step guides
-- Recommend tools, apps, and integrations for their store
-- Help them understand their monthly reports
-- Suggest when they should submit a support ticket for something you can't handle
+Your job:
+- Answer questions about support scope, account status, plan, and ticket status
+- Help with remote IT support topics
+- Help with Microsoft 365, Google Workspace, and common SaaS administration questions
+- Explain TechDesk Pro support boundaries in plain English
+- Suggest when the user should submit a support ticket
 
 Rules:
-- Be conversational, warm, and helpful — like a knowledgeable friend
-- Keep responses concise (2-4 paragraphs max unless they ask for detail)
-- If something needs hands-on support, suggest they create a ticket
-- Never make up data about their account — use only what's provided
-- If asked about something outside your knowledge, be honest about it`,
+- Be warm, clear, and concise
+- Keep replies practical and easy to follow
+- Do not claim to have completed actions unless context explicitly shows that
+- Do not provide e-commerce, store, or marketing advice
+- If something requires hands-on support, account access, or human judgment, say so and recommend creating a support ticket
+- Never invent account data`,
         messages,
       }),
     })
@@ -106,11 +107,10 @@ Rules:
 
     const aiResult = await response.json()
     const reply = aiResult.content
-      .map(block => block.type === 'text' ? block.text : '')
+      .map((block) => (block.type === 'text' ? block.text : ''))
       .join('')
 
     return Response.json({ reply })
-
   } catch (err) {
     console.error('Atlas AI error:', err)
     return Response.json({ error: err.message || 'Atlas AI failed' }, { status: 500 })
