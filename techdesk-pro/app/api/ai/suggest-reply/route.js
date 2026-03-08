@@ -1,5 +1,3 @@
-// File: app/api/ai/suggest-reply/route.js (new — mkdir -p app/api/ai/suggest-reply)
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -10,13 +8,14 @@ const supabase = createClient(
 export async function POST(request) {
   try {
     const { ticketId } = await request.json()
+
     if (!ticketId) {
       return Response.json({ error: 'Missing ticketId' }, { status: 400 })
     }
 
     const { data: ticket } = await supabase
       .from('tickets')
-      .select('*, organization:organizations(name, platform, store_url), creator:profiles!tickets_created_by_fkey(full_name)')
+      .select('*, organization:organizations(name, plan), creator:profiles!tickets_created_by_fkey(full_name)')
       .eq('id', ticketId)
       .single()
 
@@ -30,23 +29,28 @@ export async function POST(request) {
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true })
 
-    const conversationHistory = (messages || []).map(msg => {
-      const sender = msg.sender?.full_name || msg.sender_type
-      return `[${msg.sender_type.toUpperCase()}] ${sender}: ${msg.body}`
-    }).join('\n\n')
+    const conversationHistory = (messages || [])
+      .map((msg) => {
+        const sender = msg.sender?.full_name || msg.sender_type
+        return `[${msg.sender_type.toUpperCase()}] ${sender}: ${msg.body}`
+      })
+      .join('\n\n')
 
     const { data: similarTickets } = await supabase
       .from('tickets')
-      .select('title, description, category')
+      .select('title, description, category, ai_summary')
       .eq('category', ticket.category)
       .eq('status', 'resolved')
       .neq('id', ticketId)
       .order('resolved_at', { ascending: false })
       .limit(3)
 
-    const similarContext = (similarTickets || []).length > 0
-      ? `\n\nPreviously resolved similar tickets:\n${similarTickets.map(t => `- "${t.title}": ${t.description?.slice(0, 150)}`).join('\n')}`
-      : ''
+    const similarContext =
+      (similarTickets || []).length > 0
+        ? `\n\nPreviously resolved similar tickets:\n${similarTickets
+            .map((t) => `- "${t.title}": ${(t.ai_summary || t.description || '').slice(0, 180)}`)
+            .join('\n')}`
+        : ''
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -58,49 +62,65 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2048,
-        system: `You are a senior IT support and e-commerce specialist at TechDesk Pro. You have two jobs:
+        system: `You are Ghost Admin at TechDesk Pro.
 
-1. GHOST ADMIN: Write a professional reply to send to the client
-2. AI COACH: Teach the admin (who is learning IT) how to actually resolve this issue
+TechDesk Pro is a remote-first IT support business.
+You are a senior remote IT support lead coaching a founder-operator.
 
-You MUST respond in this exact JSON format and nothing else:
+You have two jobs:
+
+1. Write a professional client-ready support reply
+2. Coach the admin on how to resolve the issue step by step
+
+Return ONLY valid JSON in this exact structure:
+
 {
-  "suggested_reply": "The professional message to send to the client. Be warm, helpful, and specific.",
+  "suggested_reply": "Client-ready response",
   "coach": {
-    "summary": "One sentence explaining what's wrong in plain English",
+    "summary": "One-sentence plain-English explanation of the issue",
     "difficulty": "easy|medium|advanced",
-    "estimated_time": "How long this typically takes to fix (e.g. '5 minutes', '30 minutes', '1-2 hours')",
+    "estimated_time": "15 minutes",
     "can_auto_resolve": false,
     "steps": [
-      "Step 1: Clear instruction written for a non-expert",
-      "Step 2: Next step with specific details",
-      "Step 3: Continue as needed"
+      "Step 1",
+      "Step 2",
+      "Step 3"
     ],
-    "what_to_tell_client": "A brief message to set expectations while you work on it",
-    "learn_more": "A brief explanation of WHY this issue happens so the admin learns for next time",
+    "what_to_tell_client": "Short expectation-setting message",
+    "learn_more": "Short explanation of why this issue happens",
     "escalation_needed": false,
     "escalation_reason": ""
   }
-}`,
+}
+
+Rules:
+- Stay within remote IT support, Microsoft 365, Google Workspace, SaaS admin, and support workflow topics
+- Do not provide e-commerce, store, or marketing advice
+- If the issue needs account access, risky admin changes, security judgment, or project work, say so
+- Keep the suggested reply professional, warm, and practical
+- Keep the coach steps specific enough for a non-expert founder-admin`,
         messages: [
           {
             role: 'user',
-            content: `Ticket Details:
+            content: `Ticket details:
 - Title: ${ticket.title}
-- Description: ${ticket.description}
-- Category: ${ticket.category}
-- Priority: ${ticket.priority}
+- Description: ${ticket.description || 'No description provided'}
+- Category: ${ticket.category || 'Not specified'}
+- Priority: ${ticket.priority || 'Not specified'}
 - Platform: ${ticket.platform || 'Not specified'}
+- AI triage category: ${ticket.ai_category || 'Not available'}
+- AI triage summary: ${ticket.ai_summary || 'Not available'}
+- AI difficulty: ${ticket.ai_difficulty || 'Not available'}
+- AI estimated time: ${ticket.ai_estimated_time || 'Not available'}
 - Client: ${ticket.organization?.name || 'Unknown'}
-- Client's Platform: ${ticket.organization?.platform || 'Not specified'}
-- Store URL: ${ticket.organization?.store_url || 'Not specified'}
+- Client plan: ${ticket.organization?.plan || 'starter'}
 
 Conversation so far:
 ${conversationHistory || 'No messages yet — this is a new ticket.'}
 ${similarContext}
 
-Generate the ghost admin reply and coach guide now. Return ONLY valid JSON.`
-          }
+Generate the ghost admin reply and coach guide now.`,
+          },
         ],
       }),
     })
@@ -112,15 +132,13 @@ Generate the ghost admin reply and coach guide now. Return ONLY valid JSON.`
 
     const aiResult = await response.json()
     const resultText = aiResult.content
-      .map(block => block.type === 'text' ? block.text : '')
+      .map((block) => (block.type === 'text' ? block.text : ''))
       .join('')
 
-    // Parse the JSON response
     const cleaned = resultText.replace(/```json\n?|```/g, '').trim()
     const parsed = JSON.parse(cleaned)
 
     return Response.json(parsed)
-
   } catch (err) {
     console.error('Ghost Admin error:', err)
     return Response.json({ error: err.message || 'Failed to generate suggestion' }, { status: 500 })
