@@ -1,5 +1,7 @@
 'use client'
+
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -8,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,7 +30,6 @@ export default function LoginPage() {
       return
     }
 
-    // Check user role to determine redirect
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -39,6 +41,7 @@ export default function LoginPage() {
     } else {
       router.push('/portal/dashboard')
     }
+
     router.refresh()
   }
 
@@ -47,11 +50,34 @@ export default function LoginPage() {
       <div className="auth-card">
         <div className="auth-header">
           <a href="/" className="auth-logo">
-            <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>T</div>
+            <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
+              T
+            </div>
             <span>TechDesk Pro</span>
           </a>
+
           <h1>Welcome back</h1>
-          <p>Sign in to your support portal</p>
+          <p>Sign in to your client support portal</p>
+
+          <p
+            style={{
+              marginTop: 12,
+              fontSize: '0.85rem',
+              color: 'var(--ink-muted)',
+              lineHeight: 1.6,
+            }}
+          >
+            Need a website, online store, or automation build instead?{' '}
+            <a
+              href="https://crecystudio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
+            >
+              Visit CrecyStudio
+            </a>
+            .
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="auth-form">
@@ -87,7 +113,9 @@ export default function LoginPage() {
         </form>
 
         <div className="auth-footer">
-          <p>Don&apos;t have an account? <a href="/signup">Sign up</a></p>
+          <p>
+            Don&apos;t have an account? <Link href="/signup">Sign up</Link>
+          </p>
           <a href="/" className="auth-back">← Back to website</a>
         </div>
       </div>
