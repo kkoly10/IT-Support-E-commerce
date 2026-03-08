@@ -1,5 +1,3 @@
-// File: app/portal/tickets/new/page.js (replace existing)
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -17,12 +15,16 @@ export default function NewTicketPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState(null)
   const [orgId, setOrgId] = useState(null)
+
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
     async function getUser() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
       if (!user) return
       setUserId(user.id)
 
@@ -34,8 +36,9 @@ export default function NewTicketPage() {
 
       if (profile) setOrgId(profile.organization_id)
     }
+
     getUser()
-  }, [])
+  }, [supabase])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -45,7 +48,6 @@ export default function NewTicketPage() {
     setError(null)
 
     try {
-      // Create ticket
       const { data: ticket, error: ticketErr } = await supabase
         .from('tickets')
         .insert({
@@ -62,10 +64,10 @@ export default function NewTicketPage() {
 
       if (ticketErr) throw ticketErr
 
-      // Upload attachments
       if (files.length > 0) {
         for (const file of files) {
           const filePath = `${orgId}/${ticket.id}/${Date.now()}-${file.name}`
+
           const { error: uploadErr } = await supabase.storage
             .from('ticket-attachments')
             .upload(filePath, file)
@@ -83,12 +85,27 @@ export default function NewTicketPage() {
         }
       }
 
-      // Trigger AutoResolve (fire and forget — doesn't block the user)
-      fetch('/api/ai/auto-resolve', {
+      // 1. Run AI triage first
+      fetch('/api/ai/triage-ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId: ticket.id }),
       })
+        .then(async (triageRes) => {
+          if (!triageRes.ok) return null
+          return triageRes.json()
+        })
+        .then(() => {
+          // 2. Then attempt safe auto-resolve
+          return fetch('/api/ai/auto-resolve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticketId: ticket.id }),
+          })
+        })
+        .catch((err) => {
+          console.error('Background AI workflow error:', err)
+        })
 
       router.push(`/portal/tickets/${ticket.id}`)
     } catch (err) {
@@ -100,16 +117,37 @@ export default function NewTicketPage() {
 
   return (
     <div>
-      <a href="/portal/tickets" className="new-ticket-back">← Back to tickets</a>
-      <h1 style={{ fontSize: '1.4rem', marginBottom: 4 }}>New Support Ticket</h1>
+      <a href="/portal/tickets" className="new-ticket-back">
+        ← Back to tickets
+      </a>
+
+      <h1 style={{ fontSize: '1.4rem', marginBottom: 4 }}>New Support Request</h1>
       <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem', marginBottom: 24 }}>
-        Describe your issue and our AI will attempt to help immediately. If it needs human attention, our team will respond within your SLA window.
+        Describe your issue and our AI will triage it first. If it is a safe low-risk issue,
+        the system may respond immediately. If it needs human attention, we’ll handle it through
+        normal support workflow.
       </p>
 
-      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 12, padding: 24 }}>
+      <div
+        style={{
+          background: 'white',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 24,
+        }}
+      >
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{ background: '#fee', color: '#c00', padding: '10px 14px', borderRadius: 8, marginBottom: 16, fontSize: '0.88rem' }}>
+            <div
+              style={{
+                background: '#fee',
+                color: '#c00',
+                padding: '10px 14px',
+                borderRadius: 8,
+                marginBottom: 16,
+                fontSize: '0.88rem',
+              }}
+            >
               {error}
             </div>
           )}
@@ -132,7 +170,7 @@ export default function NewTicketPage() {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide as much detail as possible — what happened, what you expected, any error messages..."
+              placeholder="Provide as much detail as possible — what happened, what you expected, any error messages, and which account or tool is affected."
               rows={5}
               required
             />
@@ -148,10 +186,16 @@ export default function NewTicketPage() {
                 required
               >
                 <option value="">Select category</option>
-                <option value="it_support">IT Support</option>
-                <option value="ecommerce">E-Commerce</option>
-                <option value="integration">Integration</option>
-                <option value="document_processing">Document Processing</option>
+                <option value="helpdesk">General Helpdesk</option>
+                <option value="accounts_access">Accounts & Access</option>
+                <option value="email_collaboration">Email & Collaboration</option>
+                <option value="microsoft_365">Microsoft 365</option>
+                <option value="google_workspace">Google Workspace</option>
+                <option value="saas_admin">SaaS Admin</option>
+                <option value="portal_account">Portal / Account Question</option>
+                <option value="billing_scope">Billing / Scope Question</option>
+                <option value="device_guidance">Device Guidance</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
@@ -178,12 +222,13 @@ export default function NewTicketPage() {
               onChange={(e) => setPlatform(e.target.value)}
             >
               <option value="">Select if applicable</option>
-              <option value="shopify">Shopify</option>
-              <option value="wix">Wix</option>
-              <option value="woocommerce">WooCommerce</option>
-              <option value="squarespace">Squarespace</option>
               <option value="google_workspace">Google Workspace</option>
               <option value="microsoft_365">Microsoft 365</option>
+              <option value="slack">Slack</option>
+              <option value="zoom">Zoom</option>
+              <option value="notion">Notion</option>
+              <option value="quickbooks">QuickBooks</option>
+              <option value="dropbox">Dropbox</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -209,7 +254,7 @@ export default function NewTicketPage() {
             disabled={loading || !title || !description || !category}
             style={{ marginTop: 8 }}
           >
-            {loading ? 'Submitting...' : 'Submit Ticket'}
+            {loading ? 'Submitting...' : 'Submit Support Request'}
           </button>
         </form>
       </div>
