@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 const CORE_SERVICES = [
   {
     num: '01',
-    title: 'IT Helpdesk & Support',
+    title: 'IT Helpdesk & User Support',
     desc: 'Remote-first support for the day-to-day issues that slow teams down — login problems, email issues, software troubleshooting, device guidance, and routine user support.',
     features: [
       'Email & account support',
@@ -18,13 +18,13 @@ const CORE_SERVICES = [
   },
   {
     num: '02',
-    title: 'Cloud & SaaS Management',
-    desc: 'Support for the platforms your business already depends on — Google Workspace, Microsoft 365, Slack, Zoom, CRM tools, and other core business software.',
+    title: 'Cloud & SaaS Administration',
+    desc: 'Support for the platforms your business already depends on — Google Workspace, Microsoft 365, Slack, Zoom, shared drives, permissions, and routine admin tasks.',
     features: [
       'Google Workspace & M365',
       'User provisioning',
-      'Platform admin help',
-      'Routine SaaS support',
+      'Permission management',
+      'Routine admin help',
       'Cloud environment guidance',
     ],
     price: 'Included',
@@ -32,36 +32,17 @@ const CORE_SERVICES = [
   },
   {
     num: '03',
-    title: 'Workflow Support & Automation',
-    desc: 'Operational help for businesses doing too much manually. We help improve workflows, reduce repetitive admin work, and scope automation opportunities when needed.',
+    title: 'Ongoing Remote Technical Support',
+    desc: 'Structured support for small teams that need consistent help without hiring a full internal IT person. We help keep accounts, users, and day-to-day systems moving.',
     features: [
-      'Workflow review',
-      'Process improvement',
-      'Automation scoping',
-      'Reporting support',
-      'Project-based automation builds',
+      'Remote-only service delivery',
+      'Team onboarding/offboarding support',
+      'Support request handling',
+      'Business-hours response model',
+      'Escalation guidance when needed',
     ],
-    price: 'Quoted',
-    priceNote: 'as needed',
-  },
-]
-
-const SECONDARY_SERVICES = [
-  {
-    title: 'E-Commerce Support & Integrations',
-    desc: 'Store setup help, platform fixes, app integrations, payment support, inventory workflows, and ongoing operational support for businesses that sell online.',
-    price: 'From $250/mo add-on or $750/project',
-    note: 'Available as an add-on, standalone retainer, or scoped project.',
-    cta: 'Explore E-Commerce Services',
-    href: '/ecommerce',
-  },
-  {
-    title: 'AI Workflow Automation',
-    desc: 'AI-assisted workflows for forms, documents, intake routing, repetitive admin tasks, reporting, and process improvement across your operations.',
-    price: 'From $750/project',
-    note: 'Available as an assessment, project build, or maintenance support.',
-    cta: 'Explore Automation Services',
-    href: '/automation',
+    price: 'Included',
+    priceNote: 'in active support plans',
   },
 ]
 
@@ -72,7 +53,7 @@ const PLANS = [
     desc: 'Best for 1–5 users',
     features: [
       'Up to 10 standard support tickets per month',
-      'Business-hours IT helpdesk support',
+      'Business-hours remote IT helpdesk support',
       'Email, login, and account troubleshooting',
       'Remote software and device guidance',
       'Client portal access',
@@ -87,7 +68,7 @@ const PLANS = [
     desc: 'Best for 5–15 users',
     features: [
       'Up to 30 standard support tickets per month',
-      'Business-hours IT helpdesk support',
+      'Business-hours remote IT helpdesk support',
       'Cloud & SaaS administration',
       'User onboarding and offboarding support',
       'Routine admin help for supported platforms',
@@ -104,9 +85,9 @@ const PLANS = [
     desc: 'Best for 15+ users or more complex environments',
     features: [
       'Custom support volume based on team size and environment',
-      'Priority business-hours support',
+      'Priority business-hours remote support',
       'Broader cloud and systems administration',
-      'Workflow planning and operational support',
+      'Structured coordination across business tools',
       'Optional security-focused support',
       'Strategic check-ins',
       'First response within 2 business hours',
@@ -127,7 +108,7 @@ const FAQS = [
   },
   {
     q: 'What is not included as a standard ticket?',
-    a: 'Projects, migrations, custom automations, website or store builds, major remediation, onsite work, and planned after-hours work are scoped separately unless specifically included in a written agreement.',
+    a: 'Large projects, migrations, major remediation, planned after-hours work, onsite work, and custom build work are scoped separately unless specifically included in a written agreement.',
   },
   {
     q: 'What counts as an emergency?',
@@ -135,11 +116,11 @@ const FAQS = [
   },
   {
     q: 'How does AI fit into the service?',
-    a: 'We use AI-assisted tools to speed up triage, organize requests, support workflow automation, and help surface answers faster. Human oversight remains part of service delivery.',
+    a: 'We use AI-assisted tools to speed up triage, organize requests, and help surface answers faster. Human oversight remains part of service delivery.',
   },
   {
     q: 'Do you provide on-site support?',
-    a: 'TechDesk Pro is currently a remote-first service. On-site support is not part of the standard offering at this stage.',
+    a: 'TechDesk Pro is currently a remote-only service. On-site support is not part of the standard offering at this stage.',
   },
 ]
 
@@ -148,26 +129,24 @@ const TOOLS = [
   'Microsoft 365',
   'Slack',
   'Zoom',
-  'Shopify',
   'QuickBooks',
-  'HubSpot',
-  'Stripe',
+  'Dropbox',
   'Notion',
-  'Zapier',
+  'Adobe',
 ]
 
 const HERO_POINTS = [
   { title: 'Business-hours support', desc: 'Monday–Friday, 9:00 AM–6:00 PM ET' },
-  { title: 'Remote-first model', desc: 'Built for U.S. small businesses that need practical support without an internal IT team' },
-  { title: 'Clear scope boundaries', desc: 'Standard support, project work, and specialized services are defined separately' },
+  { title: 'Remote-only model', desc: 'Built for U.S. small businesses that need practical technical support without an internal IT team' },
+  { title: 'Clear scope boundaries', desc: 'Standard support and larger project work are defined separately' },
   { title: 'Human-supervised AI', desc: 'AI helps speed up workflows, but human oversight remains part of delivery' },
 ]
 
 const BEST_FIT = [
-  '1–15 user teams',
+  '1–25 user teams',
   'Remote-first businesses',
   'Google Workspace or Microsoft 365 environments',
-  'Businesses needing support plus operational help',
+  'Businesses that need reliable day-to-day support',
 ]
 
 const STEPS = [
@@ -179,7 +158,7 @@ const STEPS = [
   {
     n: '02',
     t: 'Get a Clear Recommendation',
-    d: 'We recommend the right support path based on team size, support volume, and operational complexity.',
+    d: 'We recommend the right support path based on team size, support volume, and complexity.',
   },
   {
     n: '03',
@@ -189,7 +168,7 @@ const STEPS = [
   {
     n: '04',
     t: 'Use Support as Needed',
-    d: 'Submit routine requests through the support workflow, and scope larger projects separately when needed.',
+    d: 'Submit routine support requests through the portal and keep your day-to-day operations moving.',
   },
 ]
 
@@ -197,7 +176,7 @@ const ASSESSMENT_FLOW = [
   {
     n: '01',
     t: 'We review your current setup',
-    d: 'We look at your tools, support needs, team size, and operational friction points.',
+    d: 'We look at your tools, support needs, team size, and recurring technical friction points.',
   },
   {
     n: '02',
@@ -213,14 +192,14 @@ const ASSESSMENT_FLOW = [
 
 const ABOUT_FEATURES = [
   { icon: '📍', text: 'Founder-led, based in Virginia' },
-  { icon: '💻', text: 'Remote-first support model' },
+  { icon: '💻', text: 'Remote-only support model' },
   { icon: '🤖', text: 'AI-assisted, human-supervised workflows' },
-  { icon: '📋', text: 'Clear support boundaries and scoped projects' },
+  { icon: '📋', text: 'Clear support boundaries and scoped work' },
 ]
 
 const ABOUT_BARS = [
   { label: 'Clarity of scope', val: 100 },
-  { label: 'Remote-first delivery', val: 100 },
+  { label: 'Remote-only delivery', val: 100 },
   { label: 'Human oversight', val: 100 },
   { label: 'Pilot-stage honesty', val: 100 },
 ]
@@ -232,7 +211,7 @@ const FOUNDER_PROOF = [
   },
   {
     title: 'Platform-minded operations',
-    desc: 'The business is designed around actual workflows — tickets, portal access, documents, training, and operational visibility — not just marketing copy.',
+    desc: 'The business is designed around actual workflows — tickets, portal access, documents, and operational visibility — not just marketing copy.',
   },
   {
     title: 'Practical over performative',
@@ -323,15 +302,15 @@ export default function Home() {
       <section className="hero">
         <div className="hero-inner">
           <div>
-            <div className="hero-tag">Remote-First Tech Support · U.S. Small Businesses</div>
+            <div className="hero-tag">Remote-Only IT Support · U.S. Small Businesses</div>
 
             <h1>
-              Remote-first tech support, cloud administration, and <em>workflow help</em> for small businesses.
+              Remote-first IT support and <em>cloud administration</em> for small businesses.
             </h1>
 
             <p className="hero-desc">
-              TechDesk Pro helps small businesses handle day-to-day support, cloud tools, and
-              operational friction without hiring a full internal IT team — with AI-assisted
+              TechDesk Pro helps small businesses handle day-to-day technical support, user issues,
+              and cloud administration without hiring a full internal IT team — with AI-assisted
               workflows, human oversight, and clear service boundaries.
             </p>
 
@@ -350,11 +329,19 @@ export default function Home() {
                 fontSize: '0.88rem',
                 color: 'var(--ink-muted)',
                 lineHeight: 1.7,
-                maxWidth: 540,
+                maxWidth: 560,
               }}
             >
-              Currently onboarding a limited number of pilot clients while support workflows,
-              onboarding, and client experience continue to be refined.
+              Need a website, online store, or automation build instead?{' '}
+              <a
+                href="https://crecystudio.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
+              >
+                Visit CrecyStudio
+              </a>
+              .
             </div>
           </div>
 
@@ -449,11 +436,11 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header">
             <div className="section-tag">Core Services</div>
-            <h2 className="section-title">Day-to-day support for the systems your business depends on.</h2>
+            <h2 className="section-title">Remote support for the systems your business depends on.</h2>
             <p className="section-desc">
-              Our core services are built around practical support, cloud administration, and
-              workflow help for small businesses that need reliable remote support without building
-              a full in-house IT team.
+              TechDesk Pro is focused on remote IT support, cloud administration, and routine
+              technical help for small businesses that need dependable support without building a
+              full in-house IT team.
             </p>
           </div>
 
@@ -490,7 +477,7 @@ export default function Home() {
           <h2 className="section-title">A simple support path from assessment to ongoing help.</h2>
           <p className="section-desc" style={{ margin: '12px auto 0' }}>
             We keep the process straightforward: assess the environment, recommend the right support
-            path, onboard carefully, and define where standard support ends and project work begins.
+            path, onboard carefully, and define where standard support ends and larger scoped work begins.
           </p>
 
           <div className="steps">
@@ -511,7 +498,7 @@ export default function Home() {
             <div className="section-tag">What Happens Next</div>
             <h2 className="section-title">A free assessment is a conversation, not a trap.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              The goal is to understand your setup, recommend the most sensible path, and let you
+              The goal is to understand your setup, recommend the most sensible support path, and let you
               decide whether moving forward makes sense.
             </p>
           </div>
@@ -531,54 +518,37 @@ export default function Home() {
       <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
-            <div className="section-tag">Specialized Services</div>
-            <h2 className="section-title">Need more than support? We also build operational systems.</h2>
+            <div className="section-tag">Need Build Work Instead?</div>
+            <h2 className="section-title">CrecyStudio handles websites, stores, and automation builds.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              Beyond core tech support, we also help businesses improve e-commerce operations and
-              automate repetitive workflows. These services are scoped separately or added onto
-              ongoing support plans.
+              TechDesk Pro is focused on remote IT support. If you need a website, online store,
+              workflow build, or automation project, CrecyStudio is the better fit.
             </p>
           </div>
 
-          <div className="pricing-grid" style={{ alignItems: 'stretch' }}>
-            {SECONDARY_SERVICES.map((service, i) => (
-              <div key={i} className="plan">
-                <div className="plan-name" style={{ fontSize: '1.35rem' }}>
-                  {service.title}
-                </div>
-
-                <div className="plan-desc" style={{ marginTop: 10, marginBottom: 18 }}>
-                  {service.desc}
-                </div>
-
-                <div
-                  style={{
-                    fontFamily: "'Source Serif 4', serif",
-                    fontSize: '1.35rem',
-                    fontWeight: 600,
-                    color: 'var(--teal)',
-                    marginBottom: 10,
-                  }}
-                >
-                  {service.price}
-                </div>
-
-                <div
-                  style={{
-                    fontSize: '0.84rem',
-                    color: 'var(--ink-muted)',
-                    lineHeight: 1.65,
-                    marginBottom: 24,
-                  }}
-                >
-                  {service.note}
-                </div>
-
-                <a href={service.href} className="plan-btn plan-btn-outline">
-                  {service.cta}
-                </a>
+          <div className="pricing-grid" style={{ maxWidth: 720, margin: '0 auto' }}>
+            <div className="plan featured">
+              <div className="plan-badge">Related Service</div>
+              <div className="plan-name">CrecyStudio</div>
+              <div className="plan-desc">
+                Websites, online stores, workflow systems, and automation builds for businesses that
+                need implementation work instead of remote IT support.
               </div>
-            ))}
+              <ul className="plan-features">
+                <li>Website design & builds</li>
+                <li>E-commerce setup & store projects</li>
+                <li>Workflow systems & automation builds</li>
+                <li>Project-based implementation work</li>
+              </ul>
+              <a
+                href="https://crecystudio.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="plan-btn plan-btn-primary"
+              >
+                Visit CrecyStudio
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -587,10 +557,10 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Pricing</div>
-            <h2 className="section-title">Simple monthly support for growing businesses.</h2>
+            <h2 className="section-title">Simple monthly remote support for growing businesses.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              Choose the plan that fits your team size and support needs. Standard support is billed
-              monthly. Projects, migrations, custom automations, and e-commerce builds are scoped separately.
+              Choose the plan that fits your team size and support needs. Standard remote support is billed
+              monthly. Larger projects, migrations, and major remediation are scoped separately.
             </p>
           </div>
 
@@ -642,8 +612,7 @@ export default function Home() {
             Not sure which plan fits? Start with a free assessment and we’ll recommend the most sensible support path.
           </p>
           <p className="pricing-note" style={{ marginTop: 8 }}>
-            Standard support covers routine support requests. Projects, migrations, e-commerce
-            builds, custom automations, major remediation, and after-hours work are scoped separately.
+            Website, store, and automation builds are not part of TechDesk Pro&apos;s standard support scope.
           </p>
         </div>
       </section>
@@ -652,10 +621,10 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Why This Approach</div>
-            <h2 className="section-title">Founder-led, platform-minded, and built around real operations.</h2>
+            <h2 className="section-title">Founder-led, platform-minded, and built around real support operations.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
               TechDesk Pro is being built as an actual support platform — not just a sales page —
-              with client access, admin workflows, documents, training, and AI-assisted support systems behind it.
+              with client access, admin workflows, documents, and AI-assisted support systems behind it.
             </p>
           </div>
 
@@ -684,9 +653,9 @@ export default function Home() {
               </h2>
 
               <p>
-                TechDesk Pro is a remote-first support business built to help small businesses
-                manage day-to-day tech issues, cloud tools, and operational workflows without hiring
-                a full internal tech team.
+                TechDesk Pro is a remote-only support business built to help small businesses
+                manage day-to-day technical issues, user support, and cloud tools without hiring
+                a full internal IT team.
               </p>
 
               <p className="muted">
@@ -761,7 +730,7 @@ export default function Home() {
 
       <section id="contact" className="cta-section">
         <div className="cta-card">
-          <h2>Ready to improve your support operations?</h2>
+          <h2>Ready to improve your remote support operations?</h2>
           <p>
             Start with a free assessment. We’ll review your current support needs, tools, and
             operational pain points, then recommend the most sensible next step.
@@ -780,7 +749,7 @@ export default function Home() {
           </div>
 
           <div className="cta-info">
-            <span>Remote-first, U.S. small businesses</span>
+            <span>Remote-only, U.S. small businesses</span>
             <span>hello@techdeskpro.com</span>
             <span>Mon–Fri, 9am–6pm ET</span>
           </div>
@@ -805,17 +774,22 @@ export default function Home() {
                 {link}
               </a>
             ))}
-            <a href="/ecommerce">E-Commerce</a>
-            <a href="/automation">Automation</a>
             <a href="/support-transparency">Support &amp; AI Transparency</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
+            <a
+              href="https://crecystudio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CrecyStudio
+            </a>
             <a href="/login" style={{ color: 'var(--teal)' }}>
               Client Portal
             </a>
           </div>
 
-          <div className="footer-copy">© 2026 TechDesk Pro. Remote-first, based in Virginia.</div>
+          <div className="footer-copy">© 2026 TechDesk Pro. Remote-only, based in Virginia.</div>
         </div>
       </footer>
     </main>
