@@ -173,11 +173,19 @@ export default function NewTicketPage() {
                 required
               >
                 <option value="">Select category</option>
-                {REQUEST_CATEGORY_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {CATEGORY_LABELS[option] || option}
-                  </option>
-                ))}
+                <option value="helpdesk">General Helpdesk</option>
+                <option value="accounts_access">Accounts & Access</option>
+                <option value="email_collaboration">Email & Collaboration</option>
+                <option value="microsoft_365">Microsoft 365</option>
+                <option value="google_workspace">Google Workspace</option>
+                <option value="saas_admin">SaaS Admin</option>
+                <option value="portal_account">Portal / Account Question</option>
+                <option value="billing_scope">Billing / Scope Question</option>
+                <option value="device_guidance">Device Guidance</option>
+                <option value="security_review">Security Review</option>
+                <option value="project_scoped">Project / Scoped Work</option>
+                <option value="unknown">Not Sure / Needs Review</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
