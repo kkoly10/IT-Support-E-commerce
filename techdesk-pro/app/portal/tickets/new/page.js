@@ -3,7 +3,33 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { REQUEST_CATEGORY_OPTIONS, CATEGORY_LABELS } from '../../../../lib/support-ui'
+
+
+const REQUEST_CATEGORY_OPTIONS = [
+  'helpdesk',
+  'accounts_access',
+  'email_collaboration',
+  'microsoft_365',
+  'google_workspace',
+  'saas_admin',
+  'portal_account',
+  'billing_scope',
+  'device_guidance',
+  'other',
+]
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  device_guidance: 'Device Guidance',
+  other: 'Other',
+}
 
 
 const normalizeRequestCategory = (category) => {
