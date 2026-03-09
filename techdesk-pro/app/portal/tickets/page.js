@@ -30,6 +30,51 @@ const CATEGORY_OPTIONS = [
   'other',
 ]
 
+const STATUS_LABELS = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  waiting_on_client: 'Waiting on Client',
+  resolved: 'Resolved',
+  closed: 'Closed',
+}
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  device_guidance: 'Device Guidance',
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  unknown: 'Needs Review',
+  other: 'Other',
+}
+
+const statusColor = {
+  open: '#f59e0b',
+  in_progress: '#3b82f6',
+  waiting_on_client: '#8b5cf6',
+  resolved: '#10b981',
+  closed: '#6b7280',
+}
+
+const priorityColor = {
+  low: '#6b7280',
+  medium: '#f59e0b',
+  high: '#f97316',
+  urgent: '#ef4444',
+}
+
+const humanize = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
+}
+
 const formatDate = (date) =>
   new Date(date).toLocaleDateString('en-US', {
     month: 'short',
@@ -109,7 +154,7 @@ export default function TicketsPage() {
         ticket.title?.toLowerCase().includes(q) ||
         `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q) ||
         (ticket.ai_category || '').toLowerCase().includes(q) ||
-        toLabel(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q)
+        humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q)
       )
     })
   }, [tickets, searchQuery])
@@ -142,7 +187,7 @@ export default function TicketsPage() {
         >
           {STATUS_OPTIONS.map((status) => (
             <option key={status} value={status}>
-              {status === 'all' ? 'All Statuses' : toLabel(status, STATUS_LABELS)}
+              {status === 'all' ? 'All Statuses' : humanize(status, STATUS_LABELS)}
             </option>
           ))}
         </select>
@@ -154,7 +199,7 @@ export default function TicketsPage() {
         >
           {CATEGORY_OPTIONS.map((category) => (
             <option key={category} value={category}>
-              {category === 'all' ? 'All IT Categories' : toLabel(category, CATEGORY_LABELS)}
+              {category === 'all' ? 'All IT Categories' : humanize(category, CATEGORY_LABELS)}
             </option>
           ))}
         </select>
@@ -186,10 +231,10 @@ export default function TicketsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  <span className="ticket-platform">Category: {toLabel(ticket.category, CATEGORY_LABELS)}</span>
+                  <span className="ticket-platform">Category: {humanize(ticket.category, CATEGORY_LABELS)}</span>
 
                   <span className="ticket-platform">
-                    AI: {ticket.ai_category ? toLabel(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
+                    AI: {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
                   </span>
 
                   {typeof ticket.ai_confidence === 'number' && (
@@ -211,18 +256,18 @@ export default function TicketsPage() {
               </div>
 
               <div className="ticket-row-right">
-                <span className="ticket-priority" style={{ color: PRIORITY_COLORS[ticket.priority] || '#6b7280' }}>
-                  {toLabel(ticket.priority)}
+                <span className="ticket-priority" style={{ color: priorityColor[ticket.priority] || '#6b7280' }}>
+                  {humanize(ticket.priority)}
                 </span>
 
                 <span
                   className="ticket-status"
                   style={{
-                    background: `${STATUS_COLORS[ticket.status] || '#6b7280'}20`,
-                    color: STATUS_COLORS[ticket.status] || '#6b7280',
+                    background: `${statusColor[ticket.status] || '#6b7280'}20`,
+                    color: statusColor[ticket.status] || '#6b7280',
                   }}
                 >
-                  {toLabel(ticket.status, STATUS_LABELS)}
+                  {humanize(ticket.status, STATUS_LABELS)}
                 </span>
 
                 <span className="ticket-date">{formatDate(ticket.created_at)}</span>
