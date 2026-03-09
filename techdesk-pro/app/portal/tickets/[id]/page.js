@@ -1,9 +1,8 @@
-// File: app/portal/tickets/[id]/page.js (replace existing)
-
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useParams } from 'next/navigation'
+import { CATEGORY_LABELS, PRIORITY_COLORS, STATUS_COLORS, STATUS_LABELS, toLabel } from '../../../../lib/support-ui'
 
 export default function TicketDetailPage() {
   const { id } = useParams()
@@ -149,19 +148,6 @@ export default function TicketDetailPage() {
     }
   }
 
-  const statusColor = (status) => {
-    const colors = {
-      open: '#f59e0b', in_progress: '#3b82f6', waiting_client: '#8b5cf6',
-      waiting_vendor: '#6b7280', resolved: '#10b981', closed: '#6b7280',
-    }
-    return colors[status] || '#6b7280'
-  }
-
-  const priorityColor = (priority) => {
-    const colors = { low: '#6b7280', medium: '#f59e0b', high: '#f97316', urgent: '#ef4444' }
-    return colors[priority] || '#6b7280'
-  }
-
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
@@ -170,29 +156,35 @@ export default function TicketDetailPage() {
 
   const starLabels = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent']
 
-  if (loading) return <div className="portal-page-loading">Loading ticket...</div>
-  if (!ticket) return <div className="portal-page-loading">Ticket not found.</div>
+  if (loading) return <div className="portal-page-loading">Loading support request...</div>
+  if (!ticket) return <div className="portal-page-loading">Support request not found.</div>
 
   const isResolved = ticket.status === 'resolved' || ticket.status === 'closed'
 
   return (
     <div className="ticket-detail">
-      <a href="/portal/tickets" className="new-ticket-back">← Back to tickets</a>
+      <a href="/portal/tickets" className="new-ticket-back">← Back to Support Requests</a>
 
-      {/* Ticket Header */}
+      {/* Support Request Header */}
       <div className="ticket-detail-header">
         <div className="ticket-detail-title-row">
-          <span className="ticket-number">TDP-{ticket.ticket_number}</span>
+          <span className="ticket-number">{ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}</span>
           <h1>{ticket.title}</h1>
         </div>
         <div className="ticket-detail-meta">
-          <span className="ticket-status" style={{ background: statusColor(ticket.status) + '20', color: statusColor(ticket.status) }}>
-            {ticket.status.replace('_', ' ')}
+          <span
+            className="ticket-status"
+            style={{
+              background: `${STATUS_COLORS[ticket.status] || '#6b7280'}20`,
+              color: STATUS_COLORS[ticket.status] || '#6b7280',
+            }}
+          >
+            {toLabel(ticket.status, STATUS_LABELS)}
           </span>
-          <span className="ticket-priority-badge" style={{ color: priorityColor(ticket.priority) }}>
-            {ticket.priority}
+          <span className="ticket-priority-badge" style={{ color: PRIORITY_COLORS[ticket.priority] || '#6b7280' }}>
+            {toLabel(ticket.priority)}
           </span>
-          <span className="ticket-category">{ticket.category?.replace('_', ' ')}</span>
+          <span className="ticket-category">{toLabel(ticket.category, CATEGORY_LABELS)}</span>
           {ticket.platform && <span className="ticket-platform">{ticket.platform}</span>}
           <span className="ticket-date">Created {formatDate(ticket.created_at)}</span>
         </div>
@@ -201,7 +193,7 @@ export default function TicketDetailPage() {
       {/* Resolved Banner */}
       {isResolved && (
         <div className="ticket-resolved-banner">
-          This ticket was {ticket.status} on {formatDate(ticket.resolved_at || ticket.closed_at || ticket.updated_at)}.
+          This support request was {toLabel(ticket.status, STATUS_LABELS)} on {formatDate(ticket.resolved_at || ticket.closed_at || ticket.updated_at)}.
         </div>
       )}
 
@@ -311,7 +303,7 @@ export default function TicketDetailPage() {
 
         {messages.length === 0 ? (
           <div className="ticket-no-messages">
-            No messages yet. Our team will respond within your SLA window.
+            No updates yet. Our support team will post the first update soon.
           </div>
         ) : (
           <div className="message-list">
@@ -346,7 +338,7 @@ export default function TicketDetailPage() {
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type your reply..."
+              placeholder="Share a reply or update for the support team..."
               rows={3}
               required
             />
