@@ -42,29 +42,3 @@ export const toLabel = (value, labels) => {
   if (labels?.[value]) return labels[value]
   return value.replace(/_/g, ' ')
 }
-
-
-// Keep this list aligned with the Supabase `ticket_category` enum values.
-export const REQUEST_CATEGORY_OPTIONS = [
-  'helpdesk',
-  'accounts_access',
-  'email_collaboration',
-  'microsoft_365',
-  'google_workspace',
-  'saas_admin',
-  'portal_account',
-  'billing_scope',
-  'device_guidance',
-  'other',
-]
-
-export const normalizeRequestCategory = (category) => {
-  if (!category) return category
-
-  // Legacy / draft values that may appear in the UI but are not valid enum values.
-  if (category === 'project_scoped') return 'other'
-  if (category === 'security_review') return 'other'
-  if (category === 'unknown') return 'other'
-
-  return REQUEST_CATEGORY_OPTIONS.includes(category) ? category : 'other'
-}

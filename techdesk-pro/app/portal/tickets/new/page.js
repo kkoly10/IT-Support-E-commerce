@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { REQUEST_CATEGORY_OPTIONS, CATEGORY_LABELS } from '../../../../lib/support-ui'
+
+
+const normalizeRequestCategory = (category) => {
+  if (!category) return category
+  return REQUEST_CATEGORY_OPTIONS.includes(category) ? category : 'other'
+}
 
 
 const REQUEST_CATEGORY_OPTIONS = [
