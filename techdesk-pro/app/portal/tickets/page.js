@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
 const STATUS_OPTIONS = [
@@ -20,11 +20,67 @@ const CATEGORY_OPTIONS = [
   'microsoft_365',
   'google_workspace',
   'saas_admin',
+  'device_guidance',
+  'security_review',
+  'project_scoped',
   'portal_account',
   'billing_scope',
-  'device_guidance',
+  'unknown',
   'other',
 ]
+
+const STATUS_LABELS = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  waiting_on_client: 'Waiting on Client',
+  resolved: 'Resolved',
+  closed: 'Closed',
+}
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  device_guidance: 'Device Guidance',
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  unknown: 'Needs Review',
+  other: 'Other',
+}
+
+const statusColor = {
+  open: '#f59e0b',
+  in_progress: '#3b82f6',
+  waiting_on_client: '#8b5cf6',
+  resolved: '#10b981',
+  closed: '#6b7280',
+}
+
+const priorityColor = {
+  low: '#6b7280',
+  medium: '#f59e0b',
+  high: '#f97316',
+  urgent: '#ef4444',
+}
+
+const humanize = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
+}
+
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState([])
@@ -57,7 +113,7 @@ export default function TicketsPage() {
       .eq('id', user.id)
       .single()
 
-    if (!profile) {
+    if (!profile?.organization_id) {
       setLoading(false)
       return
     }
@@ -71,76 +127,43 @@ export default function TicketsPage() {
         status,
         priority,
         category,
-        platform,
         created_at,
         ai_category,
         ai_confidence,
         ai_can_auto_resolve,
-        ai_escalation_needed,
-        ai_summary
+        ai_escalation_needed
       `)
       .eq('organization_id', profile.organization_id)
       .order('created_at', { ascending: false })
 
-    if (statusFilter !== 'all') {
-      query = query.eq('status', statusFilter)
-    }
-
-    if (categoryFilter !== 'all') {
-      query = query.eq('category', categoryFilter)
-    }
+    if (statusFilter !== 'all') query = query.eq('status', statusFilter)
+    if (categoryFilter !== 'all') query = query.eq('category', categoryFilter)
 
     const { data } = await query
     setTickets(data || [])
     setLoading(false)
   }
 
-  const filteredTickets = tickets.filter((t) => {
-    const q = searchQuery.toLowerCase()
-    return (
-      q === '' ||
-      t.title?.toLowerCase().includes(q) ||
-      `tdp-${t.ticket_number || ''}`.toLowerCase().includes(q) ||
-      (t.ai_category || '').toLowerCase().includes(q)
-    )
-  })
+  const filteredTickets = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
 
-  const statusColor = (status) => {
-    const colors = {
-      open: '#f59e0b',
-      in_progress: '#3b82f6',
-      waiting_on_client: '#8b5cf6',
-      resolved: '#10b981',
-      closed: '#6b7280',
-    }
-    return colors[status] || '#6b7280'
-  }
-
-  const priorityColor = (priority) => {
-    const colors = {
-      low: '#6b7280',
-      medium: '#f59e0b',
-      high: '#f97316',
-      urgent: '#ef4444',
-    }
-    return colors[priority] || '#6b7280'
-  }
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
+    return tickets.filter((ticket) => {
+      if (!q) return true
+      return (
+        ticket.title?.toLowerCase().includes(q) ||
+        `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q) ||
+        (ticket.ai_category || '').toLowerCase().includes(q) ||
+        humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q)
+      )
     })
-  }
+  }, [tickets, searchQuery])
 
   return (
     <div className="tickets-page">
       <div className="tickets-header">
         <div>
           <h1>Support Requests</h1>
-          <p>{tickets.length} total request{tickets.length !== 1 ? 's' : ''}</p>
+          <p>{filteredTickets.length} visible request{filteredTickets.length !== 1 ? 's' : ''}</p>
         </div>
         <a href="/portal/tickets/new" className="dashboard-new-ticket">
           + New Request
@@ -150,7 +173,7 @@ export default function TicketsPage() {
       <div className="tickets-filters">
         <input
           type="text"
-          placeholder="Search requests..."
+          placeholder="Search by subject, ticket #, category, AI triage..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="tickets-search"
@@ -161,9 +184,9 @@ export default function TicketsPage() {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="tickets-filter-select"
         >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s === 'all' ? 'All Statuses' : s.replace(/_/g, ' ')}
+          {STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {status === 'all' ? 'All Statuses' : humanize(status, STATUS_LABELS)}
             </option>
           ))}
         </select>
@@ -173,22 +196,22 @@ export default function TicketsPage() {
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="tickets-filter-select"
         >
-          {CATEGORY_OPTIONS.map((c) => (
-            <option key={c} value={c}>
-              {c === 'all' ? 'All Categories' : c.replace(/_/g, ' ')}
+          {CATEGORY_OPTIONS.map((category) => (
+            <option key={category} value={category}>
+              {category === 'all' ? 'All IT Categories' : humanize(category, CATEGORY_LABELS)}
             </option>
           ))}
         </select>
       </div>
 
       {loading ? (
-        <div className="portal-page-loading">Loading requests...</div>
+        <div className="portal-page-loading">Loading support requests...</div>
       ) : filteredTickets.length === 0 ? (
         <div className="dashboard-empty">
           <p>
             {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all'
-              ? 'No requests match your filters.'
-              : 'No support requests yet. Create your first one.'}
+              ? 'No support requests matched your current filters.'
+              : 'No support requests yet. Create your first request.'}
           </p>
           <a href="/portal/tickets/new" className="dashboard-empty-cta">
             Create Request →
@@ -207,58 +230,43 @@ export default function TicketsPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  {ticket.ai_category && (
-                    <span className="ticket-platform">
-                      AI: {ticket.ai_category.replace(/_/g, ' ')}
-                    </span>
-                  )}
+                  <span className="ticket-platform">Category: {humanize(ticket.category, CATEGORY_LABELS)}</span>
+
+                  <span className="ticket-platform">
+                    AI: {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
+                  </span>
 
                   {typeof ticket.ai_confidence === 'number' && (
-                    <span className="ticket-platform">
-                      {Math.round(ticket.ai_confidence * 100)}% confidence
-                    </span>
+                    <span className="ticket-platform">Confidence: {Math.round(ticket.ai_confidence * 100)}%</span>
                   )}
 
                   {ticket.ai_can_auto_resolve === true && (
-                    <span
-                      className="ticket-status"
-                      style={{ background: '#10b98120', color: '#10b981' }}
-                    >
+                    <span className="ticket-status" style={{ background: '#10b98120', color: '#10b981' }}>
                       Auto-resolve eligible
                     </span>
                   )}
 
                   {ticket.ai_escalation_needed === true && (
-                    <span
-                      className="ticket-status"
-                      style={{ background: '#ef444420', color: '#ef4444' }}
-                    >
-                      Escalation flagged
+                    <span className="ticket-status" style={{ background: '#ef444420', color: '#ef4444' }}>
+                      Escalation needed
                     </span>
                   )}
                 </div>
               </div>
 
               <div className="ticket-row-right">
-                <span
-                  className="ticket-priority"
-                  style={{ color: priorityColor(ticket.priority) }}
-                >
-                  {ticket.priority}
-                </span>
-
-                <span className="ticket-category">
-                  {(ticket.category || 'other').replace(/_/g, ' ')}
+                <span className="ticket-priority" style={{ color: priorityColor[ticket.priority] || '#6b7280' }}>
+                  {humanize(ticket.priority)}
                 </span>
 
                 <span
                   className="ticket-status"
                   style={{
-                    background: statusColor(ticket.status) + '20',
-                    color: statusColor(ticket.status),
+                    background: `${statusColor[ticket.status] || '#6b7280'}20`,
+                    color: statusColor[ticket.status] || '#6b7280',
                   }}
                 >
-                  {ticket.status.replace(/_/g, ' ')}
+                  {humanize(ticket.status, STATUS_LABELS)}
                 </span>
 
                 <span className="ticket-date">{formatDate(ticket.created_at)}</span>

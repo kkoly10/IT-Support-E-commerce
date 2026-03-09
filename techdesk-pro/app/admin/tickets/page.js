@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -8,6 +8,51 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
+
+const STATUS_LABELS = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  waiting_on_client: 'Waiting on Client',
+  resolved: 'Resolved',
+  closed: 'Closed',
+}
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  device_guidance: 'Device Guidance',
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  unknown: 'Needs Review',
+  other: 'Other',
+}
+
+const statusColor = {
+  open: '#e74c3c',
+  in_progress: '#f39c12',
+  waiting_on_client: '#9b59b6',
+  resolved: '#27ae60',
+  closed: '#95a5a6',
+}
+
+const priorityLabel = {
+  low: '🟢',
+  medium: '🟡',
+  high: '🟠',
+  urgent: '🔴',
+}
+
+const humanize = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
+}
 
 function AdminTicketsContent() {
   const searchParams = useSearchParams()
@@ -34,9 +79,7 @@ function AdminTicketsContent() {
           status,
           priority,
           category,
-          platform,
           created_at,
-          updated_at,
           ai_category,
           ai_confidence,
           ai_can_auto_resolve,
@@ -47,13 +90,8 @@ function AdminTicketsContent() {
         `)
         .order('created_at', { ascending: false })
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter)
-      }
-
-      if (priorityFilter !== 'all') {
-        query = query.eq('priority', priorityFilter)
-      }
+      if (statusFilter !== 'all') query = query.eq('status', statusFilter)
+      if (priorityFilter !== 'all') query = query.eq('priority', priorityFilter)
 
       const { data, error } = await query
       if (error) throw error
@@ -66,36 +104,21 @@ function AdminTicketsContent() {
     }
   }
 
-  const filtered = tickets.filter((t) => {
+  const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
-    return (
-      t.title?.toLowerCase().includes(q) ||
-      t.organization?.name?.toLowerCase().includes(q) ||
-      (t.ai_category || '').toLowerCase().includes(q) ||
-      `tdp-${t.ticket_number || ''}`.toLowerCase().includes(q)
-    )
-  })
 
-  const statusColor = (status) => {
-    const colors = {
-      open: '#e74c3c',
-      in_progress: '#f39c12',
-      waiting_on_client: '#9b59b6',
-      resolved: '#27ae60',
-      closed: '#95a5a6',
-    }
-    return colors[status] || '#8a8a8a'
-  }
-
-  const priorityLabel = (p) => {
-    const labels = {
-      low: '🟢',
-      medium: '🟡',
-      high: '🟠',
-      urgent: '🔴',
-    }
-    return labels[p] || ''
-  }
+    return tickets.filter((ticket) => {
+      if (!q) return true
+      return (
+        ticket.title?.toLowerCase().includes(q) ||
+        ticket.organization?.name?.toLowerCase().includes(q) ||
+        (ticket.ai_category || '').toLowerCase().includes(q) ||
+        humanize(ticket.ai_category, CATEGORY_LABELS).toLowerCase().includes(q) ||
+        humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q) ||
+        `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q)
+      )
+    })
+  }, [tickets, search])
 
   const timeAgo = (date) => {
     const mins = Math.floor((Date.now() - new Date(date)) / 60000)
@@ -110,15 +133,15 @@ function AdminTicketsContent() {
     <div>
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">All Tickets</h1>
-          <p className="admin-page-desc">{filtered.length} ticket{filtered.length !== 1 ? 's' : ''}</p>
+          <h1 className="admin-page-title">Support Requests</h1>
+          <p className="admin-page-desc">{filtered.length} request{filtered.length !== 1 ? 's' : ''}</p>
         </div>
       </div>
 
       <div className="admin-filters">
         <input
           type="text"
-          placeholder="Search tickets, clients, AI category..."
+          placeholder="Search by ticket, client, category, or AI triage..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-search-input"
@@ -153,19 +176,20 @@ function AdminTicketsContent() {
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
           <div className="admin-loading" style={{ padding: 40 }}>
-            Loading tickets...
+            Loading support requests...
           </div>
         ) : filtered.length === 0 ? (
           <div className="admin-empty-text" style={{ padding: 40 }}>
-            No tickets found
+            No support requests found
           </div>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Ticket</th>
+                  <th>Request</th>
                   <th>Client</th>
+                  <th>Category</th>
                   <th>AI Triage</th>
                   <th>Priority</th>
                   <th>Status</th>
@@ -188,13 +212,13 @@ function AdminTicketsContent() {
                       <div className="admin-table-sub">{ticket.title}</div>
                     </td>
 
-                    <td className="admin-table-muted">
-                      {ticket.organization?.name || '—'}
-                    </td>
+                    <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
+
+                    <td className="admin-table-muted">{humanize(ticket.category, CATEGORY_LABELS)}</td>
 
                     <td>
                       <div className="admin-table-title" style={{ fontSize: '0.82rem' }}>
-                        {ticket.ai_category ? ticket.ai_category.replace(/_/g, ' ') : 'Not triaged'}
+                        {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
                       </div>
 
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
@@ -206,19 +230,19 @@ function AdminTicketsContent() {
 
                         {ticket.ai_can_auto_resolve === true && (
                           <span className="admin-status-badge" style={{ background: '#27ae6018', color: '#27ae60' }}>
-                            Auto
+                            Auto-resolve eligible
                           </span>
                         )}
 
                         {ticket.ai_escalation_needed === true && (
                           <span className="admin-status-badge" style={{ background: '#e74c3c18', color: '#e74c3c' }}>
-                            Escalate
+                            Escalation needed
                           </span>
                         )}
 
                         {ticket.ai_project_flag === true && (
                           <span className="admin-status-badge" style={{ background: '#f39c1218', color: '#f39c12' }}>
-                            Scoped
+                            Project / Scoped
                           </span>
                         )}
                       </div>
@@ -226,7 +250,7 @@ function AdminTicketsContent() {
 
                     <td>
                       <span className="admin-table-sm">
-                        {priorityLabel(ticket.priority)} {ticket.priority}
+                        {priorityLabel[ticket.priority] || ''} {humanize(ticket.priority)}
                       </span>
                     </td>
 
@@ -234,17 +258,15 @@ function AdminTicketsContent() {
                       <span
                         className="admin-status-badge"
                         style={{
-                          background: statusColor(ticket.status) + '18',
-                          color: statusColor(ticket.status),
+                          background: `${statusColor[ticket.status] || '#8a8a8a'}18`,
+                          color: statusColor[ticket.status] || '#8a8a8a',
                         }}
                       >
-                        {ticket.status.replace(/_/g, ' ')}
+                        {humanize(ticket.status, STATUS_LABELS)}
                       </span>
                     </td>
 
-                    <td className="admin-table-muted">
-                      {ticket.assigned_agent?.full_name || 'Unassigned'}
-                    </td>
+                    <td className="admin-table-muted">{ticket.assigned_agent?.full_name || 'Unassigned'}</td>
 
                     <td className="admin-table-muted">{timeAgo(ticket.created_at)}</td>
                   </tr>
@@ -260,7 +282,7 @@ function AdminTicketsContent() {
 
 export default function AdminTickets() {
   return (
-    <Suspense fallback={<div className="admin-loading">Loading tickets...</div>}>
+    <Suspense fallback={<div className="admin-loading">Loading support requests...</div>}>
       <AdminTicketsContent />
     </Suspense>
   )
