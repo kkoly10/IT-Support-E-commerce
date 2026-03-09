@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import { CATEGORY_LABELS as SUPPORT_CATEGORY_LABELS, STATUS_COLORS, STATUS_LABELS as SUPPORT_STATUS_LABELS, toLabel } from '../../../lib/support-ui'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,

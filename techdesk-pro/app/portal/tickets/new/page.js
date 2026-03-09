@@ -95,8 +95,8 @@ export default function NewTicketPage() {
 
       router.push(`/portal/tickets/${ticket.id}`)
     } catch (err) {
-      console.error('Error creating ticket:', err)
-      setError(err.message || 'Failed to create ticket')
+      console.error('Error creating support request:', err)
+      setError(err.message || 'Failed to create support request')
       setLoading(false)
     }
   }
@@ -104,14 +104,14 @@ export default function NewTicketPage() {
   return (
     <div>
       <a href="/portal/tickets" className="new-ticket-back">
-        ← Back to tickets
+        ← Back to Support Requests
       </a>
 
       <h1 style={{ fontSize: '1.4rem', marginBottom: 4 }}>New Support Request</h1>
       <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem', marginBottom: 24 }}>
         Describe your issue and our AI will triage it first. If it is a safe low-risk issue,
         the system may respond immediately. If it needs human attention, we’ll handle it through
-        normal support workflow.
+        standard support workflow with clear status updates.
       </p>
 
       <div
@@ -181,6 +181,9 @@ export default function NewTicketPage() {
                 <option value="portal_account">Portal / Account Question</option>
                 <option value="billing_scope">Billing / Scope Question</option>
                 <option value="device_guidance">Device Guidance</option>
+                <option value="security_review">Security Review</option>
+                <option value="project_scoped">Project / Scoped Work</option>
+                <option value="unknown">Not Sure / Needs Review</option>
                 <option value="other">Other</option>
               </select>
             </div>
