@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
-import { CATEGORY_LABELS, PRIORITY_COLORS, STATUS_COLORS, STATUS_LABELS, toLabel } from '../../../lib/support-ui'
 
 const STATUS_OPTIONS = [
   'all',

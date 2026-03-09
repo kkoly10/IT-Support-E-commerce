@@ -16,19 +16,6 @@ const ACTIVE_NAV = [
   { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
 ]
 
-const BREADCRUMB_LABELS = {
-  portal: 'Client Portal',
-  tickets: 'Support Requests',
-  dashboard: 'Dashboard',
-  health: 'System Health',
-  atlas: 'Atlas Assistant',
-  training: 'Training',
-  documents: 'Documents',
-  billing: 'Billing',
-  settings: 'Settings',
-  new: 'New Request',
-}
-
 function buildNav(org) {
   const clientStatus = org?.client_status || 'lead'
 
@@ -64,11 +51,6 @@ function buildNav(org) {
 function formatLabel(value) {
   if (!value) return ''
   return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function breadcrumbLabel(segment) {
-  if (!segment) return ''
-  return BREADCRUMB_LABELS[segment] || formatLabel(segment.replace(/-/g, ' '))
 }
 
 export default function PortalLayout({ children }) {
@@ -121,7 +103,7 @@ export default function PortalLayout({ children }) {
     return (
       <div className="portal-loading">
         <div className="portal-loading-spinner"></div>
-        <p>Loading Client Portal...</p>
+        <p>Loading portal...</p>
       </div>
     )
   }
@@ -168,7 +150,8 @@ export default function PortalLayout({ children }) {
 
         <nav className="sidebar-nav">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + '/')
 
             return (
               <Link
@@ -186,7 +169,9 @@ export default function PortalLayout({ children }) {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            <div className="sidebar-avatar">{profile?.full_name?.charAt(0)?.toUpperCase() || '?'}</div>
+            <div className="sidebar-avatar">
+              {profile?.full_name?.charAt(0)?.toUpperCase() || '?'}
+            </div>
             <div>
               <div className="sidebar-user-name">{profile?.full_name || 'Client User'}</div>
               <div className="sidebar-user-email">{profile?.email}</div>
@@ -215,7 +200,9 @@ export default function PortalLayout({ children }) {
               .map((seg, i, arr) => (
                 <span key={i}>
                   {i > 0 && <span className="topbar-sep">/</span>}
-                  <span className={i === arr.length - 1 ? 'topbar-current' : ''}>{breadcrumbLabel(seg)}</span>
+                  <span className={i === arr.length - 1 ? 'topbar-current' : ''}>
+                    {formatLabel(seg.replace(/-/g, ' '))}
+                  </span>
                 </span>
               ))}
           </div>

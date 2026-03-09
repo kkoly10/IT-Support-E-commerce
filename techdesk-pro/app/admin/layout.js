@@ -1,7 +1,9 @@
+// File: app/admin/layout.js (replace existing)
+
 'use client'
 
-import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -11,29 +13,25 @@ const supabase = createBrowserClient(
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
-  { label: 'Support Requests', href: '/admin/tickets', icon: '🎫' },
+  { label: 'Tickets', href: '/admin/tickets', icon: '🎫' },
   { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
-  { label: 'Documents', href: '/admin/document', icon: '📄' },
+  { label: 'Documents', href: '/admin/documents', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
   { label: 'Reports & CSAT', href: '/admin/reports', icon: '📈' },
   { label: 'Compliance', href: '/admin/compliance', icon: '📋' },
-  { label: 'Training', href: '/admin/training', icon: '🎓' },
+  { label: 'Training Hub', href: '/admin/training', icon: '🎓' },
   { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
-
   const [profile, setProfile] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     async function loadProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const { data } = await supabase
@@ -44,7 +42,6 @@ export default function AdminLayout({ children }) {
 
       if (data) setProfile(data)
     }
-
     loadProfile()
   }, [])
 
@@ -57,14 +54,14 @@ export default function AdminLayout({ children }) {
     <div className="admin-layout">
       <div className="admin-mobile-header">
         <button className="admin-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          <span />
-          <span />
-          <span />
+          <span /><span /><span />
         </button>
         <span className="admin-mobile-title">TechDesk Admin</span>
       </div>
 
-      {sidebarOpen && <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
 
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
@@ -72,7 +69,7 @@ export default function AdminLayout({ children }) {
             <div className="admin-logo-mark">T</div>
             <div>
               <div className="admin-logo-text">TechDesk Pro</div>
-              <div className="admin-logo-sub">Support Console</div>
+              <div className="admin-logo-sub">Admin Panel</div>
             </div>
           </a>
         </div>
@@ -93,14 +90,20 @@ export default function AdminLayout({ children }) {
 
         <div className="admin-sidebar-divider" />
 
-        <a href="/portal/dashboard" className="admin-nav-item" style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
+        <a
+          href="/portal/dashboard"
+          className="admin-nav-item"
+          style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}
+        >
           <span className="admin-nav-icon">↩️</span>
-          Switch to Client Portal
+          Switch to Client View
         </a>
 
         <div className="admin-sidebar-footer">
           <div className="admin-user-info">
-            <div className="admin-user-avatar">{profile?.full_name?.charAt(0) || 'A'}</div>
+            <div className="admin-user-avatar">
+              {profile?.full_name?.charAt(0) || 'A'}
+            </div>
             <div className="admin-user-details">
               <div className="admin-user-name">{profile?.full_name || 'Admin'}</div>
               <div className="admin-user-role">Administrator</div>
@@ -112,7 +115,9 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      <main className="admin-main">{children}</main>
+      <main className="admin-main">
+        {children}
+      </main>
     </div>
   )
 }
