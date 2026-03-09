@@ -14,7 +14,7 @@ export async function GET(request) {
   const stateParam = searchParams.get('state')
   const error = searchParams.get('error')
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://it-support-e-commerce.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://techdesk-pro.vercel.app'
 
   if (error) {
     return Response.redirect(`${baseUrl}/portal/settings?error=${encodeURIComponent(error)}`)

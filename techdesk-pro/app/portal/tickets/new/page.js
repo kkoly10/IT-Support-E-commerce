@@ -44,6 +44,10 @@ export default function NewTicketPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!title || !description || !category) return
+    if (!userId || !orgId) {
+      setError('Please wait a moment while your account context loads, then retry.')
+      return
+    }
 
     setLoading(true)
     setError(null)
@@ -88,13 +92,15 @@ export default function NewTicketPage() {
         }
       }
 
-      fetch('/api/ai/post-create-ticket', {
+      const workflowRes = await fetch('/api/ai/post-create-ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId: ticket.id }),
-      }).catch((err) => {
-        console.error('Background post-create AI workflow error:', err)
       })
+
+      if (!workflowRes.ok) {
+        console.warn('Post-create AI workflow returned non-OK status. Ticket was still created.')
+      }
 
       router.push(`/portal/tickets/${ticket.id}`)
     } catch (err) {

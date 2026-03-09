@@ -29,6 +29,7 @@ export default function SignupPage() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [assessmentId, setAssessmentId] = useState('')
 
   const router = useRouter()
   const supabase = createClient()
@@ -114,6 +115,17 @@ export default function SignupPage() {
       setError('Account created but user ID was not returned. Please try signing in.')
       setLoading(false)
       return
+    }
+
+
+    if (assessmentId) {
+      await fetch('/api/assessment/link-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, organizationId: org.id }),
+      }).catch((err) => {
+        console.error('Failed to link assessment to organization:', err)
+      })
     }
 
     const { error: profileError } = await supabase

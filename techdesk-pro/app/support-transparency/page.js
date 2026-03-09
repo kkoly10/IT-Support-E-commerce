@@ -86,8 +86,8 @@ export default function SupportTransparencyPage() {
           <p style={pStyle}>Standard support tickets do not include:</p>
           <ul style={ulStyle}>
             <li>Major migrations</li>
-            <li>Custom automations</li>
-            <li>Website or store builds</li>
+            <li>Custom implementation projects</li>
+            <li>Custom software implementation projects</li>
             <li>Major remediation work</li>
             <li>Compliance documentation projects</li>
             <li>Full platform implementation</li>
@@ -116,7 +116,7 @@ export default function SupportTransparencyPage() {
             <li>Loss of access to a core operational system affecting multiple users</li>
           </ul>
           <p style={pStyle}>
-            A single-user issue, low-impact inconvenience, cosmetic website issue, or routine
+            A single-user issue, low-impact inconvenience, cosmetic non-critical issue, or routine
             request is generally not an emergency.
           </p>
         </section>

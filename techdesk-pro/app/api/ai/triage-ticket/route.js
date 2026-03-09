@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { normalizeRequestCategory } from '../../../../lib/support-ui'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -70,9 +71,8 @@ TechDesk Pro is a remote-first IT support business focused on:
 - support policy and portal guidance
 
 You are NOT triaging:
-- e-commerce work
-- website builds
-- automation builds
+- project implementation work
+- full software build work
 - marketing work
 
 Your job:
