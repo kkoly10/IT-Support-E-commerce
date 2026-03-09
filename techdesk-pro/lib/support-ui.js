@@ -14,37 +14,7 @@ export const STATUS_COLORS = {
   closed: '#6b7280',
 }
 
-export const CATEGORY_LABELS = {
-  helpdesk: 'General Helpdesk',
-  accounts_access: 'Accounts & Access',
-  email_collaboration: 'Email & Collaboration',
-  microsoft_365: 'Microsoft 365',
-  google_workspace: 'Google Workspace',
-  saas_admin: 'SaaS Admin',
-  device_guidance: 'Device Guidance',
-  security_review: 'Security Review',
-  project_scoped: 'Project Scoped',
-  portal_account: 'Portal Account',
-  billing_scope: 'Billing & Scope',
-  unknown: 'Needs Review',
-  other: 'Other',
-}
-
-export const PRIORITY_COLORS = {
-  low: '#6b7280',
-  medium: '#f59e0b',
-  high: '#f97316',
-  urgent: '#ef4444',
-}
-
-export const toLabel = (value, labels) => {
-  if (!value) return '—'
-  if (labels?.[value]) return labels[value]
-  return value.replace(/_/g, ' ')
-}
-
-
-// Keep this list aligned with the Supabase `ticket_category` enum values.
+// Canonical DB-safe categories for tickets.category (ticket_category enum)
 export const REQUEST_CATEGORY_OPTIONS = [
   'helpdesk',
   'accounts_access',
@@ -58,13 +28,45 @@ export const REQUEST_CATEGORY_OPTIONS = [
   'other',
 ]
 
+export const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  device_guidance: 'Device Guidance',
+  other: 'Other',
+  // legacy/AI values: keep readable labels for old data without using them for writes
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped Work',
+  unknown: 'Needs Review',
+}
+
+export const PRIORITY_COLORS = {
+  low: '#6b7280',
+  medium: '#f59e0b',
+  high: '#f97316',
+  urgent: '#ef4444',
+}
+
 export const normalizeRequestCategory = (category) => {
   if (!category) return category
+  if (REQUEST_CATEGORY_OPTIONS.includes(category)) return category
 
-  // Legacy / draft values that may appear in the UI but are not valid enum values.
-  if (category === 'project_scoped') return 'other'
-  if (category === 'security_review') return 'other'
-  if (category === 'unknown') return 'other'
+  const aliasMap = {
+    security_review: 'other',
+    project_scoped: 'other',
+    unknown: 'other',
+  }
 
-  return REQUEST_CATEGORY_OPTIONS.includes(category) ? category : 'other'
+  return aliasMap[category] || 'other'
+}
+
+export const toLabel = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
 }

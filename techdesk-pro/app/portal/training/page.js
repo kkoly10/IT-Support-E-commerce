@@ -11,7 +11,7 @@ const CATEGORY_LABELS = {
   cybersecurity: { label: 'Cybersecurity', color: '#e74c3c' },
   cloud: { label: 'Cloud & Productivity', color: '#4285F4' },
   tools: { label: 'Business Tools', color: '#f39c12' },
-  ecommerce: { label: 'E-Commerce', color: '#96BF48' },
+  ecommerce: { label: 'SaaS Operations', color: '#0D7C66' },
   it: { label: 'IT Basics', color: '#0D7C66' },
 }
 

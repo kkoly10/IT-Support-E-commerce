@@ -5,6 +5,32 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+const VALID_AI_CATEGORIES = [
+  'helpdesk',
+  'accounts_access',
+  'email_collaboration',
+  'microsoft_365',
+  'google_workspace',
+  'saas_admin',
+  'portal_account',
+  'billing_scope',
+  'device_guidance',
+  'other',
+]
+
+const normalizeAiCategory = (value) => {
+  if (!value) return 'other'
+  if (VALID_AI_CATEGORIES.includes(value)) return value
+
+  const aliasMap = {
+    security_review: 'other',
+    project_scoped: 'other',
+    unknown: 'other',
+  }
+
+  return aliasMap[value] || 'other'
+}
+
 export async function POST(request) {
   try {
     const { ticketId } = await request.json()
@@ -53,7 +79,7 @@ Your job:
 Analyze the support ticket and return ONLY valid JSON in this exact structure:
 
 {
-  "ai_category": "helpdesk|accounts_access|email_collaboration|microsoft_365|google_workspace|saas_admin|device_guidance|security_review|billing_scope|portal_account|project_scoped|unknown",
+  "ai_category": "helpdesk|accounts_access|email_collaboration|microsoft_365|google_workspace|saas_admin|portal_account|billing_scope|device_guidance|other",
   "ai_priority_recommendation": "low|medium|high|urgent",
   "ai_difficulty": "easy|medium|advanced",
   "ai_estimated_time": "5 minutes",
@@ -104,7 +130,7 @@ Analyze this ticket for remote IT support triage only.`,
     const parsed = JSON.parse(cleaned)
 
     const updatePayload = {
-      ai_category: parsed.ai_category || null,
+      ai_category: normalizeAiCategory(parsed.ai_category),
       ai_priority_recommendation: parsed.ai_priority_recommendation || null,
       ai_difficulty: parsed.ai_difficulty || null,
       ai_estimated_time: parsed.ai_estimated_time || null,
@@ -132,7 +158,7 @@ Analyze this ticket for remote IT support triage only.`,
       ticket_id: ticketId,
       sender_type: 'system',
       body: `🧠 AI Triage complete
-Category: ${updatePayload.ai_category || 'unknown'}
+Category: ${updatePayload.ai_category || 'other'}
 Priority recommendation: ${updatePayload.ai_priority_recommendation || 'unknown'}
 Difficulty: ${updatePayload.ai_difficulty || 'unknown'}
 Estimated time: ${updatePayload.ai_estimated_time || 'unknown'}

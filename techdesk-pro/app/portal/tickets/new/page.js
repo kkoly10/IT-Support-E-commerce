@@ -1,41 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
-
-
-const REQUEST_CATEGORY_OPTIONS = [
-  'helpdesk',
-  'accounts_access',
-  'email_collaboration',
-  'microsoft_365',
-  'google_workspace',
-  'saas_admin',
-  'portal_account',
-  'billing_scope',
-  'device_guidance',
-  'other',
-]
-
-const CATEGORY_LABELS = {
-  helpdesk: 'General Helpdesk',
-  accounts_access: 'Accounts & Access',
-  email_collaboration: 'Email & Collaboration',
-  microsoft_365: 'Microsoft 365',
-  google_workspace: 'Google Workspace',
-  saas_admin: 'SaaS Admin',
-  portal_account: 'Portal Account',
-  billing_scope: 'Billing & Scope',
-  device_guidance: 'Device Guidance',
-  other: 'Other',
-}
-
-
-const normalizeRequestCategory = (category) => {
-  if (!category) return category
-  return REQUEST_CATEGORY_OPTIONS.includes(category) ? category : 'other'
-}
+import { CATEGORY_LABELS, REQUEST_CATEGORY_OPTIONS, normalizeRequestCategory } from '../../../../lib/support-ui'
 
 export default function NewTicketPage() {
   const [title, setTitle] = useState('')
@@ -50,7 +18,7 @@ export default function NewTicketPage() {
   const [orgId, setOrgId] = useState(null)
 
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function getUser() {
@@ -81,12 +49,14 @@ export default function NewTicketPage() {
     setError(null)
 
     try {
+      const normalizedCategory = normalizeRequestCategory(category)
+
       const { data: ticket, error: ticketErr } = await supabase
         .from('tickets')
         .insert({
           title,
           description,
-          category: normalizeRequestCategory(category),
+          category: normalizedCategory,
           priority,
           platform: platform || null,
           organization_id: orgId,
