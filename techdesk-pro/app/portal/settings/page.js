@@ -12,7 +12,7 @@ const PLATFORMS = [
     name: 'Shopify',
     icon: '🛍️',
     color: '#96BF48',
-    description: 'Monitor orders, products, inventory, and store analytics.',
+    description: 'Connect a platform endpoint for operational monitoring and diagnostics.',
     needsShopDomain: true,
   },
   {
@@ -20,7 +20,7 @@ const PLATFORMS = [
     name: 'Wix',
     icon: '🌐',
     color: '#0C6EFC',
-    description: 'Monitor site performance and manage content.',
+    description: 'Connect to monitor service availability and key platform signals.',
     needsShopDomain: false,
   },
   {
@@ -28,7 +28,7 @@ const PLATFORMS = [
     name: 'WooCommerce',
     icon: '🟣',
     color: '#96588A',
-    description: 'Monitor orders, products, and store health.',
+    description: 'Connect for operational monitoring and service diagnostics.',
     needsShopDomain: true,
   },
   {
@@ -44,7 +44,7 @@ const PLATFORMS = [
     name: 'Squarespace',
     icon: '◼️',
     color: '#000000',
-    description: 'Monitor site performance, orders, and inventory.',
+    description: 'Connect to monitor service availability and basic platform signals.',
     needsShopDomain: false,
   },
 ]
@@ -113,7 +113,7 @@ function SettingsContent() {
     if (platform.needsShopDomain) {
       const domain = shopDomains[platform.id]
       if (!domain) {
-        alert(`Please enter your ${platform.name} store domain first.`)
+        alert(`Please enter your ${platform.name} domain first.`)
         return
       }
       window.location.href = `/api/oauth/${platform.id}?shop=${encodeURIComponent(domain)}`
@@ -229,7 +229,7 @@ function SettingsContent() {
                   {!connected && platform.needsShopDomain && (
                     <input
                       type="text"
-                      placeholder={`your-store.${platform.id === 'shopify' ? 'myshopify.com' : 'com'}`}
+                      placeholder={`your-domain.${platform.id === 'shopify' ? 'myshopify.com' : 'com'}`}
                       value={shopDomains[platform.id] || ''}
                       onChange={(e) => setShopDomains(prev => ({ ...prev, [platform.id]: e.target.value }))}
                       style={{

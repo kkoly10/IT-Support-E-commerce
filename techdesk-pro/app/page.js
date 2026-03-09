@@ -739,9 +739,9 @@ export default function Home() {
           <div className="cta-btns">
             <button
               className="cta-btn-white"
-              onClick={() => window.location.assign('/support-transparency')}
+              onClick={() => window.location.assign('/free-assessment')}
             >
-              Review Support Policy
+              Start Free Assessment
             </button>
             <a href="mailto:hello@techdeskpro.com" className="cta-btn-ghost">
               Send an Email

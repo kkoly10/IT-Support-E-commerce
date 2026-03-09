@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -32,6 +32,19 @@ export default function SignupPage() {
 
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const params = new URLSearchParams(window.location.search)
+    const seedName = params.get('name')
+    const seedEmail = params.get('email')
+    const seedCompany = params.get('company')
+
+    if (seedName) setFullName(seedName)
+    if (seedEmail) setEmail(seedEmail)
+    if (seedCompany) setCompanyName(seedCompany)
+  }, [])
 
   const handleSignup = async (e) => {
     e.preventDefault()
@@ -306,29 +319,6 @@ export default function SignupPage() {
                   placeholder="e.g. We need help handling remote IT issues, user account problems, Microsoft 365 or Google Workspace admin tasks, and routine technical support."
                   rows={3}
                 />
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  padding: 14,
-                  fontSize: '0.84rem',
-                  color: 'var(--ink-muted)',
-                  lineHeight: 1.6,
-                }}
-              >
-                Need a website, online store, or automation build instead?{' '}
-                <a
-                  href="https://crecystudio.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
-                >
-                  Visit CrecyStudio
-                </a>
-                .
               </div>
 
               <div style={{ display: 'flex', gap: 12 }}>
