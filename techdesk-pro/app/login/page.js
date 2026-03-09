@@ -58,26 +58,6 @@ export default function LoginPage() {
 
           <h1>Welcome back</h1>
           <p>Sign in to your client support portal</p>
-
-          <p
-            style={{
-              marginTop: 12,
-              fontSize: '0.85rem',
-              color: 'var(--ink-muted)',
-              lineHeight: 1.6,
-            }}
-          >
-            Need a website, online store, or automation build instead?{' '}
-            <a
-              href="https://crecystudio.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
-            >
-              Visit CrecyStudio
-            </a>
-            .
-          </p>
         </div>
 
         <form onSubmit={handleLogin} className="auth-form">

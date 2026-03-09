@@ -332,14 +332,14 @@ export default function Home() {
                 maxWidth: 560,
               }}
             >
-              Need a website, online store, or automation build instead?{' '}
+              Need help with support scope details instead?{' '}
               <a
-                href="https://crecystudio.com"
+                href="/support-transparency"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
               >
-                Visit CrecyStudio
+                View Support Scope
               </a>
               .
             </div>
@@ -519,34 +519,33 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Need Build Work Instead?</div>
-            <h2 className="section-title">CrecyStudio handles websites, stores, and automation builds.</h2>
+            <h2 className="section-title">Support scope stays focused on remote IT and cloud/SaaS operations.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              TechDesk Pro is focused on remote IT support. If you need a website, online store,
-              workflow build, or automation project, CrecyStudio is the better fit.
+              TechDesk Pro focuses on remote IT support requests, cloud/SaaS admin work, and lifecycle-aware client support operations.
             </p>
           </div>
 
           <div className="pricing-grid" style={{ maxWidth: 720, margin: '0 auto' }}>
             <div className="plan featured">
               <div className="plan-badge">Related Service</div>
-              <div className="plan-name">CrecyStudio</div>
+              <div className="plan-name">Support Scope Policy</div>
               <div className="plan-desc">
-                Websites, online stores, workflow systems, and automation builds for businesses that
+                Support operations guidance for businesses that
                 need implementation work instead of remote IT support.
               </div>
               <ul className="plan-features">
                 <li>Website design & builds</li>
-                <li>E-commerce setup & store projects</li>
-                <li>Workflow systems & automation builds</li>
+                <li>Major migrations and implementations</li>
+                <li>Structured project work outside routine support</li>
                 <li>Project-based implementation work</li>
               </ul>
               <a
-                href="https://crecystudio.com"
+                href="/support-transparency"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="plan-btn plan-btn-primary"
               >
-                Visit CrecyStudio
+                View Support Scope
               </a>
             </div>
           </div>
@@ -612,7 +611,7 @@ export default function Home() {
             Not sure which plan fits? Start with a free assessment and we’ll recommend the most sensible support path.
           </p>
           <p className="pricing-note" style={{ marginTop: 8 }}>
-            Website, store, and automation builds are not part of TechDesk Pro&apos;s standard support scope.
+            Major implementation projects are not part of TechDesk Pro&apos;s standard support scope.
           </p>
         </div>
       </section>
@@ -739,9 +738,9 @@ export default function Home() {
           <div className="cta-btns">
             <button
               className="cta-btn-white"
-              onClick={() => window.location.assign('/support-transparency')}
+              onClick={() => window.location.assign('/free-assessment')}
             >
-              Review Support Policy
+              Start Free Assessment
             </button>
             <a href="mailto:hello@techdeskpro.com" className="cta-btn-ghost">
               Send an Email
@@ -778,11 +777,11 @@ export default function Home() {
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
             <a
-              href="https://crecystudio.com"
+              href="/support-transparency"
               target="_blank"
               rel="noopener noreferrer"
             >
-              CrecyStudio
+              Support Scope
             </a>
             <a href="/login" style={{ color: 'var(--teal)' }}>
               Client Portal

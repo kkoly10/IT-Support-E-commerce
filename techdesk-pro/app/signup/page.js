@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -29,9 +29,25 @@ export default function SignupPage() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [assessmentId, setAssessmentId] = useState('')
 
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const params = new URLSearchParams(window.location.search)
+    const seedName = params.get('name')
+    const seedEmail = params.get('email')
+    const seedCompany = params.get('company')
+    const seedAssessment = params.get('assessment')
+
+    if (seedName) setFullName(seedName)
+    if (seedEmail) setEmail(seedEmail)
+    if (seedCompany) setCompanyName(seedCompany)
+    if (seedAssessment) setAssessmentId(seedAssessment)
+  }, [])
 
   const handleSignup = async (e) => {
     e.preventDefault()
@@ -101,6 +117,17 @@ export default function SignupPage() {
       setError('Account created but user ID was not returned. Please try signing in.')
       setLoading(false)
       return
+    }
+
+
+    if (assessmentId) {
+      await fetch('/api/assessment/link-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, organizationId: org.id }),
+      }).catch((err) => {
+        console.error('Failed to link assessment to organization:', err)
+      })
     }
 
     const { error: profileError } = await supabase
@@ -306,29 +333,6 @@ export default function SignupPage() {
                   placeholder="e.g. We need help handling remote IT issues, user account problems, Microsoft 365 or Google Workspace admin tasks, and routine technical support."
                   rows={3}
                 />
-              </div>
-
-              <div
-                style={{
-                  background: 'var(--bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  padding: 14,
-                  fontSize: '0.84rem',
-                  color: 'var(--ink-muted)',
-                  lineHeight: 1.6,
-                }}
-              >
-                Need a website, online store, or automation build instead?{' '}
-                <a
-                  href="https://crecystudio.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
-                >
-                  Visit CrecyStudio
-                </a>
-                .
               </div>
 
               <div style={{ display: 'flex', gap: 12 }}>
