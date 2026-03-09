@@ -10,11 +10,49 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
+const STATUS_LABELS = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  waiting_on_client: 'Waiting on Client',
+  resolved: 'Resolved',
+  closed: 'Closed',
+}
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  device_guidance: 'Device Guidance',
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  unknown: 'Needs Review',
+  other: 'Other',
+}
+
+const statusColor = {
+  open: '#e74c3c',
+  in_progress: '#f39c12',
+  waiting_on_client: '#9b59b6',
+  resolved: '#27ae60',
+  closed: '#95a5a6',
+}
+
 const priorityLabel = {
   low: '🟢',
   medium: '🟡',
   high: '🟠',
   urgent: '🔴',
+}
+
+const humanize = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
 }
 
 function AdminTicketsContent() {
@@ -76,8 +114,8 @@ function AdminTicketsContent() {
         ticket.title?.toLowerCase().includes(q) ||
         ticket.organization?.name?.toLowerCase().includes(q) ||
         (ticket.ai_category || '').toLowerCase().includes(q) ||
-        toLabel(ticket.ai_category, SUPPORT_CATEGORY_LABELS).toLowerCase().includes(q) ||
-        toLabel(ticket.category, SUPPORT_CATEGORY_LABELS).toLowerCase().includes(q) ||
+        humanize(ticket.ai_category, CATEGORY_LABELS).toLowerCase().includes(q) ||
+        humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q) ||
         `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q)
       )
     })
@@ -104,7 +142,7 @@ function AdminTicketsContent() {
       <div className="admin-filters">
         <input
           type="text"
-          placeholder="Search by support request, client, category, or AI triage..."
+          placeholder="Search by ticket, client, category, or AI triage..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-search-input"
@@ -177,11 +215,11 @@ function AdminTicketsContent() {
 
                     <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
 
-                    <td className="admin-table-muted">{toLabel(ticket.category, SUPPORT_CATEGORY_LABELS)}</td>
+                    <td className="admin-table-muted">{humanize(ticket.category, CATEGORY_LABELS)}</td>
 
                     <td>
                       <div className="admin-table-title" style={{ fontSize: '0.82rem' }}>
-                        {ticket.ai_category ? toLabel(ticket.ai_category, SUPPORT_CATEGORY_LABELS) : 'Not triaged'}
+                        {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
                       </div>
 
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
@@ -213,7 +251,7 @@ function AdminTicketsContent() {
 
                     <td>
                       <span className="admin-table-sm">
-                        {priorityLabel[ticket.priority] || ''} {toLabel(ticket.priority)}
+                        {priorityLabel[ticket.priority] || ''} {humanize(ticket.priority)}
                       </span>
                     </td>
 
@@ -221,11 +259,11 @@ function AdminTicketsContent() {
                       <span
                         className="admin-status-badge"
                         style={{
-                          background: `${STATUS_COLORS[ticket.status] || '#8a8a8a'}18`,
-                          color: STATUS_COLORS[ticket.status] || '#8a8a8a',
+                          background: `${statusColor[ticket.status] || '#8a8a8a'}18`,
+                          color: statusColor[ticket.status] || '#8a8a8a',
                         }}
                       >
-                        {toLabel(ticket.status, SUPPORT_STATUS_LABELS)}
+                        {humanize(ticket.status, STATUS_LABELS)}
                       </span>
                     </td>
 

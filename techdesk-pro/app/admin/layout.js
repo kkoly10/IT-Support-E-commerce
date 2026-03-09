@@ -12,8 +12,6 @@ const supabase = createBrowserClient(
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
   { label: 'Support Requests', href: '/admin/tickets', icon: '🎫' },
-  { label: 'Free Assessments', href: '/admin/assessments', icon: '📝' },
-  { label: 'KB/SOP Drafts', href: '/admin/kb-drafts', icon: '📚' },
   { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
   { label: 'Documents', href: '/admin/document', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
