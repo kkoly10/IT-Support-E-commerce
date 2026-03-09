@@ -41,12 +41,10 @@ export default function SignupPage() {
     const seedName = params.get('name')
     const seedEmail = params.get('email')
     const seedCompany = params.get('company')
-    const seedAssessment = params.get('assessment')
 
     if (seedName) setFullName(seedName)
     if (seedEmail) setEmail(seedEmail)
     if (seedCompany) setCompanyName(seedCompany)
-    if (seedAssessment) setAssessmentId(seedAssessment)
   }, [])
 
   const handleSignup = async (e) => {

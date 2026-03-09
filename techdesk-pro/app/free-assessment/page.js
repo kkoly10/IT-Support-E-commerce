@@ -9,10 +9,7 @@ export default function FreeAssessmentPage() {
     business_name: '',
     full_name: '',
     email: '',
-    phone: '',
     team_size_range: '',
-    industry: '',
-    tools_platforms: '',
     current_tools: '',
     pain_points: '',
     environment: '',
@@ -80,11 +77,6 @@ export default function FreeAssessmentPage() {
         <div className="form-group"><label>Email *</label><input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div className="form-group"><label>Phone (optional)</label><input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-          <div className="form-group"><label>Industry *</label><input required value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} /></div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div className="form-group">
             <label>Team size *</label>
             <select required value={form.team_size_range} onChange={(e) => setForm({ ...form, team_size_range: e.target.value })}>
@@ -105,8 +97,8 @@ export default function FreeAssessmentPage() {
         </div>
 
         <div className="form-group">
-          <label>Tools and platforms in scope *</label>
-          <textarea required rows={2} value={form.tools_platforms} onChange={(e) => setForm({ ...form, tools_platforms: e.target.value, current_tools: e.target.value })} placeholder="e.g. Google Workspace, Microsoft 365, Slack, Zoom, QuickBooks" />
+          <label>Current tools *</label>
+          <textarea required rows={2} value={form.current_tools} onChange={(e) => setForm({ ...form, current_tools: e.target.value })} placeholder="e.g. Google Workspace, Slack, Zoom, QuickBooks" />
         </div>
 
         <div className="form-group">
@@ -135,7 +127,7 @@ export default function FreeAssessmentPage() {
         </div>
 
         <button type="submit" className="auth-submit" disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit Free Assessment'}
+          {loading ? 'Submitting…' : 'Submit Free Assessment'}
         </button>
       </form>
     </main>

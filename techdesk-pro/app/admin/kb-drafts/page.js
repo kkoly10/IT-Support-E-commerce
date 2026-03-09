@@ -21,7 +21,6 @@ const parseDraft = (body) => {
 
 export default function AdminKBDraftsPage() {
   const [notes, setNotes] = useState([])
-  const [tableDrafts, setTableDrafts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,14 +29,6 @@ export default function AdminKBDraftsPage() {
 
   async function loadDrafts() {
     setLoading(true)
-
-    const { data: draftRows } = await supabase
-      .from('kb_sop_drafts')
-      .select('id, ticket_id, title, short_summary, draft_json, created_at, updated_at')
-      .order('updated_at', { ascending: false })
-
-    setTableDrafts(draftRows || [])
-
     const { data } = await supabase
       .from('ticket_messages')
       .select('id, ticket_id, body, created_at')
@@ -49,19 +40,10 @@ export default function AdminKBDraftsPage() {
     setLoading(false)
   }
 
-  const fallbackDrafts = useMemo(
+  const drafts = useMemo(
     () => notes.map((note) => ({ ...note, parsed: parseDraft(note.body) })).filter((x) => x.parsed),
     [notes]
   )
-
-  const drafts = tableDrafts.length > 0
-    ? tableDrafts.map((draft) => ({
-      id: draft.id,
-      ticket_id: draft.ticket_id,
-      parsed: draft.draft_json || { title: draft.title, summary: draft.short_summary },
-      created_at: draft.updated_at || draft.created_at,
-    }))
-    : fallbackDrafts
 
   return (
     <div>
@@ -85,7 +67,7 @@ export default function AdminKBDraftsPage() {
                   <strong>{draft.parsed.title || 'Untitled Draft'}</strong>
                   <a href={`/admin/tickets/${draft.ticket_id}`} className="admin-btn-small">Open Ticket</a>
                 </div>
-                <div className="admin-table-muted" style={{ marginTop: 6 }}>{draft.parsed.short_summary || draft.parsed.summary || 'No summary provided.'}</div>
+                <div className="admin-table-muted" style={{ marginTop: 6 }}>{draft.parsed.summary || 'No summary provided.'}</div>
                 <div style={{ marginTop: 8, fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
                   Last generated: {new Date(draft.created_at).toLocaleString()}
                 </div>

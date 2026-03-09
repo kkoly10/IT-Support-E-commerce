@@ -39,7 +39,7 @@ export default function AdminAssessmentsPage() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Free Assessments</h1>
-          <p className="admin-page-desc">Track intake submissions, qualify support fit, and move clients into onboarding.</p>
+          <p className="admin-page-desc">Track intake submissions and move them into onboarding.</p>
         </div>
       </div>
 
@@ -55,11 +55,11 @@ export default function AdminAssessmentsPage() {
                 <tr>
                   <th>Business</th>
                   <th>Contact</th>
-                  <th>Scope Summary</th>
+                  <th>Team</th>
                   <th>Urgency</th>
                   <th>Status</th>
-                  <th>Next Step</th>
                   <th>Created</th>
+                  <th>Convert</th>
                 </tr>
               </thead>
               <tbody>
@@ -67,28 +67,24 @@ export default function AdminAssessmentsPage() {
                   <tr key={item.id}>
                     <td>
                       <div className="admin-table-title">{item.business_name}</div>
-                      <div className="admin-table-sub">{item.industry || 'Industry not provided'} · Team {item.team_size_range || '—'}</div>
+                      <div className="admin-table-sub">{item.environment}</div>
                     </td>
                     <td className="admin-table-muted">
-                      {item.full_name}<br />{item.email}<br />{item.phone || 'No phone'}
+                      {item.full_name}<br />{item.email}
                     </td>
-                    <td className="admin-table-muted" style={{ minWidth: 280 }}>
-                      <strong>Platforms:</strong> {item.tools_platforms || item.current_tools || '—'}<br />
-                      <strong>Env:</strong> {item.environment || '—'}<br />
-                      <strong>Pain:</strong> {item.pain_points || '—'}
-                    </td>
+                    <td className="admin-table-muted">{item.team_size_range || '—'}</td>
                     <td className="admin-table-muted">{item.urgency || '—'}</td>
                     <td>
                       <select value={item.status || 'new'} onChange={(e) => updateStatus(item.id, e.target.value)} className="admin-filter-select">
                         {STATUS_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                       </select>
                     </td>
+                    <td className="admin-table-muted">{new Date(item.created_at).toLocaleDateString()}</td>
                     <td>
                       <a href={`/signup?assessment=${item.id}&email=${encodeURIComponent(item.email || '')}&company=${encodeURIComponent(item.business_name || '')}&name=${encodeURIComponent(item.full_name || '')}`} className="admin-btn-small">
                         Open Signup
                       </a>
                     </td>
-                    <td className="admin-table-muted">{new Date(item.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>

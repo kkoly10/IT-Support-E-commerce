@@ -66,7 +66,7 @@ Return only valid JSON in this exact structure:
 
 Rules:
 - Keep it specific and reusable for a founder-led IT support operation
-- Avoid fluff and keep language focused on IT support operations only
+- Avoid fluff and avoid mentioning e-commerce/website/automation business lines
 - Steps should be concise and operational
 - If conversation data is sparse, infer carefully and state practical assumptions`,
         messages: [
@@ -125,16 +125,7 @@ Generate the KB/SOP draft now.`,
 
     if (noteError) throw noteError
 
-    await supabase.from('kb_sop_drafts').upsert({
-      ticket_id: ticketId,
-      organization_id: ticket.organization_id,
-      title: draft.title,
-      short_summary: draft.short_summary,
-      draft_json: draft,
-      source: 'ai_generated',
-    }, { onConflict: 'ticket_id' })
-
-    return Response.json({ success: true, draft, stored_in: 'kb_sop_drafts + ticket_messages.is_internal_note=true' })
+    return Response.json({ success: true, draft, stored_in: 'ticket_messages.is_internal_note=true' })
   } catch (err) {
     console.error('KB/SOP draft generation error:', err)
     return Response.json({ error: err.message || 'Failed to generate KB/SOP draft' }, { status: 500 })

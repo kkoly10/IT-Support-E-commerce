@@ -1,11 +1,3 @@
-export const STATUS_OPTIONS = [
-  'open',
-  'in_progress',
-  'waiting_on_client',
-  'resolved',
-  'closed',
-]
-
 export const STATUS_LABELS = {
   open: 'Open',
   in_progress: 'In Progress',
@@ -68,7 +60,6 @@ export const normalizeRequestCategory = (category) => {
     security_review: 'other',
     project_scoped: 'other',
     unknown: 'other',
-    it_support: 'helpdesk',
   }
 
   return aliasMap[category] || 'other'

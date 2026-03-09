@@ -77,7 +77,7 @@ Return only JSON in this shape:
 
 Rules:
 - Keep drafts practical, concise, and professional
-- IT-support-only language; no project-implementation or marketing language
+- IT-support-only language; no ecommerce/store/marketing/automation-build language
 - No hype wording, no filler, no gimmicks
 - Be explicit about next actions and ownership
 - Keep human oversight; do not claim work was done unless context supports it`,
