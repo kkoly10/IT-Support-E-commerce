@@ -23,21 +23,41 @@ function AdminTicketsContent() {
 
   async function loadTickets() {
     setLoading(true)
+
     try {
       let query = supabase
         .from('tickets')
-        .select('id, title, status, priority, category, platform, created_at, updated_at, organization:organizations(name), assigned_agent:profiles!tickets_assigned_to_fkey(full_name)')
+        .select(`
+          id,
+          ticket_number,
+          title,
+          status,
+          priority,
+          category,
+          platform,
+          created_at,
+          updated_at,
+          ai_category,
+          ai_confidence,
+          ai_can_auto_resolve,
+          ai_escalation_needed,
+          ai_project_flag,
+          organization:organizations(name),
+          assigned_agent:profiles!tickets_assigned_to_fkey(full_name)
+        `)
         .order('created_at', { ascending: false })
 
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter)
       }
+
       if (priorityFilter !== 'all') {
         query = query.eq('priority', priorityFilter)
       }
 
       const { data, error } = await query
       if (error) throw error
+
       setTickets(data || [])
     } catch (err) {
       console.error('Error loading tickets:', err)
@@ -46,10 +66,15 @@ function AdminTicketsContent() {
     }
   }
 
-  const filtered = tickets.filter(t =>
-    t.title.toLowerCase().includes(search.toLowerCase()) ||
-    t.organization?.name?.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = tickets.filter((t) => {
+    const q = search.toLowerCase().trim()
+    return (
+      t.title?.toLowerCase().includes(q) ||
+      t.organization?.name?.toLowerCase().includes(q) ||
+      (t.ai_category || '').toLowerCase().includes(q) ||
+      `tdp-${t.ticket_number || ''}`.toLowerCase().includes(q)
+    )
+  })
 
   const statusColor = (status) => {
     const colors = {
@@ -63,7 +88,12 @@ function AdminTicketsContent() {
   }
 
   const priorityLabel = (p) => {
-    const labels = { low: '🟢', medium: '🟡', high: '🟠', urgent: '🔴' }
+    const labels = {
+      low: '🟢',
+      medium: '🟡',
+      high: '🟠',
+      urgent: '🔴',
+    }
     return labels[p] || ''
   }
 
@@ -85,15 +115,15 @@ function AdminTicketsContent() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="admin-filters">
         <input
           type="text"
-          placeholder="Search tickets or clients..."
+          placeholder="Search tickets, clients, AI category..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-search-input"
         />
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -106,6 +136,7 @@ function AdminTicketsContent() {
           <option value="resolved">Resolved</option>
           <option value="closed">Closed</option>
         </select>
+
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
@@ -119,12 +150,15 @@ function AdminTicketsContent() {
         </select>
       </div>
 
-      {/* Tickets table */}
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
-          <div className="admin-loading" style={{ padding: 40 }}>Loading tickets...</div>
+          <div className="admin-loading" style={{ padding: 40 }}>
+            Loading tickets...
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="admin-empty-text" style={{ padding: 40 }}>No tickets found</div>
+          <div className="admin-empty-text" style={{ padding: 40 }}>
+            No tickets found
+          </div>
         ) : (
           <div className="admin-table-wrap">
             <table className="admin-table">
@@ -132,39 +166,86 @@ function AdminTicketsContent() {
                 <tr>
                   <th>Ticket</th>
                   <th>Client</th>
-                  <th>Category</th>
+                  <th>AI Triage</th>
                   <th>Priority</th>
                   <th>Status</th>
                   <th>Assigned To</th>
                   <th>Created</th>
                 </tr>
               </thead>
+
               <tbody>
                 {filtered.map((ticket) => (
                   <tr
                     key={ticket.id}
-                    onClick={() => window.location.href = `/admin/tickets/${ticket.id}`}
+                    onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
                     style={{ cursor: 'pointer' }}
                   >
                     <td>
-                      <div className="admin-table-title">{ticket.title}</div>
+                      <div className="admin-table-title">
+                        {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                      </div>
+                      <div className="admin-table-sub">{ticket.title}</div>
                     </td>
-                    <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
-                    <td className="admin-table-muted">{ticket.category || '—'}</td>
+
+                    <td className="admin-table-muted">
+                      {ticket.organization?.name || '—'}
+                    </td>
+
                     <td>
-                      <span className="admin-table-sm">{priorityLabel(ticket.priority)} {ticket.priority}</span>
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem' }}>
+                        {ticket.ai_category ? ticket.ai_category.replace(/_/g, ' ') : 'Not triaged'}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                        {typeof ticket.ai_confidence === 'number' && (
+                          <span className="admin-status-badge" style={{ background: '#f0f2f5', color: '#4a4a4a' }}>
+                            {Math.round(ticket.ai_confidence * 100)}%
+                          </span>
+                        )}
+
+                        {ticket.ai_can_auto_resolve === true && (
+                          <span className="admin-status-badge" style={{ background: '#27ae6018', color: '#27ae60' }}>
+                            Auto
+                          </span>
+                        )}
+
+                        {ticket.ai_escalation_needed === true && (
+                          <span className="admin-status-badge" style={{ background: '#e74c3c18', color: '#e74c3c' }}>
+                            Escalate
+                          </span>
+                        )}
+
+                        {ticket.ai_project_flag === true && (
+                          <span className="admin-status-badge" style={{ background: '#f39c1218', color: '#f39c12' }}>
+                            Scoped
+                          </span>
+                        )}
+                      </div>
                     </td>
+
+                    <td>
+                      <span className="admin-table-sm">
+                        {priorityLabel(ticket.priority)} {ticket.priority}
+                      </span>
+                    </td>
+
                     <td>
                       <span
                         className="admin-status-badge"
-                        style={{ background: statusColor(ticket.status) + '18', color: statusColor(ticket.status) }}
+                        style={{
+                          background: statusColor(ticket.status) + '18',
+                          color: statusColor(ticket.status),
+                        }}
                       >
                         {ticket.status.replace(/_/g, ' ')}
                       </span>
                     </td>
+
                     <td className="admin-table-muted">
                       {ticket.assigned_agent?.full_name || 'Unassigned'}
                     </td>
+
                     <td className="admin-table-muted">{timeAgo(ticket.created_at)}</td>
                   </tr>
                 ))}
