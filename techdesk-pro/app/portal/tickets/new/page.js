@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { REQUEST_CATEGORY_OPTIONS, CATEGORY_LABELS, normalizeRequestCategory } from '../../../../lib/support-ui'
 
 export default function NewTicketPage() {
   const [title, setTitle] = useState('')
@@ -53,7 +54,7 @@ export default function NewTicketPage() {
         .insert({
           title,
           description,
-          category,
+          category: normalizeRequestCategory(category),
           priority,
           platform: platform || null,
           organization_id: orgId,
