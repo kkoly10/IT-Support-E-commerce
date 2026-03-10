@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
+import BrandMark from '../components/BrandMark'
 
 const ACTIVE_NAV = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
@@ -131,10 +132,10 @@ export default function PortalLayout({ children }) {
       <aside className={`portal-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link href="/" className="sidebar-logo">
-            <div className="logo-mark" style={{ width: 32, height: 32, borderRadius: 8, fontSize: '0.8rem' }}>
-              T
+            <div className="logo-mark" style={{ width: 32, height: 32, borderRadius: 8 }}>
+              <BrandMark />
             </div>
-            <span>TechDesk Pro</span>
+            <span>Kocre IT Services</span>
           </Link>
           <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
             ✕

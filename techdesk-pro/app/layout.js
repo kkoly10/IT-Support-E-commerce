@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'TechDesk Pro — Remote-First Tech Support & Operations for Small Businesses',
+  title: 'Kocre IT Services — Remote-First Tech Support & Operations for Small Businesses',
   description:
     'Remote-first IT support and cloud/SaaS administration for small businesses. AI-assisted, human-supervised service with clear support boundaries and business-hours coverage.',
 }

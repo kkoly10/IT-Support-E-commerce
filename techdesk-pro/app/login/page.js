@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import BrandMark from '../components/BrandMark'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -51,9 +52,9 @@ export default function LoginPage() {
         <div className="auth-header">
           <a href="/" className="auth-logo">
             <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
-              T
+              <BrandMark />
             </div>
-            <span>TechDesk Pro</span>
+            <span>Kocre IT Services</span>
           </a>
 
           <h1>Welcome back</h1>

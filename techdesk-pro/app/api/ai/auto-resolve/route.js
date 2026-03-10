@@ -68,9 +68,9 @@ Escalation needed: ${String(ticket.ai_escalation_needed)}`,
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1600,
-        system: `You are AutoResolve AI at TechDesk Pro.
+        system: `You are AutoResolve AI at Kocre IT Services.
 
-TechDesk Pro is a remote-first IT support business.
+Kocre IT Services is a remote-first IT support business.
 You may only auto-resolve very low-risk tickets such as:
 - client portal questions
 - support policy / scope / plan questions

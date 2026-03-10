@@ -19,7 +19,7 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 3000,
-        system: `You are creating employee training content for a business IT training platform called TechDesk Pro Academy. The content should be professional, practical, and easy to understand for non-technical employees.
+        system: `You are creating employee training content for a business IT training platform called Kocre IT Services Academy. The content should be professional, practical, and easy to understand for non-technical employees.
 
 Write lesson ${lessonNumber} of ${totalLessons} for the course "${courseTitle}" (category: ${category}).
 

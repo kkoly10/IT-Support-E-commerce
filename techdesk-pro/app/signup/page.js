@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import BrandMark from '../components/BrandMark'
 
 function getLeadConfig(teamSize, leadInterest) {
   const parsedTeamSize = teamSize ? parseInt(teamSize, 10) : null
@@ -119,6 +120,17 @@ export default function SignupPage() {
       return
     }
 
+
+    if (assessmentId) {
+      await fetch('/api/assessment/link-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, organizationId: org.id }),
+      }).catch((err) => {
+        console.error('Failed to link assessment to organization:', err)
+      })
+    }
+
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -166,7 +178,7 @@ export default function SignupPage() {
               We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
             </p>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem', marginTop: 12 }}>
-              Your account has been created in lead status for TechDesk Pro&apos;s remote support intake.
+              Your account has been created in lead status for Kocre IT Services&apos;s remote support intake.
               We&apos;ll use your information to guide onboarding and next steps.
             </p>
           </div>
@@ -185,9 +197,9 @@ export default function SignupPage() {
         <div className="auth-header">
           <a href="/" className="auth-logo">
             <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
-              T
+              <BrandMark />
             </div>
-            <span>TechDesk Pro</span>
+            <span>Kocre IT Services</span>
           </a>
 
           <h1>{step === 1 ? 'Create your account' : 'Tell us about your support needs'}</h1>
@@ -360,7 +372,7 @@ export default function SignupPage() {
               </div>
 
               <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
-                This creates a TechDesk Pro portal account in lead status. Final support scope, onboarding,
+                This creates a Kocre IT Services portal account in lead status. Final support scope, onboarding,
                 and service terms are determined through review and onboarding — not by this signup form alone.
               </p>
             </>

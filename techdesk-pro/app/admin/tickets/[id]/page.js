@@ -1279,12 +1279,7 @@ export default function AdminTicketDetail() {
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Status</span>
-              <select
-                value={status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="admin-detail-select"
-                disabled={updating}
-              >
+              <select value={status} onChange={(e) => handleStatusChange(e.target.value)} className="admin-detail-select" disabled={updating}>
                 <option value="open">Open</option>
                 <option value="in_progress">In Progress</option>
                 <option value="waiting_on_client">Waiting on Client</option>
@@ -1295,12 +1290,7 @@ export default function AdminTicketDetail() {
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Priority</span>
-              <select
-                value={priority}
-                onChange={(e) => handlePriorityChange(e.target.value)}
-                className="admin-detail-select"
-                disabled={updating}
-              >
+              <select value={priority} onChange={(e) => handlePriorityChange(e.target.value)} className="admin-detail-select" disabled={updating}>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -1372,17 +1362,19 @@ export default function AdminTicketDetail() {
               <span className="admin-detail-label">Created by</span>
               <span className="admin-detail-value">{ticket.creator?.full_name || 'Unknown'}</span>
             </div>
+          </div>
+
+          <div className="admin-card" style={{ marginTop: 16 }}>
+            <h4 className="admin-card-section-title">AI triage details</h4>
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Email</span>
               <span className="admin-detail-value">{ticket.creator?.email || '—'}</span>
             </div>
-
             <div className="admin-detail-row">
               <span className="admin-detail-label">Opened</span>
               <span className="admin-detail-value">{formatTime(ticket.created_at)}</span>
             </div>
-
             <div className="admin-detail-row">
               <span className="admin-detail-label">Last updated</span>
               <span className="admin-detail-value">{formatTime(ticket.updated_at || ticket.created_at)}</span>

@@ -90,7 +90,6 @@ function AdminTicketsContent() {
           priority,
           category,
           created_at,
-          updated_at,
           ai_category,
           ai_confidence,
           ai_can_auto_resolve,

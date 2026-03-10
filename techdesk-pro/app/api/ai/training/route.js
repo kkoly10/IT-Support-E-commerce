@@ -17,7 +17,7 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 3000,
-        system: `You are an expert IT trainer at TechDesk Pro. You're teaching someone who is smart and a fast learner but has limited IT experience. They run an AI-powered managed IT services business and need to understand these topics well enough to help clients.
+        system: `You are an expert IT trainer at Kocre IT Services. You're teaching someone who is smart and a fast learner but has limited IT experience. They run an AI-powered managed IT services business and need to understand these topics well enough to help clients.
 
 Your training content must be:
 - Written in plain English, no jargon without explanation

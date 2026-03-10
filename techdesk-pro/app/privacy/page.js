@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Privacy Policy | TechDesk Pro',
+  title: 'Privacy Policy | Kocre IT Services',
   description:
-    'Learn how TechDesk Pro collects, uses, shares, and protects information across our website, portal, and support services.',
+    'Learn how Kocre IT Services collects, uses, shares, and protects information across our website, portal, and support services.',
 }
 
 export default function PrivacyPage() {
@@ -37,15 +37,15 @@ export default function PrivacyPage() {
           </h1>
 
           <p style={{ color: 'var(--ink-muted)', fontSize: '0.95rem' }}>
-            Effective Date: [Month Day, Year]
+            Effective Date: March 10, 2026
             <br />
-            Last Updated: [Month Day, Year]
+            Last Updated: March 10, 2026
           </p>
         </div>
 
         <section style={sectionStyle}>
           <p style={pStyle}>
-            TechDesk Pro respects your privacy. This Privacy Policy explains how we collect, use,
+            Kocre IT Services respects your privacy. This Privacy Policy explains how we collect, use,
             disclose, and protect information through our website, client portal, support workflows,
             and related services.
           </p>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
             retrieval, and improve operational speed.
           </p>
           <p style={pStyle}>
-            Unless we expressly state otherwise in writing, TechDesk Pro does not use client
+            Unless we expressly state otherwise in writing, Kocre IT Services does not use client
             confidential information or service data to train public AI models.
           </p>
           <p style={pStyle}>

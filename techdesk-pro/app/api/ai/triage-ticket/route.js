@@ -60,9 +60,9 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1200,
-        system: `You are the IT support triage engine for TechDesk Pro.
+        system: `You are the IT support triage engine for Kocre IT Services.
 
-TechDesk Pro is a remote-first IT support business focused on:
+Kocre IT Services is a remote-first IT support business focused on:
 - remote helpdesk support
 - Microsoft 365 support
 - Google Workspace support

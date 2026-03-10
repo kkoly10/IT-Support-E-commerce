@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
+import BrandMark from '../components/BrandMark'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -72,7 +73,7 @@ export default function AdminLayout({ children }) {
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
           <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="admin-logo-mark">T</div>
+            <div className="admin-logo-mark"><BrandMark stroke="#ffffff" /></div>
             <div>
               <div className="admin-logo-text">TechDesk Pro</div>
               <div className="admin-logo-sub">Support Console</div>
