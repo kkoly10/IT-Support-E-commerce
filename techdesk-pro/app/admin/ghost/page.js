@@ -43,12 +43,7 @@ export default function GhostOperationsPage() {
   async function loadGhostOps() {
     setLoading(true)
     try {
-      const [
-        ticketsRes,
-        orgsRes,
-        assessmentsRes,
-        kbRes,
-      ] = await Promise.all([
+      const [ticketsRes, orgsRes, assessmentsRes, kbRes] = await Promise.all([
         supabase
           .from('tickets')
           .select(`
@@ -68,6 +63,7 @@ export default function GhostOperationsPage() {
             organization:organizations(name)
           `)
           .order('created_at', { ascending: false }),
+
         supabase
           .from('organizations')
           .select(`
@@ -81,6 +77,7 @@ export default function GhostOperationsPage() {
             created_at
           `)
           .order('created_at', { ascending: false }),
+
         supabase
           .from('assessment_submissions')
           .select(`
@@ -94,6 +91,7 @@ export default function GhostOperationsPage() {
             linked_organization_id
           `)
           .order('created_at', { ascending: false }),
+
         supabase
           .from('kb_sop_drafts')
           .select('id, ticket_id, title, created_at')
@@ -145,12 +143,14 @@ export default function GhostOperationsPage() {
       (item) => ['new', 'contacted', 'qualified'].includes(item.status || 'new')
     )
 
-    const kbOpportunities = tickets.filter((t) => {
-      const resolvedLike = t.status === 'resolved' || t.status === 'closed'
-      if (!resolvedLike) return false
-      if (kbTicketIds.has(t.id)) return false
-      return true
-    }).slice(0, 8)
+    const kbOpportunities = tickets
+      .filter((t) => {
+        const resolvedLike = t.status === 'resolved' || t.status === 'closed'
+        if (!resolvedLike) return false
+        if (kbTicketIds.has(t.id)) return false
+        return true
+      })
+      .slice(0, 8)
 
     return {
       urgentQueue,
@@ -173,6 +173,24 @@ export default function GhostOperationsPage() {
           <p className="admin-page-desc">
             Internal operator view of queue health, lifecycle pressure, and knowledge opportunities.
           </p>
+        </div>
+      </div>
+
+      <div className="admin-card" style={{ marginBottom: 20 }}>
+        <div className="admin-card-header">
+          <h3>Ghost Tools</h3>
+        </div>
+
+        <div className="admin-quick-actions">
+          <a href="/admin/ghost/search" className="admin-action-btn">
+            <span>🔎</span> Ask Ghost Admin Across All Records
+          </a>
+          <a href="/admin/kb" className="admin-action-btn">
+            <span>📚</span> Review Knowledge Drafts
+          </a>
+          <a href="/admin/dashboard" className="admin-action-btn">
+            <span>📊</span> Return to Main Dashboard
+          </a>
         </div>
       </div>
 
@@ -393,7 +411,7 @@ export default function GhostOperationsPage() {
           <div className="admin-card">
             <div className="admin-card-header">
               <h3>KB/SOP Opportunities</h3>
-              <span className="admin-card-section-title" style={{ marginBottom: 0 }}>Resolved requests without drafts</span>
+              <a href="/admin/kb" className="admin-card-link">Open knowledge →</a>
             </div>
 
             {derived.kbOpportunities.length === 0 ? (
