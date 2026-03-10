@@ -78,7 +78,7 @@ export async function POST(request) {
       .neq('id', ticketId)
       .eq('status', 'resolved')
       .order('created_at', { ascending: false })
-      .limit(6)
+      .limit(8)
 
     const filteredSimilarTickets = (similarTickets || [])
       .filter((item) => {
@@ -121,6 +121,54 @@ export async function POST(request) {
       ? { has_kb_draft: true, created_at: latestKbNote.created_at }
       : { has_kb_draft: false, created_at: null }
 
+    const { data: publishedArticles } = await supabase
+      .from('kb_articles')
+      .select('id, title, summary, problem, likely_cause, published_at')
+      .order('published_at', { ascending: false })
+      .limit(20)
+
+    const relatedArticles = (publishedArticles || [])
+      .map((article) => {
+        let score = 0
+        const blob = [
+          article.title,
+          article.summary,
+          article.problem,
+          article.likely_cause,
+          ticket.title,
+          ticket.description,
+          ticket.ai_summary,
+          ticket.category,
+          ticket.ai_category,
+        ]
+          .join(' ')
+          .toLowerCase()
+
+        const terms = [
+          ticket.title,
+          ticket.category,
+          ticket.ai_category,
+          ticket.organization?.name,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((t) => t.length > 3)
+
+        for (const term of terms) {
+          if (blob.includes(term)) score += 1
+        }
+
+        return { ...article, score }
+      })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score
+        return new Date(b.published_at || 0) - new Date(a.published_at || 0)
+      })
+      .slice(0, 3)
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -142,6 +190,7 @@ Your job:
 - recommend the best next action
 - warn about scope drift or operational risk
 - use lifecycle context when relevant
+- use published knowledge when relevant
 - stay strictly within remote IT support, cloud/SaaS admin support, and support operations
 
 Do not provide e-commerce, store, marketing, website-build, or automation-build advice.
@@ -204,6 +253,11 @@ ${linkedAssessment
 Knowledge signal:
 - KB/SOP draft exists on this ticket: ${String(kbSignal.has_kb_draft)}
 
+Published knowledge candidates:
+${relatedArticles.length > 0
+  ? relatedArticles.map((item) => `- ${item.title} | ${item.summary || item.problem || 'No summary'}`).join('\n')
+  : 'No strong published knowledge candidates found.'}
+
 Recent client-facing conversation:
 ${recentConversation || 'No client-facing conversation yet.'}
 
@@ -247,6 +301,12 @@ Interpret this ticket and return the JSON now.`,
         })),
         linked_assessment: linkedAssessment,
         kb_signal: kbSignal,
+        published_knowledge: relatedArticles.map((item) => ({
+          id: item.id,
+          title: item.title,
+          summary: item.summary || item.problem || '',
+          published_at: item.published_at,
+        })),
       },
     })
   } catch (err) {
