@@ -3,7 +3,12 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { CATEGORY_LABELS as SUPPORT_CATEGORY_LABELS, STATUS_COLORS, STATUS_LABELS as SUPPORT_STATUS_LABELS, toLabel } from '../../../lib/support-ui'
+import {
+  CATEGORY_LABELS as SUPPORT_CATEGORY_LABELS,
+  STATUS_COLORS,
+  STATUS_LABELS as SUPPORT_STATUS_LABELS,
+  toLabel,
+} from '../../../lib/support-ui'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -57,11 +62,15 @@ const humanize = (value, labels) => {
 
 function AdminTicketsContent() {
   const searchParams = useSearchParams()
+
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [batchLoading, setBatchLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all')
   const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') || 'all')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [batchMessage, setBatchMessage] = useState('')
 
   useEffect(() => {
     loadTickets()
@@ -81,6 +90,7 @@ function AdminTicketsContent() {
           priority,
           category,
           created_at,
+          updated_at,
           ai_category,
           ai_confidence,
           ai_can_auto_resolve,
@@ -98,10 +108,40 @@ function AdminTicketsContent() {
       if (error) throw error
 
       setTickets(data || [])
+      setSelectedIds([])
     } catch (err) {
       console.error('Error loading tickets:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function runBatchAction(action) {
+    if (selectedIds.length === 0) return
+
+    setBatchLoading(true)
+    setBatchMessage('')
+
+    try {
+      const response = await fetch('/api/ai/ghost-batch-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          ticketIds: selectedIds,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Batch action failed')
+
+      setBatchMessage(data.message || 'Batch action completed.')
+      await loadTickets()
+    } catch (err) {
+      console.error('Batch action error:', err)
+      alert(err.message || 'Batch action failed')
+    } finally {
+      setBatchLoading(false)
     }
   }
 
@@ -121,6 +161,25 @@ function AdminTicketsContent() {
     })
   }, [tickets, search])
 
+  const allVisibleSelected =
+    filtered.length > 0 && filtered.every((ticket) => selectedIds.includes(ticket.id))
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !filtered.some((ticket) => ticket.id === id)))
+      return
+    }
+
+    const visibleIds = filtered.map((ticket) => ticket.id)
+    setSelectedIds((prev) => [...new Set([...prev, ...visibleIds])])
+  }
+
+  const toggleTicket = (ticketId) => {
+    setSelectedIds((prev) =>
+      prev.includes(ticketId) ? prev.filter((id) => id !== ticketId) : [...prev, ticketId]
+    )
+  }
+
   const timeAgo = (date) => {
     const mins = Math.floor((Date.now() - new Date(date)) / 60000)
     if (mins < 60) return `${mins}m ago`
@@ -135,7 +194,9 @@ function AdminTicketsContent() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Support Requests</h1>
-          <p className="admin-page-desc">{filtered.length} request{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="admin-page-desc">
+            {filtered.length} request{filtered.length !== 1 ? 's' : ''} · {selectedIds.length} selected
+          </p>
         </div>
       </div>
 
@@ -174,6 +235,57 @@ function AdminTicketsContent() {
         </select>
       </div>
 
+      <div className="admin-card" style={{ marginBottom: 20 }}>
+        <div className="admin-card-header">
+          <h3>Batch Queue Actions</h3>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('mark_waiting_on_client')}
+          >
+            {batchLoading ? 'Working...' : 'Mark Waiting on Client'}
+          </button>
+
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('mark_resolved')}
+          >
+            {batchLoading ? 'Working...' : 'Mark Resolved'}
+          </button>
+
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('publish_existing_kb')}
+          >
+            {batchLoading ? 'Publishing...' : 'Publish Existing KB Drafts'}
+          </button>
+        </div>
+
+        {batchMessage && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: '#ecfdf3',
+              border: '1px solid #b7ebcc',
+              color: '#067647',
+              fontSize: '0.86rem',
+            }}
+          >
+            {batchMessage}
+          </div>
+        )}
+      </div>
+
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
           <div className="admin-loading" style={{ padding: 40 }}>
@@ -188,6 +300,13 @@ function AdminTicketsContent() {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: 40 }}>
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                    />
+                  </th>
                   <th>Request</th>
                   <th>Client</th>
                   <th>Category</th>
@@ -201,23 +320,45 @@ function AdminTicketsContent() {
 
               <tbody>
                 {filtered.map((ticket) => (
-                  <tr
-                    key={ticket.id}
-                    onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>
+                  <tr key={ticket.id}>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(ticket.id)}
+                        onChange={() => toggleTicket(ticket.id)}
+                      />
+                    </td>
+
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="admin-table-title">
                         {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                       </div>
                       <div className="admin-table-sub">{ticket.title}</div>
                     </td>
 
-                    <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {ticket.organization?.name || '—'}
+                    </td>
 
-                    <td className="admin-table-muted">{humanize(ticket.category, CATEGORY_LABELS)}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {humanize(ticket.category, CATEGORY_LABELS)}
+                    </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="admin-table-title" style={{ fontSize: '0.82rem' }}>
                         {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
                       </div>
@@ -249,13 +390,19 @@ function AdminTicketsContent() {
                       </div>
                     </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <span className="admin-table-sm">
                         {priorityLabel[ticket.priority] || ''} {humanize(ticket.priority)}
                       </span>
                     </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <span
                         className="admin-status-badge"
                         style={{
@@ -267,9 +414,21 @@ function AdminTicketsContent() {
                       </span>
                     </td>
 
-                    <td className="admin-table-muted">{ticket.assigned_agent?.full_name || 'Unassigned'}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {ticket.assigned_agent?.full_name || 'Unassigned'}
+                    </td>
 
-                    <td className="admin-table-muted">{timeAgo(ticket.created_at)}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {timeAgo(ticket.created_at)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
