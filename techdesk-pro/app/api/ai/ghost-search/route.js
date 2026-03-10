@@ -30,23 +30,21 @@ function scoreText(text, terms) {
 function fallbackResponse(query, matches) {
   if (matches.length === 0) {
     return {
-      answer: `I did not find strong matches for "${query}" across tickets, organizations, assessments, or KB drafts.`,
+      answer: `I did not find strong matches for "${query}" across tickets, organizations, assessments, drafts, or published knowledge.`,
       recommended_actions: [
-        'Try a more specific product, client, or issue keyword.',
-        'Search by organization name, platform name, or part of the ticket title.',
+        'Try a more specific client, platform, or issue keyword.',
+        'Search by organization name, Microsoft 365 / Google Workspace term, or part of the ticket title.',
       ],
     }
   }
 
-  const top = matches.slice(0, 5)
   return {
-    answer: `I found ${matches.length} relevant internal records for "${query}". The strongest matches are shown below for review.`,
+    answer: `I found ${matches.length} relevant internal records for "${query}". Review the strongest matches first and use published knowledge when available.`,
     recommended_actions: [
-      'Open the top match first and verify the latest operational truth.',
-      'Use similar tickets or KB drafts to reduce duplicate work.',
-      'Check lifecycle or assessment context before promising next steps.',
+      'Open any published knowledge match first if it directly fits the issue.',
+      'Use similar tickets and drafts to reduce duplicate work.',
+      'Check lifecycle or assessment context before committing to a next step.',
     ],
-    top_match_labels: top.map((m) => `${m.type}: ${m.title}`),
   }
 }
 
@@ -61,7 +59,7 @@ export async function POST(request) {
     const cleanedQuery = String(query).trim()
     const terms = tokenize(cleanedQuery)
 
-    const [ticketsRes, orgsRes, assessmentsRes, kbRes] = await Promise.all([
+    const [ticketsRes, orgsRes, assessmentsRes, kbDraftsRes, kbArticlesRes] = await Promise.all([
       supabase
         .from('tickets')
         .select(`
@@ -109,12 +107,19 @@ export async function POST(request) {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(150),
+
+      supabase
+        .from('kb_articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(150),
     ])
 
     const tickets = ticketsRes.data || []
     const organizations = orgsRes.data || []
     const assessments = assessmentsRes.data || []
-    const kbDrafts = kbRes.data || []
+    const kbDrafts = kbDraftsRes.data || []
+    const kbArticles = kbArticlesRes.data || []
 
     const ticketMatches = tickets
       .map((ticket) => {
@@ -210,7 +215,7 @@ export async function POST(request) {
       })
       .filter((item) => item.score > 0)
 
-    const kbMatches = kbDrafts
+    const kbDraftMatches = kbDrafts
       .map((draft) => {
         const score = scoreText(
           [
@@ -228,7 +233,7 @@ export async function POST(request) {
           type: 'kb_draft',
           id: draft.id,
           title: draft.title || 'Untitled KB draft',
-          subtitle: draft.ticket_id ? `Ticket ${draft.ticket_id}` : 'Knowledge draft',
+          subtitle: draft.ticket_id ? `Draft from ticket ${draft.ticket_id}` : 'Knowledge draft',
           href: `/admin/kb/${draft.id}`,
           reason: draft.short_summary || draft.problem || 'KB/SOP draft match',
           score,
@@ -237,11 +242,40 @@ export async function POST(request) {
       })
       .filter((item) => item.score > 0)
 
+    const kbArticleMatches = kbArticles
+      .map((article) => {
+        const score = scoreText(
+          [
+            article.title,
+            article.summary,
+            article.problem,
+            article.likely_cause,
+            article.reusable_fix_guidance,
+            article.future_prevention_note,
+            article.slug,
+          ].join(' '),
+          terms
+        )
+
+        return {
+          type: 'kb_article',
+          id: article.id,
+          title: article.title || 'Untitled KB article',
+          subtitle: article.slug || 'Published knowledge article',
+          href: `/admin/kb/published/${article.id}`,
+          reason: article.summary || article.problem || 'Published knowledge match',
+          score,
+          created_at: article.published_at || article.created_at,
+        }
+      })
+      .filter((item) => item.score > 0)
+
     const allMatches = [
       ...ticketMatches,
       ...orgMatches,
       ...assessmentMatches,
-      ...kbMatches,
+      ...kbDraftMatches,
+      ...kbArticleMatches,
     ].sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score
       return new Date(b.created_at || 0) - new Date(a.created_at || 0)
@@ -269,6 +303,7 @@ You are given an internal search question plus the best matching records from:
 - organizations
 - assessment submissions
 - KB/SOP drafts
+- published knowledge articles
 
 Return ONLY valid JSON in this exact structure:
 {
@@ -280,6 +315,7 @@ Rules:
 - stay within remote IT support operations
 - be concise and operator-focused
 - do not hallucinate records beyond the supplied matches
+- prefer published knowledge when there is a strong direct match
 - if the evidence is weak, say so clearly`,
           messages: [
             {
@@ -321,7 +357,8 @@ Return the JSON now.`,
         tickets: ticketMatches.length,
         organizations: orgMatches.length,
         assessments: assessmentMatches.length,
-        kb_drafts: kbMatches.length,
+        kb_drafts: kbDraftMatches.length,
+        kb_articles: kbArticleMatches.length,
       },
       matches: allMatches.slice(0, 20),
     })
