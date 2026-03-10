@@ -41,10 +41,12 @@ export default function SignupPage() {
     const seedName = params.get('name')
     const seedEmail = params.get('email')
     const seedCompany = params.get('company')
+    const seedAssessment = params.get('assessment')
 
     if (seedName) setFullName(seedName)
     if (seedEmail) setEmail(seedEmail)
     if (seedCompany) setCompanyName(seedCompany)
+    if (seedAssessment) setAssessmentId(seedAssessment)
   }, [])
 
   const handleSignup = async (e) => {
@@ -117,17 +119,6 @@ export default function SignupPage() {
       return
     }
 
-
-    if (assessmentId) {
-      await fetch('/api/assessment/link-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId, organizationId: org.id }),
-      }).catch((err) => {
-        console.error('Failed to link assessment to organization:', err)
-      })
-    }
-
     const { error: profileError } = await supabase
       .from('profiles')
       .insert({
@@ -143,6 +134,16 @@ export default function SignupPage() {
       setError('Account created but profile setup failed: ' + profileError.message)
       setLoading(false)
       return
+    }
+
+    if (assessmentId) {
+      await fetch('/api/assessment/link-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, organizationId: org.id }),
+      }).catch((err) => {
+        console.error('Failed to link assessment to organization:', err)
+      })
     }
 
     setSuccess(true)
