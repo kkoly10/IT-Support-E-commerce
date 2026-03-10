@@ -21,6 +21,8 @@ function extractLegacyDraftFromNote(message) {
       id: `legacy-${message.id}`,
       source: 'legacy_note',
       ticket_id: message.ticket_id,
+      source_ticket_message_id: message.id,
+      source_draft_id: null,
       title: parsed.title || 'Untitled KB/SOP Draft',
       short_summary: parsed.short_summary || '',
       problem: parsed.problem || '',
@@ -51,8 +53,10 @@ export default function AdminKnowledgeDraftDetailPage() {
   const { id } = useParams()
 
   const [loading, setLoading] = useState(true)
+  const [publishing, setPublishing] = useState(false)
   const [draft, setDraft] = useState(null)
   const [ticket, setTicket] = useState(null)
+  const [publishedArticle, setPublishedArticle] = useState(null)
 
   useEffect(() => {
     loadDraft()
@@ -74,6 +78,16 @@ export default function AdminKnowledgeDraftDetailPage() {
           .single()
 
         nextDraft = extractLegacyDraftFromNote(message)
+
+        if (messageId) {
+          const { data: article } = await supabase
+            .from('kb_articles')
+            .select('*')
+            .eq('source_ticket_message_id', messageId)
+            .maybeSingle()
+
+          setPublishedArticle(article || null)
+        }
       } else {
         const { data } = await supabase
           .from('kb_sop_drafts')
@@ -82,6 +96,14 @@ export default function AdminKnowledgeDraftDetailPage() {
           .single()
 
         nextDraft = data || null
+
+        const { data: article } = await supabase
+          .from('kb_articles')
+          .select('*')
+          .eq('source_draft_id', id)
+          .maybeSingle()
+
+        setPublishedArticle(article || null)
       }
 
       setDraft(nextDraft)
@@ -105,6 +127,28 @@ export default function AdminKnowledgeDraftDetailPage() {
       console.error('KB draft detail load error:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handlePublish() {
+    setPublishing(true)
+    try {
+      const response = await fetch('/api/ai/publish-kb-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftId: id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to publish knowledge article')
+
+      await loadDraft()
+      alert(data.message || 'Knowledge article published.')
+    } catch (err) {
+      console.error('Publish KB error:', err)
+      alert(err.message || 'Failed to publish knowledge article')
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -191,24 +235,63 @@ export default function AdminKnowledgeDraftDetailPage() {
         <div>
           <div className="admin-card" style={{ marginBottom: 20 }}>
             <div className="admin-card-header">
-              <h3>Source</h3>
+              <h3>Publish Workflow</h3>
             </div>
 
-            <div className="admin-detail-row">
-              <span className="admin-detail-label">Storage</span>
-              <span className="admin-detail-value">
-                {draft.source === 'legacy_note' ? 'Legacy internal note' : 'KB draft table'}
-              </span>
-            </div>
+            <div style={{ display: 'grid', gap: 12 }}>
+              <div className="admin-detail-row">
+                <span className="admin-detail-label">Status</span>
+                <span className="admin-detail-value">
+                  {publishedArticle ? 'Published' : 'Draft only'}
+                </span>
+              </div>
 
-            <div className="admin-detail-row">
-              <span className="admin-detail-label">Created</span>
-              <span className="admin-detail-value">{formatDateTime(draft.created_at)}</span>
-            </div>
+              <div className="admin-detail-row">
+                <span className="admin-detail-label">Storage</span>
+                <span className="admin-detail-value">
+                  {draft.source === 'legacy_note' ? 'Legacy internal note' : 'KB draft table'}
+                </span>
+              </div>
 
-            <div className="admin-detail-row">
-              <span className="admin-detail-label">Updated</span>
-              <span className="admin-detail-value">{formatDateTime(draft.updated_at || draft.created_at)}</span>
+              <div className="admin-detail-row">
+                <span className="admin-detail-label">Created</span>
+                <span className="admin-detail-value">{formatDateTime(draft.created_at)}</span>
+              </div>
+
+              <div className="admin-detail-row">
+                <span className="admin-detail-label">Updated</span>
+                <span className="admin-detail-value">{formatDateTime(draft.updated_at || draft.created_at)}</span>
+              </div>
+
+              {!publishedArticle ? (
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  onClick={handlePublish}
+                  disabled={publishing}
+                >
+                  {publishing ? 'Publishing...' : 'Publish to Knowledge Base'}
+                </button>
+              ) : (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <div
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      background: '#ecfdf3',
+                      border: '1px solid #b7ebcc',
+                      color: '#067647',
+                      fontSize: '0.86rem',
+                    }}
+                  >
+                    This draft is already published as an internal knowledge article.
+                  </div>
+
+                  <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                    Open Published Article
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
