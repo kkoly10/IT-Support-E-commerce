@@ -1,9 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import { normalizeRequestCategory } from '../../../../lib/support-ui'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
+
+const normalizeAiCategory = (value) => normalizeRequestCategory(value) || 'other'
 
 export async function POST(request) {
   try {
@@ -33,9 +36,9 @@ export async function POST(request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1200,
-        system: `You are the IT support triage engine for TechDesk Pro.
+        system: `You are the IT support triage engine for Kocre IT Services.
 
-TechDesk Pro is a remote-first IT support business focused on:
+Kocre IT Services is a remote-first IT support business focused on:
 - remote helpdesk support
 - Microsoft 365 support
 - Google Workspace support
@@ -44,16 +47,15 @@ TechDesk Pro is a remote-first IT support business focused on:
 - support policy and portal guidance
 
 You are NOT triaging:
-- e-commerce work
-- website builds
-- automation builds
+- project implementation work
+- full software build work
 - marketing work
 
 Your job:
 Analyze the support ticket and return ONLY valid JSON in this exact structure:
 
 {
-  "ai_category": "helpdesk|accounts_access|email_collaboration|microsoft_365|google_workspace|saas_admin|device_guidance|security_review|billing_scope|portal_account|project_scoped|unknown",
+  "ai_category": "helpdesk|accounts_access|email_collaboration|microsoft_365|google_workspace|saas_admin|portal_account|billing_scope|device_guidance|other",
   "ai_priority_recommendation": "low|medium|high|urgent",
   "ai_difficulty": "easy|medium|advanced",
   "ai_estimated_time": "5 minutes",
@@ -104,7 +106,7 @@ Analyze this ticket for remote IT support triage only.`,
     const parsed = JSON.parse(cleaned)
 
     const updatePayload = {
-      ai_category: parsed.ai_category || null,
+      ai_category: normalizeAiCategory(parsed.ai_category),
       ai_priority_recommendation: parsed.ai_priority_recommendation || null,
       ai_difficulty: parsed.ai_difficulty || null,
       ai_estimated_time: parsed.ai_estimated_time || null,
@@ -132,7 +134,7 @@ Analyze this ticket for remote IT support triage only.`,
       ticket_id: ticketId,
       sender_type: 'system',
       body: `🧠 AI Triage complete
-Category: ${updatePayload.ai_category || 'unknown'}
+Category: ${updatePayload.ai_category || 'other'}
 Priority recommendation: ${updatePayload.ai_priority_recommendation || 'unknown'}
 Difficulty: ${updatePayload.ai_difficulty || 'unknown'}
 Estimated time: ${updatePayload.ai_estimated_time || 'unknown'}

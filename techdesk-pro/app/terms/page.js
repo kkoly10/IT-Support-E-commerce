@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Terms of Use | TechDesk Pro',
+  title: 'Terms of Use | Kocre IT Services',
   description:
-    'Review the terms governing your access to the TechDesk Pro website, portal, and online services.',
+    'Review the terms governing your access to the Kocre IT Services website, portal, and online services.',
 }
 
 export default function TermsPage() {
@@ -37,16 +37,16 @@ export default function TermsPage() {
           </h1>
 
           <p style={{ color: 'var(--ink-muted)', fontSize: '0.95rem' }}>
-            Effective Date: [Month Day, Year]
+            Effective Date: March 10, 2026
             <br />
-            Last Updated: [Month Day, Year]
+            Last Updated: March 10, 2026
           </p>
         </div>
 
         <section style={sectionStyle}>
           <p style={pStyle}>
-            Welcome to TechDesk Pro. These Terms of Use govern your access to and use of the
-            TechDesk Pro website, portal, and related online services.
+            Welcome to Kocre IT Services. These Terms of Use govern your access to and use of the
+            Kocre IT Services website, portal, and related online services.
           </p>
           <p style={pStyle}>
             By accessing or using the website or portal, you agree to these Terms. If you do not
@@ -57,7 +57,7 @@ export default function TermsPage() {
         <section style={sectionStyle}>
           <h2 style={h2Style}>1. Who We Are</h2>
           <p style={pStyle}>
-            TechDesk Pro provides information about managed IT support, cloud and SaaS administration,
+            Kocre IT Services provides information about managed IT support, cloud and SaaS administration,
             workflow automation, support services, and related business technology services.
           </p>
         </section>
@@ -87,11 +87,11 @@ export default function TermsPage() {
           <ul style={ulStyle}>
             <li>Maintaining the confidentiality of your credentials</li>
             <li>Restricting unauthorized access to your account</li>
-            <li>Notifying TechDesk Pro promptly if you suspect unauthorized access, misuse, or compromise</li>
+            <li>Notifying Kocre IT Services promptly if you suspect unauthorized access, misuse, or compromise</li>
           </ul>
           <p style={pStyle}>
             You are responsible for activity occurring under your account unless caused by
-            TechDesk Pro’s own unauthorized conduct.
+            Kocre IT Services’s own unauthorized conduct.
           </p>
         </section>
 
@@ -112,11 +112,11 @@ export default function TermsPage() {
           <h2 style={h2Style}>6. Intellectual Property</h2>
           <p style={pStyle}>
             Unless otherwise stated, the website, branding, copy, graphics, interface elements, and
-            related materials are owned by TechDesk Pro or used with permission and are protected by
+            related materials are owned by Kocre IT Services or used with permission and are protected by
             applicable intellectual property laws.
           </p>
           <p style={pStyle}>
-            Nothing in these Terms transfers ownership of TechDesk Pro materials to you.
+            Nothing in these Terms transfers ownership of Kocre IT Services materials to you.
           </p>
         </section>
 
@@ -125,7 +125,7 @@ export default function TermsPage() {
           <p style={pStyle}>
             The website or portal may reference or integrate third-party services, including
             scheduling, communication, hosting, authentication, storage, payment, analytics, or
-            AI-related providers. TechDesk Pro is not responsible for third-party services beyond
+            AI-related providers. Kocre IT Services is not responsible for third-party services beyond
             the extent required by law or by separate written agreement.
           </p>
         </section>
@@ -143,7 +143,7 @@ export default function TermsPage() {
           <h2 style={h2Style}>9. Disclaimer</h2>
           <p style={pStyle}>
             To the maximum extent permitted by law, the website and portal are provided “as is” and
-            “as available.” TechDesk Pro disclaims warranties of merchantability, fitness for a
+            “as available.” Kocre IT Services disclaims warranties of merchantability, fitness for a
             particular purpose, non-infringement, and uninterrupted availability, except as
             expressly stated in a written client agreement.
           </p>
@@ -152,7 +152,7 @@ export default function TermsPage() {
         <section style={sectionStyle}>
           <h2 style={h2Style}>10. Limitation of Liability</h2>
           <p style={pStyle}>
-            To the maximum extent permitted by law, TechDesk Pro will not be liable for indirect,
+            To the maximum extent permitted by law, Kocre IT Services will not be liable for indirect,
             incidental, consequential, special, exemplary, or punitive damages arising out of or
             related to website or portal use.
           </p>

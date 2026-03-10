@@ -59,7 +59,7 @@ const CURRICULUM = [
     ],
   },
   {
-    area: 'E-Commerce Platforms',
+    area: 'Platform Operations',
     icon: '🛍️',
     color: '#96BF48',
     topics: [

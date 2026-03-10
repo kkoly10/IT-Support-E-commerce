@@ -86,14 +86,17 @@ h1, h2, h3 {
 .logo-mark {
   width: 34px;
   height: 34px;
-  background: var(--teal);
   border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.brand-network-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .nav-links {
@@ -2284,14 +2287,10 @@ h1, h2, h3 {
 .admin-logo-mark {
   width: 34px;
   height: 34px;
-  background: var(--teal);
   border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 0.85rem;
   flex-shrink: 0;
 }
 

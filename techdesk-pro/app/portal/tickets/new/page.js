@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '../../../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { CATEGORY_LABELS, REQUEST_CATEGORY_OPTIONS, normalizeRequestCategory } from '../../../../lib/support-ui'
 
 export default function NewTicketPage() {
   const [title, setTitle] = useState('')
@@ -17,7 +18,7 @@ export default function NewTicketPage() {
   const [orgId, setOrgId] = useState(null)
 
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function getUser() {
@@ -43,17 +44,23 @@ export default function NewTicketPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!title || !description || !category) return
+    if (!userId || !orgId) {
+      setError('Please wait a moment while your account context loads, then retry.')
+      return
+    }
 
     setLoading(true)
     setError(null)
 
     try {
+      const normalizedCategory = normalizeRequestCategory(category)
+
       const { data: ticket, error: ticketErr } = await supabase
         .from('tickets')
         .insert({
           title,
           description,
-          category,
+          category: normalizedCategory,
           priority,
           platform: platform || null,
           organization_id: orgId,
@@ -85,18 +92,20 @@ export default function NewTicketPage() {
         }
       }
 
-      fetch('/api/ai/post-create-ticket', {
+      const workflowRes = await fetch('/api/ai/post-create-ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId: ticket.id }),
-      }).catch((err) => {
-        console.error('Background post-create AI workflow error:', err)
       })
+
+      if (!workflowRes.ok) {
+        console.warn('Post-create AI workflow returned non-OK status. Ticket was still created.')
+      }
 
       router.push(`/portal/tickets/${ticket.id}`)
     } catch (err) {
-      console.error('Error creating ticket:', err)
-      setError(err.message || 'Failed to create ticket')
+      console.error('Error creating support request:', err)
+      setError(err.message || 'Failed to create support request')
       setLoading(false)
     }
   }
@@ -104,14 +113,14 @@ export default function NewTicketPage() {
   return (
     <div>
       <a href="/portal/tickets" className="new-ticket-back">
-        ← Back to tickets
+        ← Back to Support Requests
       </a>
 
       <h1 style={{ fontSize: '1.4rem', marginBottom: 4 }}>New Support Request</h1>
       <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem', marginBottom: 24 }}>
         Describe your issue and our AI will triage it first. If it is a safe low-risk issue,
         the system may respond immediately. If it needs human attention, we’ll handle it through
-        normal support workflow.
+        standard support workflow with clear status updates.
       </p>
 
       <div
@@ -172,16 +181,11 @@ export default function NewTicketPage() {
                 required
               >
                 <option value="">Select category</option>
-                <option value="helpdesk">General Helpdesk</option>
-                <option value="accounts_access">Accounts & Access</option>
-                <option value="email_collaboration">Email & Collaboration</option>
-                <option value="microsoft_365">Microsoft 365</option>
-                <option value="google_workspace">Google Workspace</option>
-                <option value="saas_admin">SaaS Admin</option>
-                <option value="portal_account">Portal / Account Question</option>
-                <option value="billing_scope">Billing / Scope Question</option>
-                <option value="device_guidance">Device Guidance</option>
-                <option value="other">Other</option>
+                {REQUEST_CATEGORY_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {CATEGORY_LABELS[option] || option}
+                  </option>
+                ))}
               </select>
             </div>
 

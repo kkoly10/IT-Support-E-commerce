@@ -18,7 +18,7 @@ export async function GET(request) {
   try {
     const results = []
 
-    // Get all organizations with store URLs
+    // Get all organizations with monitored URLs
     const { data: orgs } = await supabase
       .from('organizations')
       .select('id, name, store_url, website_url, platform')
@@ -26,9 +26,9 @@ export async function GET(request) {
     for (const org of (orgs || [])) {
       const checks = []
 
-      // Check store URL if exists
+      // Check primary URL if exists
       if (org.store_url) {
-        const storeCheck = await checkUrl(org.store_url, 'store')
+        const storeCheck = await checkUrl(org.store_url, 'primary_system')
         checks.push(storeCheck)
       }
 
@@ -211,7 +211,7 @@ async function autoCreateTicket(orgId, check) {
     created_by: admin?.id,
     title: `🤖 Sentinel Alert: ${check.message}`,
     description: `Sentinel AI detected an issue:\n\nType: ${check.type}\nSeverity: ${check.severity}\nDetails: ${check.message}\n\nThis ticket was auto-created by the monitoring system.`,
-    category: 'it_support',
+    category: 'helpdesk',
     priority: check.severity === 'critical' ? 'urgent' : 'high',
     status: 'open',
   })
