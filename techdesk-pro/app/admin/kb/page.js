@@ -47,21 +47,22 @@ function formatDate(date) {
 export default function AdminKnowledgePage() {
   const [loading, setLoading] = useState(true)
   const [drafts, setDrafts] = useState([])
+  const [articles, setArticles] = useState([])
   const [ticketMap, setTicketMap] = useState({})
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    loadDrafts()
+    loadKnowledge()
   }, [])
 
-  async function loadDrafts() {
+  async function loadKnowledge() {
     setLoading(true)
 
     try {
-      const { data: kbDrafts } = await supabase
-        .from('kb_sop_drafts')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const [{ data: kbDrafts }, { data: kbArticles }] = await Promise.all([
+        supabase.from('kb_sop_drafts').select('*').order('created_at', { ascending: false }),
+        supabase.from('kb_articles').select('*').order('published_at', { ascending: false }),
+      ])
 
       let nextDrafts = kbDrafts || []
 
@@ -73,12 +74,15 @@ export default function AdminKnowledgePage() {
           .ilike('body', '%KB/SOP Draft JSON:%')
           .order('created_at', { ascending: false })
 
-        nextDrafts = (legacyNotes || [])
-          .map(extractLegacyDraftFromNote)
-          .filter(Boolean)
+        nextDrafts = (legacyNotes || []).map(extractLegacyDraftFromNote).filter(Boolean)
       }
 
-      const ticketIds = [...new Set(nextDrafts.map((d) => d.ticket_id).filter(Boolean))]
+      const ticketIds = [
+        ...new Set([
+          ...nextDrafts.map((d) => d.ticket_id).filter(Boolean),
+          ...(kbArticles || []).map((a) => a.source_ticket_id).filter(Boolean),
+        ]),
+      ]
 
       let nextTicketMap = {}
 
@@ -98,13 +102,29 @@ export default function AdminKnowledgePage() {
       }
 
       setDrafts(nextDrafts)
+      setArticles(kbArticles || [])
       setTicketMap(nextTicketMap)
     } catch (err) {
-      console.error('KB drafts load error:', err)
+      console.error('Knowledge load error:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  const articleByDraftKey = useMemo(() => {
+    const map = {}
+
+    for (const article of articles) {
+      if (article.source_draft_id) {
+        map[article.source_draft_id] = article
+      }
+      if (article.source_ticket_message_id) {
+        map[`legacy-${article.source_ticket_message_id}`] = article
+      }
+    }
+
+    return map
+  }, [articles])
 
   const filteredDrafts = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -124,13 +144,31 @@ export default function AdminKnowledgePage() {
     })
   }, [drafts, ticketMap, search])
 
+  const filteredArticles = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return articles
+
+    return articles.filter((article) => {
+      const ticket = ticketMap[article.source_ticket_id]
+      return (
+        article.title?.toLowerCase().includes(q) ||
+        article.summary?.toLowerCase().includes(q) ||
+        article.problem?.toLowerCase().includes(q) ||
+        article.likely_cause?.toLowerCase().includes(q) ||
+        article.reusable_fix_guidance?.toLowerCase().includes(q) ||
+        ticket?.title?.toLowerCase().includes(q) ||
+        ticket?.organization?.name?.toLowerCase().includes(q)
+      )
+    })
+  }, [articles, ticketMap, search])
+
   return (
     <div>
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Knowledge Drafts</h1>
           <p className="admin-page-desc">
-            Browse KB/SOP drafts generated from resolved support requests.
+            Turn resolved support work into reusable internal knowledge.
           </p>
         </div>
       </div>
@@ -138,85 +176,147 @@ export default function AdminKnowledgePage() {
       <div className="admin-filters">
         <input
           type="text"
-          placeholder="Search drafts, clients, tickets..."
+          placeholder="Search drafts, published knowledge, clients, tickets..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-search-input"
         />
       </div>
 
-      <div className="admin-card" style={{ padding: 0 }}>
-        {loading ? (
-          <div className="admin-loading" style={{ padding: 40 }}>
-            Loading KB/SOP drafts...
+      <div className="admin-grid-2col">
+        <div className="admin-card" style={{ padding: 0 }}>
+          <div className="admin-card-header" style={{ padding: '20px 20px 0' }}>
+            <h3>Drafts</h3>
           </div>
-        ) : filteredDrafts.length === 0 ? (
-          <div className="admin-empty-text" style={{ padding: 40 }}>
-            No KB/SOP drafts found yet.
+
+          {loading ? (
+            <div className="admin-loading" style={{ padding: 40 }}>
+              Loading drafts...
+            </div>
+          ) : filteredDrafts.length === 0 ? (
+            <div className="admin-empty-text" style={{ padding: 40 }}>
+              No KB/SOP drafts found yet.
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Draft</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Open</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDrafts.map((draft) => {
+                    const ticket = ticketMap[draft.ticket_id]
+                    const article = articleByDraftKey[draft.id]
+
+                    return (
+                      <tr key={draft.id}>
+                        <td>
+                          <div className="admin-table-title">{draft.title || 'Untitled Draft'}</div>
+                          <div className="admin-table-sub">
+                            {ticket?.ticket_number ? `TDP-${ticket.ticket_number}` : draft.ticket_id ? draft.ticket_id.slice(0, 8) : '—'}
+                            {' · '}
+                            {ticket?.title || 'Unknown ticket'}
+                          </div>
+                        </td>
+
+                        <td className="admin-table-muted">
+                          {ticket?.organization?.name || '—'}
+                        </td>
+
+                        <td>
+                          <span
+                            className="admin-status-badge"
+                            style={{
+                              background: article ? '#ecfdf3' : '#fffaeb',
+                              color: article ? '#067647' : '#b54708',
+                            }}
+                          >
+                            {article ? 'Published' : 'Draft'}
+                          </span>
+                        </td>
+
+                        <td className="admin-table-muted">
+                          {formatDate(draft.created_at)}
+                        </td>
+
+                        <td>
+                          <a href={`/admin/kb/${draft.id}`} className="admin-btn-small">
+                            View Draft
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="admin-card" style={{ padding: 0 }}>
+          <div className="admin-card-header" style={{ padding: '20px 20px 0' }}>
+            <h3>Published Knowledge</h3>
           </div>
-        ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Draft</th>
-                  <th>Source Ticket</th>
-                  <th>Client</th>
-                  <th>Source</th>
-                  <th>Created</th>
-                  <th>Open</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDrafts.map((draft) => {
-                  const ticket = ticketMap[draft.ticket_id]
 
-                  return (
-                    <tr key={draft.id}>
-                      <td>
-                        <div className="admin-table-title">{draft.title || 'Untitled Draft'}</div>
-                        <div className="admin-table-sub">
-                          {draft.short_summary || draft.problem || 'No summary available'}
-                        </div>
-                      </td>
+          {loading ? (
+            <div className="admin-loading" style={{ padding: 40 }}>
+              Loading published knowledge...
+            </div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="admin-empty-text" style={{ padding: 40 }}>
+              No published knowledge articles yet.
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Article</th>
+                    <th>Client</th>
+                    <th>Published</th>
+                    <th>Open</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredArticles.map((article) => {
+                    const ticket = ticketMap[article.source_ticket_id]
 
-                      <td className="admin-table-muted">
-                        {ticket?.ticket_number ? `TDP-${ticket.ticket_number}` : draft.ticket_id ? draft.ticket_id.slice(0, 8) : '—'}
-                        <div className="admin-table-sub">{ticket?.title || 'Unknown ticket'}</div>
-                      </td>
+                    return (
+                      <tr key={article.id}>
+                        <td>
+                          <div className="admin-table-title">{article.title}</div>
+                          <div className="admin-table-sub">
+                            {article.summary || article.problem || 'No summary available'}
+                          </div>
+                        </td>
 
-                      <td className="admin-table-muted">
-                        {ticket?.organization?.name || '—'}
-                      </td>
+                        <td className="admin-table-muted">
+                          {ticket?.organization?.name || '—'}
+                        </td>
 
-                      <td>
-                        <span
-                          className="admin-status-badge"
-                          style={{
-                            background: draft.source === 'legacy_note' ? '#f59e0b18' : '#0D7C6618',
-                            color: draft.source === 'legacy_note' ? '#b45309' : '#0D7C66',
-                          }}
-                        >
-                          {draft.source === 'legacy_note' ? 'Legacy Note' : 'KB Table'}
-                        </span>
-                      </td>
+                        <td className="admin-table-muted">
+                          {formatDate(article.published_at || article.created_at)}
+                        </td>
 
-                      <td className="admin-table-muted">
-                        {formatDate(draft.created_at)}
-                      </td>
-
-                      <td>
-                        <a href={`/admin/kb/${draft.id}`} className="admin-btn-small">
-                          View Draft
-                        </a>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                        <td>
+                          <a href={`/admin/kb/published/${article.id}`} className="admin-btn-small">
+                            Open Article
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
