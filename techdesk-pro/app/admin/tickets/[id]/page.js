@@ -79,12 +79,16 @@ export default function AdminTicketDetail() {
   const [ghostContextLoading, setGhostContextLoading] = useState(false)
   const [autoResolveLoading, setAutoResolveLoading] = useState(false)
   const [kbDraftLoading, setKbDraftLoading] = useState(false)
+  const [publishLoading, setPublishLoading] = useState(false)
+  const [resolveAndDraftLoading, setResolveAndDraftLoading] = useState(false)
   const [followUpLoading, setFollowUpLoading] = useState(false)
   const [lastFollowUpType, setLastFollowUpType] = useState('')
   const [suggestedFollowUpStatus, setSuggestedFollowUpStatus] = useState('')
 
   const [showCoach, setShowCoach] = useState(false)
   const [kbDraft, setKbDraft] = useState(null)
+  const [kbDraftRecord, setKbDraftRecord] = useState(null)
+  const [publishedArticle, setPublishedArticle] = useState(null)
   const [ghostData, setGhostData] = useState(null)
   const [ghostContext, setGhostContext] = useState(null)
 
@@ -124,7 +128,7 @@ export default function AdminTicketDetail() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadCurrentUser(), loadTicket(), loadMessages()])
+    await Promise.all([loadCurrentUser(), loadTicket(), loadMessages(), loadKnowledgeState()])
     await loadGhostContext()
     setLoading(false)
   }
@@ -180,6 +184,44 @@ export default function AdminTicketDetail() {
       }
     } catch (err) {
       console.error('Error loading messages:', err)
+    }
+  }
+
+  async function loadKnowledgeState() {
+    try {
+      const { data: latestDraft } = await supabase
+        .from('kb_sop_drafts')
+        .select('*')
+        .eq('ticket_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      setKbDraftRecord(latestDraft || null)
+
+      if (latestDraft) {
+        const { data: articleByDraft } = await supabase
+          .from('kb_articles')
+          .select('*')
+          .eq('source_draft_id', latestDraft.id)
+          .maybeSingle()
+
+        setPublishedArticle(articleByDraft || null)
+      } else {
+        const { data: articleByTicket } = await supabase
+          .from('kb_articles')
+          .select('*')
+          .eq('source_ticket_id', id)
+          .order('published_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        setPublishedArticle(articleByTicket || null)
+      }
+    } catch (err) {
+      console.error('Knowledge state load error:', err)
+      setKbDraftRecord(null)
+      setPublishedArticle(null)
     }
   }
 
@@ -265,7 +307,7 @@ export default function AdminTicketDetail() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'AutoResolve failed')
 
-      await Promise.all([loadTicket(), loadMessages(), loadGhostContext()])
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
 
       if (!data.resolved && data.message) alert(data.message)
     } catch (err) {
@@ -399,12 +441,69 @@ export default function AdminTicketDetail() {
       if (!response.ok) throw new Error(data.error || 'KB/SOP draft generation failed')
 
       setKbDraft(data.draft || null)
-      await Promise.all([loadMessages(), loadGhostContext()])
+      await Promise.all([loadMessages(), loadGhostContext(), loadKnowledgeState()])
     } catch (err) {
       console.error('KB draft error:', err)
       alert(err.message || 'Failed to generate KB/SOP draft')
     } finally {
       setKbDraftLoading(false)
+    }
+  }
+
+  async function handleResolveAndGenerateDraft() {
+    setResolveAndDraftLoading(true)
+    try {
+      if (status !== 'resolved' && status !== 'closed') {
+        const { error } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', id)
+        if (error) throw error
+
+        setStatus('resolved')
+        setTicket((prev) => ({ ...prev, status: 'resolved' }))
+      }
+
+      const response = await fetch('/api/ai/generate-kb-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to generate KB draft')
+
+      setKbDraft(data.draft || null)
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
+    } catch (err) {
+      console.error('Resolve + draft error:', err)
+      alert(err.message || 'Failed to resolve and generate draft')
+    } finally {
+      setResolveAndDraftLoading(false)
+    }
+  }
+
+  async function handlePublishKBDraft() {
+    if (!kbDraftRecord?.id) {
+      alert('Generate a KB/SOP draft first.')
+      return
+    }
+
+    setPublishLoading(true)
+    try {
+      const response = await fetch('/api/ai/publish-kb-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftId: kbDraftRecord.id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to publish KB draft')
+
+      await loadKnowledgeState()
+      alert(data.message || 'Knowledge article published.')
+    } catch (err) {
+      console.error('Publish KB error:', err)
+      alert(err.message || 'Failed to publish KB draft')
+    } finally {
+      setPublishLoading(false)
     }
   }
 
@@ -446,7 +545,10 @@ export default function AdminTicketDetail() {
   if (loading) return <div className="admin-loading">Loading support request...</div>
   if (!ticket) return <div className="admin-loading">Support request not found</div>
 
-  const aiConfidence = typeof ticket.ai_confidence === 'number' ? `${Math.round(ticket.ai_confidence * 100)}%` : '—'
+  const aiConfidence =
+    typeof ticket.ai_confidence === 'number'
+      ? `${Math.round(ticket.ai_confidence * 100)}%`
+      : '—'
   const ghostRisk = riskStyles[ghostContext?.risk_level] || riskStyles.medium
   const ghostScope = scopeStyles[ghostContext?.scope_call] || scopeStyles.watch_scope
 
@@ -472,7 +574,9 @@ export default function AdminTicketDetail() {
                 >
                   {toLabel(status, STATUS_LABELS)}
                 </span>
-                <span className="admin-table-muted">{ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}</span>
+                <span className="admin-table-muted">
+                  {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                </span>
                 <span className="admin-table-muted">·</span>
                 <span className="admin-table-muted">{ticket.organization?.name || 'Unknown organization'}</span>
                 <span className="admin-table-muted">·</span>
@@ -496,11 +600,21 @@ export default function AdminTicketDetail() {
                 {triageLoading ? 'Running AI Triage...' : 'Run AI Triage'}
               </button>
 
-              <button onClick={handleGhostAdmin} disabled={ghostLoading} className="admin-btn-small" style={{ padding: '10px 18px' }}>
+              <button
+                onClick={handleGhostAdmin}
+                disabled={ghostLoading}
+                className="admin-btn-small"
+                style={{ padding: '10px 18px' }}
+              >
                 {ghostLoading ? 'Preparing...' : 'Ghost Admin + Coach'}
               </button>
 
-              <button onClick={loadGhostContext} disabled={ghostContextLoading} className="admin-btn-small" style={{ padding: '10px 18px' }}>
+              <button
+                onClick={loadGhostContext}
+                disabled={ghostContextLoading}
+                className="admin-btn-small"
+                style={{ padding: '10px 18px' }}
+              >
                 {ghostContextLoading ? 'Refreshing...' : 'Refresh Ghost Context'}
               </button>
 
@@ -516,10 +630,26 @@ export default function AdminTicketDetail() {
                 {kbDraftLoading ? 'Drafting KB/SOP...' : 'Generate KB/SOP Draft'}
               </button>
 
-              {status !== 'resolved' && status !== 'closed' && (
-                <button type="button" className="admin-btn-small" onClick={() => handleStatusChange('resolved')} disabled={updating}>
-                  Resolve Request
-                </button>
+              <button
+                onClick={handleResolveAndGenerateDraft}
+                disabled={resolveAndDraftLoading}
+                className="admin-btn-small"
+              >
+                {resolveAndDraftLoading ? 'Resolving + Drafting...' : 'Resolve + Generate Draft'}
+              </button>
+
+              <button
+                onClick={handlePublishKBDraft}
+                disabled={publishLoading || !kbDraftRecord}
+                className="admin-btn-small"
+              >
+                {publishLoading ? 'Publishing...' : publishedArticle ? 'Update Published Article' : 'Publish to Knowledge Base'}
+              </button>
+
+              {publishedArticle && (
+                <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                  Open Published Article
+                </a>
               )}
             </div>
 
@@ -570,8 +700,12 @@ export default function AdminTicketDetail() {
                       <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
                         Risk level
                       </div>
-                      <div style={{ fontWeight: 700, marginBottom: 6 }}>{toLabel(ghostContext.risk_level)}</div>
-                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6 }}>{ghostContext.operator_warning}</div>
+                      <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                        {toLabel(ghostContext.risk_level)}
+                      </div>
+                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6 }}>
+                        {ghostContext.operator_warning}
+                      </div>
                     </div>
                   </div>
 
@@ -713,11 +847,21 @@ export default function AdminTicketDetail() {
                         Knowledge signal
                       </div>
 
-                      {ghostContext.kb_signal?.has_kb_draft ? (
+                      {publishedArticle ? (
                         <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
-                          A KB/SOP draft already exists on this ticket.
+                          This ticket already has a published knowledge article.
                           <br />
-                          Latest draft note: {formatTime(ghostContext.kb_signal.created_at)}
+                          <a href={`/admin/kb/published/${publishedArticle.id}`}>Open published article</a>
+                        </div>
+                      ) : kbDraftRecord ? (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          A structured KB/SOP draft exists in the drafts table for this ticket.
+                          <br />
+                          Draft title: {kbDraftRecord.title}
+                        </div>
+                      ) : ghostContext.kb_signal?.has_kb_draft ? (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          A legacy KB/SOP note exists on this ticket, but no structured draft record has been detected yet.
                         </div>
                       ) : (
                         <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
@@ -827,8 +971,10 @@ export default function AdminTicketDetail() {
             {kbDraft && (
               <div className="admin-card" style={{ marginBottom: 16, border: '1px solid #d6e9ff', background: '#f7fbff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: '1rem' }}>KB/SOP Draft (MVP)</h3>
-                  <span className="admin-table-muted">Saved as internal note</span>
+                  <h3 style={{ margin: 0, fontSize: '1rem' }}>KB/SOP Draft</h3>
+                  <span className="admin-table-muted">
+                    {kbDraftRecord ? 'Saved to kb_sop_drafts' : 'Saved as internal note'}
+                  </span>
                 </div>
 
                 <div style={{ display: 'grid', gap: 8, fontSize: '0.86rem' }}>
@@ -839,6 +985,19 @@ export default function AdminTicketDetail() {
                   <div><strong>Steps taken:</strong> {Array.isArray(kbDraft.steps_taken) ? kbDraft.steps_taken.join(' • ') : (kbDraft.steps_taken || '—')}</div>
                   <div><strong>Reusable fix guidance:</strong> {kbDraft.reusable_fix_guidance || '—'}</div>
                   <div><strong>Future prevention note:</strong> {kbDraft.future_prevention_note || '—'}</div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  {kbDraftRecord && (
+                    <a href={`/admin/kb/${kbDraftRecord.id}`} className="admin-btn-small">
+                      Open Draft
+                    </a>
+                  )}
+                  {publishedArticle && (
+                    <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                      Open Published Article
+                    </a>
+                  )}
                 </div>
               </div>
             )}
@@ -856,7 +1015,11 @@ export default function AdminTicketDetail() {
                     <div className="admin-message-header">
                       <span className="admin-message-sender">
                         {msg.sender?.full_name ||
-                          (msg.sender_type === 'ai' ? 'AutoResolve AI' : msg.sender_type === 'system' ? 'System' : 'Unknown')}
+                          (msg.sender_type === 'ai'
+                            ? 'AutoResolve AI'
+                            : msg.sender_type === 'system'
+                            ? 'System'
+                            : 'Unknown')}
                       </span>
                       <span className={`admin-message-badge ${msg.sender_type}`}>{msg.sender_type}</span>
                       {msg.ai_generated && <span className="admin-message-badge ai">AI Generated</span>}
@@ -980,7 +1143,12 @@ export default function AdminTicketDetail() {
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Status</span>
-              <select value={status} onChange={(e) => handleStatusChange(e.target.value)} className="admin-detail-select" disabled={updating}>
+              <select
+                value={status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="admin-detail-select"
+                disabled={updating}
+              >
                 <option value="open">Open</option>
                 <option value="in_progress">In Progress</option>
                 <option value="waiting_on_client">Waiting on Client</option>
@@ -991,7 +1159,12 @@ export default function AdminTicketDetail() {
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Priority</span>
-              <select value={priority} onChange={(e) => handlePriorityChange(e.target.value)} className="admin-detail-select" disabled={updating}>
+              <select
+                value={priority}
+                onChange={(e) => handlePriorityChange(e.target.value)}
+                className="admin-detail-select"
+                disabled={updating}
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -1011,6 +1184,39 @@ export default function AdminTicketDetail() {
                 )}
               </div>
             </div>
+          </div>
+
+          <div className="admin-card" style={{ marginTop: 16 }}>
+            <h4 className="admin-card-section-title">Knowledge workflow</h4>
+
+            <div className="admin-detail-row">
+              <span className="admin-detail-label">Structured draft</span>
+              <span className="admin-detail-value">{kbDraftRecord ? 'Yes' : 'No'}</span>
+            </div>
+
+            <div className="admin-detail-row">
+              <span className="admin-detail-label">Published article</span>
+              <span className="admin-detail-value">{publishedArticle ? 'Yes' : 'No'}</span>
+            </div>
+
+            {kbDraftRecord && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <a href={`/admin/kb/${kbDraftRecord.id}`} className="admin-btn-small">
+                  Open Draft
+                </a>
+                <button type="button" className="admin-btn-small" onClick={handlePublishKBDraft} disabled={publishLoading}>
+                  {publishLoading ? 'Publishing...' : publishedArticle ? 'Update Article' : 'Publish Draft'}
+                </button>
+              </div>
+            )}
+
+            {publishedArticle && (
+              <div style={{ marginTop: 8 }}>
+                <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                  Open Article
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="admin-card" style={{ marginTop: 16 }}>
