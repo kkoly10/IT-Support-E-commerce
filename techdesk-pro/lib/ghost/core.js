@@ -23,6 +23,7 @@ import {
   buildOnboardingReviewPrompt,
 } from './reasoning-prompts'
 import { normalizeRequestCategory } from '../support-ui'
+import { logGhostEvent } from './audit'
 
 function normalizeKnowledgeDraft(ticket, parsed) {
   return {
@@ -63,212 +64,478 @@ function buildGhostSearchFallback(query, matches) {
 }
 
 export async function getTicketCoachSuggestion(ticketId) {
-  const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
-  const prompt = buildSuggestReplyPrompt({ ticket, conversation })
-  const parsed = await askClaudeJson(prompt)
+  try {
+    const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
+    const prompt = buildSuggestReplyPrompt({ ticket, conversation })
+    const parsed = await askClaudeJson(prompt)
 
-  return {
-    suggested_reply: parsed.suggested_reply || '',
-    coach: {
-      tone: parsed.coach?.tone || 'Professional and clear',
-      next_steps: Array.isArray(parsed.coach?.next_steps) ? parsed.coach.next_steps : [],
-      internal_note: parsed.coach?.internal_note || '',
-      escalation_reason: parsed.coach?.escalation_reason || '',
-    },
+    const result = {
+      suggested_reply: parsed.suggested_reply || '',
+      coach: {
+        tone: parsed.coach?.tone || 'Professional and clear',
+        next_steps: Array.isArray(parsed.coach?.next_steps) ? parsed.coach.next_steps : [],
+        internal_note: parsed.coach?.internal_note || '',
+        escalation_reason: parsed.coach?.escalation_reason || '',
+      },
+    }
+
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'suggest_reply',
+      routeName: 'ghost.core.getTicketCoachSuggestion',
+      summary: 'Generated Ghost coach suggestion for ticket.',
+      inputPayload: { ticketId },
+      outputPayload: {
+        hasSuggestedReply: !!result.suggested_reply,
+        hasCoach: !!result.coach,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'suggest_reply',
+      routeName: 'ghost.core.getTicketCoachSuggestion',
+      outcomeStatus: 'error',
+      summary: err.message || 'Failed to generate Ghost coach suggestion.',
+      inputPayload: { ticketId },
+      outputPayload: {},
+    })
+    throw err
   }
 }
 
 export async function getTicketFollowupDraft(ticketId, draftType) {
-  const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
-  const prompt = buildFollowupDraftPrompt({ ticket, conversation, draftType })
-  const parsed = await askClaudeJson(prompt)
+  try {
+    const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
+    const prompt = buildFollowupDraftPrompt({ ticket, conversation, draftType })
+    const parsed = await askClaudeJson(prompt)
 
-  return {
-    draft: parsed.draft || '',
-    suggested_status: parsed.suggested_status || 'waiting_on_client',
+    const result = {
+      draft: parsed.draft || '',
+      suggested_status: parsed.suggested_status || 'waiting_on_client',
+    }
+
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'generate_followup_draft',
+      routeName: 'ghost.core.getTicketFollowupDraft',
+      summary: `Generated follow-up draft (${draftType}).`,
+      inputPayload: { ticketId, draftType },
+      outputPayload: {
+        suggested_status: result.suggested_status,
+        hasDraft: !!result.draft,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'generate_followup_draft',
+      routeName: 'ghost.core.getTicketFollowupDraft',
+      outcomeStatus: 'error',
+      summary: err.message || 'Failed to generate follow-up draft.',
+      inputPayload: { ticketId, draftType },
+      outputPayload: {},
+    })
+    throw err
   }
 }
 
 export async function generateTicketKnowledgeDraft(ticketId) {
-  const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
+  try {
+    const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
 
-  if (!['resolved', 'closed'].includes(ticket.status)) {
-    throw new Error('KB/SOP drafts can only be generated from resolved or closed support requests')
-  }
-
-  const prompt = buildKnowledgeDraftPrompt({ ticket, conversation })
-  const parsed = await askClaudeJson(prompt)
-  const draft = normalizeKnowledgeDraft(ticket, parsed)
-
-  const draftId = await upsertKnowledgeDraft(ticketId, draft, 'draft')
-  await insertKnowledgeNote(ticketId, draft)
-
-  return {
-    draft,
-    draftId,
-    stored_in: 'kb_sop_drafts + ticket_messages.is_internal_note=true',
-  }
-}
-
-export async function runGhostTicketAction(ticketId, action) {
-  const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
-
-  if (action === 'waiting_on_client_followup') {
-    const prompt = buildFollowupDraftPrompt({
-      ticket,
-      conversation,
-      draftType: 'waiting_on_client_followup',
-    })
-    const parsed = await askClaudeJson(prompt)
-
-    await updateTicketStatus(ticketId, 'waiting_on_client')
-
-    return {
-      success: true,
-      action,
-      draft: parsed.draft || '',
-      updatedStatus: 'waiting_on_client',
-      message: 'Ticket moved to waiting on client and follow-up draft prepared.',
-    }
-  }
-
-  if (action === 'request_access_details') {
-    const prompt = buildFollowupDraftPrompt({
-      ticket,
-      conversation,
-      draftType: 'request_access_details',
-    })
-    const parsed = await askClaudeJson(prompt)
-
-    await updateTicketStatus(ticketId, 'waiting_on_client')
-
-    return {
-      success: true,
-      action,
-      draft: parsed.draft || '',
-      updatedStatus: 'waiting_on_client',
-      message: 'Access/details request draft prepared and ticket moved to waiting on client.',
-    }
-  }
-
-  if (action === 'resolve_and_publish') {
     if (!['resolved', 'closed'].includes(ticket.status)) {
-      await updateTicketStatus(ticketId, 'resolved')
+      throw new Error('KB/SOP drafts can only be generated from resolved or closed support requests')
     }
 
-    const prompt = buildKnowledgeDraftPrompt({
-      ticket: { ...ticket, status: 'resolved' },
-      conversation,
-    })
+    const prompt = buildKnowledgeDraftPrompt({ ticket, conversation })
     const parsed = await askClaudeJson(prompt)
     const draft = normalizeKnowledgeDraft(ticket, parsed)
 
     const draftId = await upsertKnowledgeDraft(ticketId, draft, 'draft')
     await insertKnowledgeNote(ticketId, draft)
-    const articleId = await publishKnowledgeArticle(ticketId, draftId, draft)
 
-    return {
-      success: true,
-      action,
-      updatedStatus: 'resolved',
+    const result = {
       draft,
       draftId,
-      articleId,
-      message: 'Ticket resolved and knowledge article published.',
+      stored_in: 'kb_sop_drafts + ticket_messages.is_internal_note=true',
     }
-  }
 
-  throw new Error('Unsupported action')
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'generate_kb_draft',
+      routeName: 'ghost.core.generateTicketKnowledgeDraft',
+      summary: 'Generated KB/SOP draft for ticket.',
+      inputPayload: { ticketId },
+      outputPayload: {
+        draftId,
+        title: draft.title,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'generate_kb_draft',
+      routeName: 'ghost.core.generateTicketKnowledgeDraft',
+      outcomeStatus: 'error',
+      summary: err.message || 'Failed to generate KB draft.',
+      inputPayload: { ticketId },
+      outputPayload: {},
+    })
+    throw err
+  }
+}
+
+export async function runGhostTicketAction(ticketId, action) {
+  try {
+    const { ticket, conversation } = await loadTicketRuntimeContext(ticketId)
+
+    if (action === 'waiting_on_client_followup') {
+      const prompt = buildFollowupDraftPrompt({
+        ticket,
+        conversation,
+        draftType: 'waiting_on_client_followup',
+      })
+      const parsed = await askClaudeJson(prompt)
+
+      await updateTicketStatus(ticketId, 'waiting_on_client')
+
+      const result = {
+        success: true,
+        action,
+        draft: parsed.draft || '',
+        updatedStatus: 'waiting_on_client',
+        message: 'Ticket moved to waiting on client and follow-up draft prepared.',
+      }
+
+      await logGhostEvent({
+        entityType: 'ticket',
+        entityId: ticketId,
+        actionType: action,
+        routeName: 'ghost.core.runGhostTicketAction',
+        summary: result.message,
+        inputPayload: { ticketId, action },
+        outputPayload: {
+          updatedStatus: result.updatedStatus,
+          hasDraft: !!result.draft,
+        },
+      })
+
+      return result
+    }
+
+    if (action === 'request_access_details') {
+      const prompt = buildFollowupDraftPrompt({
+        ticket,
+        conversation,
+        draftType: 'request_access_details',
+      })
+      const parsed = await askClaudeJson(prompt)
+
+      await updateTicketStatus(ticketId, 'waiting_on_client')
+
+      const result = {
+        success: true,
+        action,
+        draft: parsed.draft || '',
+        updatedStatus: 'waiting_on_client',
+        message: 'Access/details request draft prepared and ticket moved to waiting on client.',
+      }
+
+      await logGhostEvent({
+        entityType: 'ticket',
+        entityId: ticketId,
+        actionType: action,
+        routeName: 'ghost.core.runGhostTicketAction',
+        summary: result.message,
+        inputPayload: { ticketId, action },
+        outputPayload: {
+          updatedStatus: result.updatedStatus,
+          hasDraft: !!result.draft,
+        },
+      })
+
+      return result
+    }
+
+    if (action === 'resolve_and_publish') {
+      if (!['resolved', 'closed'].includes(ticket.status)) {
+        await updateTicketStatus(ticketId, 'resolved')
+      }
+
+      const prompt = buildKnowledgeDraftPrompt({
+        ticket: { ...ticket, status: 'resolved' },
+        conversation,
+      })
+      const parsed = await askClaudeJson(prompt)
+      const draft = normalizeKnowledgeDraft(ticket, parsed)
+
+      const draftId = await upsertKnowledgeDraft(ticketId, draft, 'draft')
+      await insertKnowledgeNote(ticketId, draft)
+      const articleId = await publishKnowledgeArticle(ticketId, draftId, draft)
+
+      const result = {
+        success: true,
+        action,
+        updatedStatus: 'resolved',
+        draft,
+        draftId,
+        articleId,
+        message: 'Ticket resolved and knowledge article published.',
+      }
+
+      await logGhostEvent({
+        entityType: 'ticket',
+        entityId: ticketId,
+        actionType: action,
+        routeName: 'ghost.core.runGhostTicketAction',
+        summary: result.message,
+        inputPayload: { ticketId, action },
+        outputPayload: {
+          updatedStatus: result.updatedStatus,
+          draftId,
+          articleId,
+        },
+      })
+
+      return result
+    }
+
+    throw new Error('Unsupported action')
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: action,
+      routeName: 'ghost.core.runGhostTicketAction',
+      outcomeStatus: 'error',
+      summary: err.message || 'Ghost ticket action failed.',
+      inputPayload: { ticketId, action },
+      outputPayload: {},
+    })
+    throw err
+  }
 }
 
 export async function getGhostTicketContext(ticketId) {
-  const bundle = await loadGhostContextBundle(ticketId)
-  const parsed = await askClaudeJson(buildGhostContextPrompt(bundle))
+  try {
+    const bundle = await loadGhostContextBundle(ticketId)
+    const parsed = await askClaudeJson(buildGhostContextPrompt(bundle))
 
-  return {
-    ...parsed,
-    similar_tickets: bundle.filteredSimilarTickets.map((item) => ({
-      id: item.id,
-      ticket_number: item.ticket_number,
-      title: item.title,
-      summary: item.ai_summary || '',
-      category: normalizeRequestCategory(item.ai_category || item.category || 'other'),
-      created_at: item.created_at,
-    })),
-    linked_assessment: bundle.linkedAssessment,
-    kb_signal: bundle.kbSignal,
-    published_knowledge: bundle.relatedArticles.map((item) => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary || item.problem || '',
-      published_at: item.published_at,
-    })),
+    const result = {
+      ...parsed,
+      similar_tickets: bundle.filteredSimilarTickets.map((item) => ({
+        id: item.id,
+        ticket_number: item.ticket_number,
+        title: item.title,
+        summary: item.ai_summary || '',
+        category: normalizeRequestCategory(item.ai_category || item.category || 'other'),
+        created_at: item.created_at,
+      })),
+      linked_assessment: bundle.linkedAssessment,
+      kb_signal: bundle.kbSignal,
+      published_knowledge: bundle.relatedArticles.map((item) => ({
+        id: item.id,
+        title: item.title,
+        summary: item.summary || item.problem || '',
+        published_at: item.published_at,
+      })),
+    }
+
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'ghost_context',
+      routeName: 'ghost.core.getGhostTicketContext',
+      summary: 'Built Ghost ticket context.',
+      inputPayload: { ticketId },
+      outputPayload: {
+        similarTicketCount: result.similar_tickets.length,
+        hasLinkedAssessment: !!result.linked_assessment,
+        publishedKnowledgeCount: result.published_knowledge.length,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'ticket',
+      entityId: ticketId,
+      actionType: 'ghost_context',
+      routeName: 'ghost.core.getGhostTicketContext',
+      outcomeStatus: 'error',
+      summary: err.message || 'Failed to build Ghost ticket context.',
+      inputPayload: { ticketId },
+      outputPayload: {},
+    })
+    throw err
   }
 }
 
 export async function runGhostSearch(query) {
-  const bundle = await loadGhostSearchBundle(query)
-  let synthesized = buildGhostSearchFallback(bundle.cleanedQuery, bundle.matches)
-
   try {
-    const parsed = await askClaudeJson(buildGhostSearchPrompt(bundle))
-    if (parsed?.answer) {
-      synthesized = {
-        answer: parsed.answer,
-        recommended_actions: Array.isArray(parsed.recommended_actions)
-          ? parsed.recommended_actions
-          : [],
-      }
-    }
-  } catch (err) {
-    console.error('Ghost search synthesis fallback used:', err)
-  }
+    const bundle = await loadGhostSearchBundle(query)
+    let synthesized = buildGhostSearchFallback(bundle.cleanedQuery, bundle.matches)
 
-  return {
-    answer: synthesized.answer,
-    recommended_actions: Array.isArray(synthesized.recommended_actions)
-      ? synthesized.recommended_actions
-      : [],
-    counts: bundle.counts,
-    matches: bundle.matches.slice(0, 20),
+    try {
+      const parsed = await askClaudeJson(buildGhostSearchPrompt(bundle))
+      if (parsed?.answer) {
+        synthesized = {
+          answer: parsed.answer,
+          recommended_actions: Array.isArray(parsed.recommended_actions)
+            ? parsed.recommended_actions
+            : [],
+        }
+      }
+    } catch (err) {
+      console.error('Ghost search synthesis fallback used:', err)
+    }
+
+    const result = {
+      answer: synthesized.answer,
+      recommended_actions: Array.isArray(synthesized.recommended_actions)
+        ? synthesized.recommended_actions
+        : [],
+      counts: bundle.counts,
+      matches: bundle.matches.slice(0, 20),
+    }
+
+    await logGhostEvent({
+      entityType: 'search',
+      entityId: null,
+      actionType: 'ghost_search',
+      routeName: 'ghost.core.runGhostSearch',
+      summary: 'Executed Ghost search.',
+      inputPayload: { query: bundle.cleanedQuery },
+      outputPayload: {
+        totalMatches: result.matches.length,
+        counts: result.counts,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'search',
+      entityId: null,
+      actionType: 'ghost_search',
+      routeName: 'ghost.core.runGhostSearch',
+      outcomeStatus: 'error',
+      summary: err.message || 'Ghost search failed.',
+      inputPayload: { query },
+      outputPayload: {},
+    })
+    throw err
   }
 }
 
 export async function reviewAssessmentSubmission(assessmentId) {
-  const bundle = await loadAssessmentReviewBundle(assessmentId)
-  const parsed = await askClaudeJson(buildAssessmentReviewPrompt(bundle))
+  try {
+    const bundle = await loadAssessmentReviewBundle(assessmentId)
+    const parsed = await askClaudeJson(buildAssessmentReviewPrompt(bundle))
 
-  return {
-    qualification_summary: parsed.qualification_summary || 'No summary returned.',
-    fit_score: typeof parsed.fit_score === 'number' ? parsed.fit_score : 0,
-    fit_label: parsed.fit_label || 'unclear_fit',
-    urgency_signal: parsed.urgency_signal || 'medium',
-    recommended_status: parsed.recommended_status || 'contacted',
-    recommended_next_action: parsed.recommended_next_action || 'Review manually.',
-    review_flag: parsed.review_flag || 'human_review',
-    onboarding_readiness: parsed.onboarding_readiness || 'needs_manual_review',
-    operator_warning: parsed.operator_warning || 'Review carefully before proceeding.',
+    const result = {
+      qualification_summary: parsed.qualification_summary || 'No summary returned.',
+      fit_score: typeof parsed.fit_score === 'number' ? parsed.fit_score : 0,
+      fit_label: parsed.fit_label || 'unclear_fit',
+      urgency_signal: parsed.urgency_signal || 'medium',
+      recommended_status: parsed.recommended_status || 'contacted',
+      recommended_next_action: parsed.recommended_next_action || 'Review manually.',
+      review_flag: parsed.review_flag || 'human_review',
+      onboarding_readiness: parsed.onboarding_readiness || 'needs_manual_review',
+      operator_warning: parsed.operator_warning || 'Review carefully before proceeding.',
+    }
+
+    await logGhostEvent({
+      entityType: 'assessment',
+      entityId: assessmentId,
+      actionType: 'assessment_review',
+      routeName: 'ghost.core.reviewAssessmentSubmission',
+      summary: 'Reviewed assessment submission.',
+      inputPayload: { assessmentId },
+      outputPayload: {
+        fit_label: result.fit_label,
+        fit_score: result.fit_score,
+        recommended_status: result.recommended_status,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'assessment',
+      entityId: assessmentId,
+      actionType: 'assessment_review',
+      routeName: 'ghost.core.reviewAssessmentSubmission',
+      outcomeStatus: 'error',
+      summary: err.message || 'Assessment review failed.',
+      inputPayload: { assessmentId },
+      outputPayload: {},
+    })
+    throw err
   }
 }
 
 export async function reviewOnboardingState(organizationId) {
-  const bundle = await loadOnboardingReviewBundle(organizationId)
-  const parsed = await askClaudeJson(buildOnboardingReviewPrompt(bundle))
+  try {
+    const bundle = await loadOnboardingReviewBundle(organizationId)
+    const parsed = await askClaudeJson(buildOnboardingReviewPrompt(bundle))
 
-  return {
-    lifecycle_summary: parsed.lifecycle_summary || 'No lifecycle summary returned.',
-    readiness_label: parsed.readiness_label || 'needs_work',
-    blockers: Array.isArray(parsed.blockers) ? parsed.blockers : [],
-    recommended_client_status:
-      parsed.recommended_client_status || bundle.organization.client_status || 'lead',
-    recommended_onboarding_status:
-      parsed.recommended_onboarding_status ||
-      bundle.organization.onboarding_status ||
-      'not_started',
-    recommended_next_action:
-      parsed.recommended_next_action || 'Review organization manually.',
-    operator_warning:
-      parsed.operator_warning ||
-      'Confirm prerequisites before moving this organization forward.',
+    const result = {
+      lifecycle_summary: parsed.lifecycle_summary || 'No lifecycle summary returned.',
+      readiness_label: parsed.readiness_label || 'needs_work',
+      blockers: Array.isArray(parsed.blockers) ? parsed.blockers : [],
+      recommended_client_status:
+        parsed.recommended_client_status || bundle.organization.client_status || 'lead',
+      recommended_onboarding_status:
+        parsed.recommended_onboarding_status ||
+        bundle.organization.onboarding_status ||
+        'not_started',
+      recommended_next_action:
+        parsed.recommended_next_action || 'Review organization manually.',
+      operator_warning:
+        parsed.operator_warning ||
+        'Confirm prerequisites before moving this organization forward.',
+    }
+
+    await logGhostEvent({
+      entityType: 'organization',
+      entityId: organizationId,
+      actionType: 'onboarding_review',
+      routeName: 'ghost.core.reviewOnboardingState',
+      summary: 'Reviewed onboarding/lifecycle state.',
+      inputPayload: { organizationId },
+      outputPayload: {
+        readiness_label: result.readiness_label,
+        recommended_client_status: result.recommended_client_status,
+        recommended_onboarding_status: result.recommended_onboarding_status,
+      },
+    })
+
+    return result
+  } catch (err) {
+    await logGhostEvent({
+      entityType: 'organization',
+      entityId: organizationId,
+      actionType: 'onboarding_review',
+      routeName: 'ghost.core.reviewOnboardingState',
+      outcomeStatus: 'error',
+      summary: err.message || 'Onboarding review failed.',
+      inputPayload: { organizationId },
+      outputPayload: {},
+    })
+    throw err
   }
 }
