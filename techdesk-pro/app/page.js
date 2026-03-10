@@ -333,7 +333,7 @@ export default function Home() {
                 maxWidth: 560,
               }}
             >
-              Need support scope details?{' '}
+              Need help with support scope details instead?{' '}
               <a
                 href="/support-transparency"
                 target="_blank"
@@ -522,7 +522,7 @@ export default function Home() {
             <div className="section-tag">Need Build Work Instead?</div>
             <h2 className="section-title">Support scope stays focused on remote IT and cloud/SaaS operations.</h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              Kocre IT Services focuses on remote IT support requests, cloud/SaaS admin work, and lifecycle-aware client support operations.
+              TechDesk Pro focuses on remote IT support requests, cloud/SaaS admin work, and lifecycle-aware client support operations.
             </p>
           </div>
 
@@ -612,7 +612,7 @@ export default function Home() {
             Not sure which plan fits? Start with a free assessment and we’ll recommend the most sensible support path.
           </p>
           <p className="pricing-note" style={{ marginTop: 8 }}>
-            Major implementation projects are not part of Kocre IT Services&apos;s standard support scope.
+            Major implementation projects are not part of TechDesk Pro&apos;s standard support scope.
           </p>
         </div>
       </section>

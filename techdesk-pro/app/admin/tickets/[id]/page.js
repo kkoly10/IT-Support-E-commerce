@@ -44,6 +44,18 @@ const extractKBDraftFromNote = (body) => {
   }
 }
 
+const riskStyles = {
+  low: { bg: '#ecfdf3', border: '#b7ebcc', text: '#067647' },
+  medium: { bg: '#fffaeb', border: '#fedf89', text: '#b54708' },
+  high: { bg: '#fef3f2', border: '#fecdca', text: '#b42318' },
+}
+
+const scopeStyles = {
+  standard_support: { bg: '#ecfdf3', text: '#067647', label: 'Standard Support' },
+  watch_scope: { bg: '#fffaeb', text: '#b54708', label: 'Watch Scope' },
+  likely_scoped_work: { bg: '#fef3f2', text: '#b42318', label: 'Likely Scoped Work' },
+}
+
 export default function AdminTicketDetail() {
   const { id } = useParams()
 
@@ -64,15 +76,24 @@ export default function AdminTicketDetail() {
 
   const [triageLoading, setTriageLoading] = useState(false)
   const [ghostLoading, setGhostLoading] = useState(false)
+  const [ghostContextLoading, setGhostContextLoading] = useState(false)
   const [autoResolveLoading, setAutoResolveLoading] = useState(false)
   const [kbDraftLoading, setKbDraftLoading] = useState(false)
+  const [publishLoading, setPublishLoading] = useState(false)
+  const [resolveAndDraftLoading, setResolveAndDraftLoading] = useState(false)
+  const [ghostActionLoading, setGhostActionLoading] = useState(false)
+  const [lastGhostAction, setLastGhostAction] = useState('')
+  const [ghostActionMessage, setGhostActionMessage] = useState('')
   const [followUpLoading, setFollowUpLoading] = useState(false)
   const [lastFollowUpType, setLastFollowUpType] = useState('')
   const [suggestedFollowUpStatus, setSuggestedFollowUpStatus] = useState('')
 
   const [showCoach, setShowCoach] = useState(false)
   const [kbDraft, setKbDraft] = useState(null)
+  const [kbDraftRecord, setKbDraftRecord] = useState(null)
+  const [publishedArticle, setPublishedArticle] = useState(null)
   const [ghostData, setGhostData] = useState(null)
+  const [ghostContext, setGhostContext] = useState(null)
 
   const messagesEndRef = useRef(null)
 
@@ -110,7 +131,8 @@ export default function AdminTicketDetail() {
 
   async function loadAll() {
     setLoading(true)
-    await Promise.all([loadCurrentUser(), loadTicket(), loadMessages()])
+    await Promise.all([loadCurrentUser(), loadTicket(), loadMessages(), loadKnowledgeState()])
+    await loadGhostContext()
     setLoading(false)
   }
 
@@ -168,6 +190,65 @@ export default function AdminTicketDetail() {
     }
   }
 
+  async function loadKnowledgeState() {
+    try {
+      const { data: latestDraft } = await supabase
+        .from('kb_sop_drafts')
+        .select('*')
+        .eq('ticket_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      setKbDraftRecord(latestDraft || null)
+
+      if (latestDraft) {
+        const { data: articleByDraft } = await supabase
+          .from('kb_articles')
+          .select('*')
+          .eq('source_draft_id', latestDraft.id)
+          .maybeSingle()
+
+        setPublishedArticle(articleByDraft || null)
+      } else {
+        const { data: articleByTicket } = await supabase
+          .from('kb_articles')
+          .select('*')
+          .eq('source_ticket_id', id)
+          .order('published_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        setPublishedArticle(articleByTicket || null)
+      }
+    } catch (err) {
+      console.error('Knowledge state load error:', err)
+      setKbDraftRecord(null)
+      setPublishedArticle(null)
+    }
+  }
+
+  async function loadGhostContext() {
+    setGhostContextLoading(true)
+    try {
+      const response = await fetch('/api/ai/ghost-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Ghost context failed')
+
+      setGhostContext(data.context || null)
+    } catch (err) {
+      console.error('Ghost context error:', err)
+      setGhostContext(null)
+    } finally {
+      setGhostContextLoading(false)
+    }
+  }
+
   async function handleRunTriage() {
     setTriageLoading(true)
     try {
@@ -181,6 +262,7 @@ export default function AdminTicketDetail() {
       if (!response.ok) throw new Error(data.error || 'AI triage failed')
 
       await loadTicket()
+      await loadGhostContext()
     } catch (err) {
       console.error('AI triage error:', err)
       alert(err.message || 'AI triage failed')
@@ -228,7 +310,7 @@ export default function AdminTicketDetail() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'AutoResolve failed')
 
-      await Promise.all([loadTicket(), loadMessages()])
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
 
       if (!data.resolved && data.message) alert(data.message)
     } catch (err) {
@@ -257,12 +339,13 @@ export default function AdminTicketDetail() {
       setReply('')
       setShowCoach(false)
       setGhostData(null)
+      setGhostActionMessage('')
 
       if (status === 'open') {
         await handleStatusChange('in_progress', false)
       }
 
-      await loadMessages()
+      await Promise.all([loadMessages(), loadGhostContext()])
     } catch (err) {
       console.error('Send reply error:', err)
       alert('Failed to send reply')
@@ -288,7 +371,7 @@ export default function AdminTicketDetail() {
       if (error) throw error
 
       setInternalNote('')
-      await loadMessages()
+      await Promise.all([loadMessages(), loadGhostContext()])
     } catch (err) {
       console.error('Internal note error:', err)
       alert('Failed to save internal note')
@@ -305,6 +388,7 @@ export default function AdminTicketDetail() {
 
       setStatus(newStatus)
       setTicket((prev) => ({ ...prev, status: newStatus }))
+      await loadGhostContext()
     } catch (err) {
       console.error('Status update error:', err)
       if (showAlert) alert('Failed to update status')
@@ -321,6 +405,7 @@ export default function AdminTicketDetail() {
 
       setPriority(newPriority)
       setTicket((prev) => ({ ...prev, priority: newPriority }))
+      await loadGhostContext()
     } catch (err) {
       console.error('Priority update error:', err)
       alert('Failed to update priority')
@@ -338,6 +423,7 @@ export default function AdminTicketDetail() {
       if (error) throw error
 
       setTicket((prev) => ({ ...prev, assigned_to: currentUser.id }))
+      await loadGhostContext()
     } catch (err) {
       console.error('Assign error:', err)
       alert('Failed to assign ticket')
@@ -359,7 +445,7 @@ export default function AdminTicketDetail() {
       if (!response.ok) throw new Error(data.error || 'KB/SOP draft generation failed')
 
       setKbDraft(data.draft || null)
-      await loadMessages()
+      await Promise.all([loadMessages(), loadGhostContext(), loadKnowledgeState()])
     } catch (err) {
       console.error('KB draft error:', err)
       alert(err.message || 'Failed to generate KB/SOP draft')
@@ -368,6 +454,100 @@ export default function AdminTicketDetail() {
     }
   }
 
+  async function handleResolveAndGenerateDraft() {
+    setResolveAndDraftLoading(true)
+    try {
+      if (status !== 'resolved' && status !== 'closed') {
+        const { error } = await supabase.from('tickets').update({ status: 'resolved' }).eq('id', id)
+        if (error) throw error
+
+        setStatus('resolved')
+        setTicket((prev) => ({ ...prev, status: 'resolved' }))
+      }
+
+      const response = await fetch('/api/ai/generate-kb-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to generate KB draft')
+
+      setKbDraft(data.draft || null)
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
+    } catch (err) {
+      console.error('Resolve + draft error:', err)
+      alert(err.message || 'Failed to resolve and generate draft')
+    } finally {
+      setResolveAndDraftLoading(false)
+    }
+  }
+
+  async function handlePublishKBDraft() {
+    if (!kbDraftRecord?.id) {
+      alert('Generate a KB/SOP draft first.')
+      return
+    }
+
+    setPublishLoading(true)
+    try {
+      const response = await fetch('/api/ai/publish-kb-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftId: kbDraftRecord.id }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to publish KB draft')
+
+      await loadKnowledgeState()
+      alert(data.message || 'Knowledge article published.')
+    } catch (err) {
+      console.error('Publish KB error:', err)
+      alert(err.message || 'Failed to publish KB draft')
+    } finally {
+      setPublishLoading(false)
+    }
+  }
+
+  async function handleGhostAction(action) {
+    setGhostActionLoading(true)
+    setLastGhostAction(action)
+    setGhostActionMessage('')
+
+    try {
+      const response = await fetch('/api/ai/ghost-ticket-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id, action }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Ghost action failed')
+
+      if (data.draft) {
+        setReply(data.draft)
+      }
+
+      if (data.updatedStatus) {
+        setStatus(data.updatedStatus)
+        setTicket((prev) => ({ ...prev, status: data.updatedStatus }))
+      }
+
+      if (data.message) {
+        setGhostActionMessage(data.message)
+      }
+
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
+    } catch (err) {
+      console.error('Ghost action error:', err)
+      alert(err.message || 'Ghost action failed')
+    } finally {
+      setGhostActionLoading(false)
+      setLastGhostAction('')
+    }
+  }
 
   async function handleGenerateFollowUpDraft(draftType) {
     setFollowUpLoading(true)
@@ -407,7 +587,12 @@ export default function AdminTicketDetail() {
   if (loading) return <div className="admin-loading">Loading support request...</div>
   if (!ticket) return <div className="admin-loading">Support request not found</div>
 
-  const aiConfidence = typeof ticket.ai_confidence === 'number' ? `${Math.round(ticket.ai_confidence * 100)}%` : '—'
+  const aiConfidence =
+    typeof ticket.ai_confidence === 'number'
+      ? `${Math.round(ticket.ai_confidence * 100)}%`
+      : '—'
+  const ghostRisk = riskStyles[ghostContext?.risk_level] || riskStyles.medium
+  const ghostScope = scopeStyles[ghostContext?.scope_call] || scopeStyles.watch_scope
 
   return (
     <div>
@@ -431,7 +616,9 @@ export default function AdminTicketDetail() {
                 >
                   {toLabel(status, STATUS_LABELS)}
                 </span>
-                <span className="admin-table-muted">{ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}</span>
+                <span className="admin-table-muted">
+                  {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                </span>
                 <span className="admin-table-muted">·</span>
                 <span className="admin-table-muted">{ticket.organization?.name || 'Unknown organization'}</span>
                 <span className="admin-table-muted">·</span>
@@ -455,8 +642,22 @@ export default function AdminTicketDetail() {
                 {triageLoading ? 'Running AI Triage...' : 'Run AI Triage'}
               </button>
 
-              <button onClick={handleGhostAdmin} disabled={ghostLoading} className="admin-btn-small" style={{ padding: '10px 18px' }}>
+              <button
+                onClick={handleGhostAdmin}
+                disabled={ghostLoading}
+                className="admin-btn-small"
+                style={{ padding: '10px 18px' }}
+              >
                 {ghostLoading ? 'Preparing...' : 'Ghost Admin + Coach'}
+              </button>
+
+              <button
+                onClick={loadGhostContext}
+                disabled={ghostContextLoading}
+                className="admin-btn-small"
+                style={{ padding: '10px 18px' }}
+              >
+                {ghostContextLoading ? 'Refreshing...' : 'Refresh Ghost Context'}
               </button>
 
               <button onClick={handleAutoResolve} disabled={autoResolveLoading} className="admin-btn-success">
@@ -471,10 +672,346 @@ export default function AdminTicketDetail() {
                 {kbDraftLoading ? 'Drafting KB/SOP...' : 'Generate KB/SOP Draft'}
               </button>
 
-              {status !== 'resolved' && status !== 'closed' && (
-                <button type="button" className="admin-btn-small" onClick={() => handleStatusChange('resolved')} disabled={updating}>
-                  Resolve Request
+              <button
+                onClick={handleResolveAndGenerateDraft}
+                disabled={resolveAndDraftLoading}
+                className="admin-btn-small"
+              >
+                {resolveAndDraftLoading ? 'Resolving + Drafting...' : 'Resolve + Generate Draft'}
+              </button>
+
+              <button
+                onClick={handlePublishKBDraft}
+                disabled={publishLoading || !kbDraftRecord}
+                className="admin-btn-small"
+              >
+                {publishLoading ? 'Publishing...' : publishedArticle ? 'Update Published Article' : 'Publish to Knowledge Base'}
+              </button>
+
+              {publishedArticle && (
+                <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                  Open Published Article
+                </a>
+              )}
+            </div>
+
+            <div
+              style={{
+                marginBottom: 16,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: '#f8fafc',
+                border: '1px solid #e7edf4',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Ghost Action Automation</h3>
+                <span className="admin-table-muted">One-click operator moves</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('waiting_on_client_followup')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'waiting_on_client_followup'
+                    ? 'Preparing...'
+                    : 'Mark Waiting + Draft Follow-Up'}
                 </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('request_access_details')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'request_access_details'
+                    ? 'Preparing...'
+                    : 'Request Access / Missing Details'}
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('resolve_and_publish')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'resolve_and_publish'
+                    ? 'Resolving...'
+                    : 'Resolve + Publish Knowledge'}
+                </button>
+              </div>
+
+              {ghostActionMessage && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: '#ecfdf3',
+                    border: '1px solid #b7ebcc',
+                    color: '#067647',
+                    fontSize: '0.86rem',
+                  }}
+                >
+                  {ghostActionMessage}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                marginBottom: 16,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: '#f8fafc',
+                border: '1px solid #e7edf4',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Ghost Admin Context</h3>
+                <span className="admin-table-muted">Operator view</span>
+              </div>
+
+              {ghostContextLoading ? (
+                <div className="admin-table-muted">Building Ghost context...</div>
+              ) : ghostContext ? (
+                <div style={{ display: 'grid', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 12 }}>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                        Current picture
+                      </div>
+                      <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                        {ghostContext.summary}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: ghostRisk.bg,
+                        border: `1px solid ${ghostRisk.border}`,
+                        color: ghostRisk.text,
+                      }}
+                    >
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
+                        Risk level
+                      </div>
+                      <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                        {toLabel(ghostContext.risk_level)}
+                      </div>
+                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6 }}>
+                        {ghostContext.operator_warning}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                        Most likely blocker
+                      </div>
+                      <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                        {ghostContext.likely_blocker}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                        Best next action
+                      </div>
+                      <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                        {ghostContext.recommended_next_action}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                        Client reply guidance
+                      </div>
+                      <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                        {ghostContext.client_reply_guidance}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: ghostScope.bg,
+                        border: `1px solid ${ghostScope.bg}`,
+                        color: ghostScope.text,
+                      }}
+                    >
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
+                        Scope call
+                      </div>
+                      <div style={{ fontWeight: 700, marginBottom: 6 }}>{ghostScope.label}</div>
+                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6 }}>{ghostContext.scope_reason}</div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: 10,
+                      background: '#fcfcfd',
+                      border: '1px solid #eceef2',
+                    }}
+                  >
+                    <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                      Lifecycle signal
+                    </div>
+                    <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                      <strong style={{ color: '#111827' }}>What matters:</strong> {ghostContext.lifecycle_signal}
+                    </div>
+                    <div className="admin-table-muted" style={{ lineHeight: 1.7, marginTop: 4 }}>
+                      <strong style={{ color: '#111827' }}>Lifecycle next step:</strong> {ghostContext.lifecycle_next_step}
+                    </div>
+
+                    {ghostContext.linked_assessment && (
+                      <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <span className="ticket-platform">Assessment: {ghostContext.linked_assessment.status}</span>
+                        <span className="ticket-platform">Urgency: {ghostContext.linked_assessment.urgency}</span>
+                        <span className="ticket-platform">Team size: {ghostContext.linked_assessment.team_size_range}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 8 }}>
+                        Similar past issues
+                      </div>
+
+                      {ghostContext.similar_tickets?.length > 0 ? (
+                        <div style={{ display: 'grid', gap: 8 }}>
+                          {ghostContext.similar_tickets.map((item) => (
+                            <div key={item.id} style={{ paddingBottom: 8, borderBottom: '1px solid #f0ede8' }}>
+                              <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#111827' }}>
+                                {item.ticket_number ? `TDP-${item.ticket_number}` : item.id.slice(0, 8)} — {item.title}
+                              </div>
+                              <div className="admin-table-muted" style={{ fontSize: '0.82rem', lineHeight: 1.6 }}>
+                                {item.summary || 'No summary available'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="admin-table-muted">No strong similar-ticket signals found yet.</div>
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: 'white',
+                        border: '1px solid #e7edf4',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 8 }}>
+                        Knowledge signal
+                      </div>
+
+                      {publishedArticle ? (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          This ticket already has a published knowledge article.
+                          <br />
+                          <a href={`/admin/kb/published/${publishedArticle.id}`}>Open published article</a>
+                        </div>
+                      ) : kbDraftRecord ? (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          A structured KB/SOP draft exists in the drafts table for this ticket.
+                          <br />
+                          Draft title: {kbDraftRecord.title}
+                        </div>
+                      ) : ghostContext.kb_signal?.has_kb_draft ? (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          A legacy KB/SOP note exists on this ticket, but no structured draft record has been detected yet.
+                        </div>
+                      ) : (
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          No KB/SOP draft exists for this ticket yet.
+                          {['resolved', 'closed'].includes(status)
+                            ? ' This ticket is eligible for draft generation.'
+                            : ' Generate one after the request is resolved if it is reusable.'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {ghostContext.published_knowledge?.length > 0 && (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: '#f8fbff',
+                        border: '1px solid #dbeafe',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 8 }}>
+                        Published knowledge candidates
+                      </div>
+
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {ghostContext.published_knowledge.map((item) => (
+                          <div key={item.id}>
+                            <a href={`/admin/kb/published/${item.id}`} className="admin-table-title">
+                              {item.title}
+                            </a>
+                            <div className="admin-table-muted" style={{ lineHeight: 1.6 }}>
+                              {item.summary || 'No summary available'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="admin-table-muted">Ghost context is not available yet.</div>
               )}
             </div>
 
@@ -570,8 +1107,10 @@ export default function AdminTicketDetail() {
             {kbDraft && (
               <div className="admin-card" style={{ marginBottom: 16, border: '1px solid #d6e9ff', background: '#f7fbff' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: '1rem' }}>KB/SOP Draft (MVP)</h3>
-                  <span className="admin-table-muted">Saved as internal note</span>
+                  <h3 style={{ margin: 0, fontSize: '1rem' }}>KB/SOP Draft</h3>
+                  <span className="admin-table-muted">
+                    {kbDraftRecord ? 'Saved to kb_sop_drafts' : 'Saved as internal note'}
+                  </span>
                 </div>
 
                 <div style={{ display: 'grid', gap: 8, fontSize: '0.86rem' }}>
@@ -583,9 +1122,21 @@ export default function AdminTicketDetail() {
                   <div><strong>Reusable fix guidance:</strong> {kbDraft.reusable_fix_guidance || '—'}</div>
                   <div><strong>Future prevention note:</strong> {kbDraft.future_prevention_note || '—'}</div>
                 </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  {kbDraftRecord && (
+                    <a href={`/admin/kb/${kbDraftRecord.id}`} className="admin-btn-small">
+                      Open Draft
+                    </a>
+                  )}
+                  {publishedArticle && (
+                    <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                      Open Published Article
+                    </a>
+                  )}
+                </div>
               </div>
             )}
-
 
             <div className="dashboard-section-header" style={{ marginBottom: 10 }}>
               <h2>Client conversation</h2>
@@ -600,7 +1151,11 @@ export default function AdminTicketDetail() {
                     <div className="admin-message-header">
                       <span className="admin-message-sender">
                         {msg.sender?.full_name ||
-                          (msg.sender_type === 'ai' ? 'AutoResolve AI' : msg.sender_type === 'system' ? 'System' : 'Unknown')}
+                          (msg.sender_type === 'ai'
+                            ? 'AutoResolve AI'
+                            : msg.sender_type === 'system'
+                            ? 'System'
+                            : 'Unknown')}
                       </span>
                       <span className={`admin-message-badge ${msg.sender_type}`}>{msg.sender_type}</span>
                       {msg.ai_generated && <span className="admin-message-badge ai">AI Generated</span>}
@@ -619,7 +1174,7 @@ export default function AdminTicketDetail() {
                   <textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
-                    placeholder="Send a clear update to the client. Tip: use follow-up drafts or Ghost Admin + Coach."
+                    placeholder="Send a clear update to the client. Tip: use Ghost actions, follow-up drafts, or Ghost Admin + Coach."
                     rows={4}
                     className="admin-reply-input"
                   />
@@ -758,6 +1313,39 @@ export default function AdminTicketDetail() {
           </div>
 
           <div className="admin-card" style={{ marginTop: 16 }}>
+            <h4 className="admin-card-section-title">Knowledge workflow</h4>
+
+            <div className="admin-detail-row">
+              <span className="admin-detail-label">Structured draft</span>
+              <span className="admin-detail-value">{kbDraftRecord ? 'Yes' : 'No'}</span>
+            </div>
+
+            <div className="admin-detail-row">
+              <span className="admin-detail-label">Published article</span>
+              <span className="admin-detail-value">{publishedArticle ? 'Yes' : 'No'}</span>
+            </div>
+
+            {kbDraftRecord && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <a href={`/admin/kb/${kbDraftRecord.id}`} className="admin-btn-small">
+                  Open Draft
+                </a>
+                <button type="button" className="admin-btn-small" onClick={handlePublishKBDraft} disabled={publishLoading}>
+                  {publishLoading ? 'Publishing...' : publishedArticle ? 'Update Article' : 'Publish Draft'}
+                </button>
+              </div>
+            )}
+
+            {publishedArticle && (
+              <div style={{ marginTop: 8 }}>
+                <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
+                  Open Article
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-card" style={{ marginTop: 16 }}>
             <h4 className="admin-card-section-title">Ticket details</h4>
 
             <div className="admin-detail-row">
@@ -774,17 +1362,19 @@ export default function AdminTicketDetail() {
               <span className="admin-detail-label">Created by</span>
               <span className="admin-detail-value">{ticket.creator?.full_name || 'Unknown'}</span>
             </div>
+          </div>
+
+          <div className="admin-card" style={{ marginTop: 16 }}>
+            <h4 className="admin-card-section-title">AI triage details</h4>
 
             <div className="admin-detail-row">
               <span className="admin-detail-label">Email</span>
               <span className="admin-detail-value">{ticket.creator?.email || '—'}</span>
             </div>
-
             <div className="admin-detail-row">
               <span className="admin-detail-label">Opened</span>
               <span className="admin-detail-value">{formatTime(ticket.created_at)}</span>
             </div>
-
             <div className="admin-detail-row">
               <span className="admin-detail-label">Last updated</span>
               <span className="admin-detail-value">{formatTime(ticket.updated_at || ticket.created_at)}</span>

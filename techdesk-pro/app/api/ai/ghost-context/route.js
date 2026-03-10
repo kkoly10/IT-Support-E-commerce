@@ -1,4 +1,4 @@
-import { getTicketCoachSuggestion } from '../../../../lib/ghost/core'
+import { getGhostTicketContext } from '../../../../lib/ghost/core'
 
 export async function POST(request) {
   try {
@@ -8,17 +8,16 @@ export async function POST(request) {
       return Response.json({ error: 'Missing ticketId' }, { status: 400 })
     }
 
-    const result = await getTicketCoachSuggestion(ticketId)
+    const context = await getGhostTicketContext(ticketId)
 
     return Response.json({
       success: true,
-      suggested_reply: result.suggested_reply,
-      coach: result.coach,
+      context,
     })
   } catch (err) {
-    console.error('Suggest reply error:', err)
+    console.error('Ghost context error:', err)
     return Response.json(
-      { error: err.message || 'Failed to suggest reply' },
+      { error: err.message || 'Failed to build Ghost context' },
       { status: 500 }
     )
   }

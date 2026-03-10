@@ -1,11 +1,3 @@
-export const STATUS_OPTIONS = [
-  'open',
-  'in_progress',
-  'waiting_on_client',
-  'resolved',
-  'closed',
-]
-
 export const STATUS_LABELS = {
   open: 'Open',
   in_progress: 'In Progress',
@@ -47,10 +39,12 @@ export const CATEGORY_LABELS = {
   billing_scope: 'Billing & Scope',
   device_guidance: 'Device Guidance',
   other: 'Other',
-  // legacy/AI values: keep readable labels for old data without using them for writes
+
+  // legacy / AI-only display values
   security_review: 'Security Review',
   project_scoped: 'Project Scoped Work',
   unknown: 'Needs Review',
+  it_support: 'General Helpdesk',
 }
 
 export const PRIORITY_COLORS = {
@@ -65,10 +59,10 @@ export const normalizeRequestCategory = (category) => {
   if (REQUEST_CATEGORY_OPTIONS.includes(category)) return category
 
   const aliasMap = {
+    it_support: 'helpdesk',
     security_review: 'other',
     project_scoped: 'other',
     unknown: 'other',
-    it_support: 'helpdesk',
   }
 
   return aliasMap[category] || 'other'

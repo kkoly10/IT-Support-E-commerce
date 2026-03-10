@@ -1,8 +1,6 @@
-// File: app/admin/clients/page.js (replace existing)
-
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -30,12 +28,32 @@ const SERVICE_LABELS = {
   it: 'IT Support',
 }
 
+const READINESS_STYLES = {
+  not_ready: { bg: '#fef3f2', color: '#b42318', label: 'Not Ready' },
+  needs_work: { bg: '#fffaeb', color: '#b54708', label: 'Needs Work' },
+  almost_ready: { bg: '#eef4ff', color: '#1d4ed8', label: 'Almost Ready' },
+  ready: { bg: '#ecfdf3', color: '#067647', label: 'Ready' },
+}
+
+function buildLifecycleHints(org) {
+  const hints = []
+
+  if (org.needs_human_review) hints.push('Needs human review')
+  if (org.client_status === 'onboarding' && org.agreement_status !== 'signed') hints.push('Agreement not signed')
+  if (org.client_status === 'onboarding' && org.payment_status !== 'active') hints.push('Payment not active')
+  if (org.client_status === 'onboarding' && !['completed', 'complete'].includes(org.onboarding_status || '')) hints.push('Onboarding incomplete')
+
+  return hints
+}
+
 export default function AdminClients() {
   const [orgs, setOrgs] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingOrg, setEditingOrg] = useState(null)
   const [saving, setSaving] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all')
+  const [reviewByOrgId, setReviewByOrgId] = useState({})
+  const [reviewLoadingByOrgId, setReviewLoadingByOrgId] = useState({})
 
   useEffect(() => {
     loadOrgs()
@@ -76,13 +94,33 @@ export default function AdminClients() {
     }
   }
 
+  async function runGhostLifecycleReview(orgId) {
+    setReviewLoadingByOrgId((prev) => ({ ...prev, [orgId]: true }))
+    try {
+      const response = await fetch('/api/ai/ghost-onboarding-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: orgId }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Ghost lifecycle review failed')
+
+      setReviewByOrgId((prev) => ({ ...prev, [orgId]: data.review }))
+    } catch (err) {
+      console.error('Ghost lifecycle review error:', err)
+      alert(err.message || 'Failed to run Ghost lifecycle review')
+    } finally {
+      setReviewLoadingByOrgId((prev) => ({ ...prev, [orgId]: false }))
+    }
+  }
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
     })
   }
 
-  // Stats
   const totalOrgs = orgs.length
   const activeCount = orgs.filter(o => o.client_status === 'active').length
   const leadCount = orgs.filter(o => o.client_status === 'lead').length
@@ -98,7 +136,6 @@ export default function AdminClients() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Active', val: activeCount, color: '#27ae60' },
@@ -114,7 +151,6 @@ export default function AdminClients() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="admin-filters">
         <select
           value={statusFilter}
@@ -130,7 +166,6 @@ export default function AdminClients() {
         </select>
       </div>
 
-      {/* Client list */}
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
           <div className="admin-loading" style={{ padding: 40 }}>Loading clients...</div>
@@ -141,75 +176,147 @@ export default function AdminClients() {
             {orgs.map((org, i) => {
               const isEditing = editingOrg === org.id
               const memberCount = org.profiles?.length || 0
+              const review = reviewByOrgId[org.id]
+              const readiness = READINESS_STYLES[review?.readiness_label] || READINESS_STYLES.needs_work
+              const lifecycleHints = buildLifecycleHints(org)
 
               return (
-                <div key={org.id} style={{
-                  padding: '16px 20px',
-                  borderBottom: i < orgs.length - 1 ? '1px solid #f0ede8' : 'none',
-                  background: org.needs_human_review ? '#fffdf5' : 'transparent',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-                    {/* Left: Org info */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <div className="admin-client-avatar" style={{ width: 32, height: 32, fontSize: '0.8rem' }}>
-                          {org.name?.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="admin-client-name" style={{ fontSize: '0.95rem' }}>{org.name}</div>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>
-                            {memberCount} member{memberCount !== 1 ? 's' : ''} · Since {formatDate(org.created_at)}
+                <Fragment key={org.id}>
+                  <div style={{
+                    padding: '16px 20px',
+                    borderBottom: i < orgs.length - 1 ? '1px solid #f0ede8' : 'none',
+                    background: org.needs_human_review ? '#fffdf5' : 'transparent',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <div className="admin-client-avatar" style={{ width: 32, height: 32, fontSize: '0.8rem' }}>
+                            {org.name?.charAt(0)}
                           </div>
+                          <div>
+                            <div className="admin-client-name" style={{ fontSize: '0.95rem' }}>{org.name}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)' }}>
+                              {memberCount} member{memberCount !== 1 ? 's' : ''} · Since {formatDate(org.created_at)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                          <span className="admin-status-badge" style={{
+                            background: (STATUS_COLORS[org.client_status] || '#8a8a8a') + '18',
+                            color: STATUS_COLORS[org.client_status] || '#8a8a8a',
+                          }}>
+                            {STATUS_LABELS[org.client_status] || org.client_status}
+                          </span>
+                          <span className="admin-status-badge" style={{ background: '#0D7C6618', color: '#0D7C66' }}>
+                            {org.plan || 'starter'}
+                          </span>
+                          {(org.service_types || []).map((st) => (
+                            <span key={st} className="admin-status-badge" style={{ background: '#f0f2f5', color: '#4a4a4a' }}>
+                              {SERVICE_LABELS[st] || st}
+                            </span>
+                          ))}
+                          {org.needs_human_review && (
+                            <span className="admin-status-badge" style={{ background: '#e74c3c18', color: '#e74c3c' }}>
+                              ⚠️ Needs Review
+                            </span>
+                          )}
+                          {lifecycleHints.map((hint) => (
+                            <span key={hint} className="admin-status-badge" style={{ background: '#fffaeb', color: '#b54708' }}>
+                              {hint}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      {/* Tags row */}
-                      <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                        <span className="admin-status-badge" style={{
-                          background: (STATUS_COLORS[org.client_status] || '#8a8a8a') + '18',
-                          color: STATUS_COLORS[org.client_status] || '#8a8a8a',
-                        }}>
-                          {STATUS_LABELS[org.client_status] || org.client_status}
-                        </span>
-                        <span className="admin-status-badge" style={{ background: '#0D7C6618', color: '#0D7C66' }}>
-                          {org.plan || 'starter'}
-                        </span>
-                        {(org.service_types || []).map((st) => (
-                          <span key={st} className="admin-status-badge" style={{ background: '#f0f2f5', color: '#4a4a4a' }}>
-                            {SERVICE_LABELS[st] || st}
-                          </span>
-                        ))}
-                        {org.needs_human_review && (
-                          <span className="admin-status-badge" style={{ background: '#e74c3c18', color: '#e74c3c' }}>
-                            ⚠️ Needs Review
-                          </span>
-                        )}
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => runGhostLifecycleReview(org.id)}
+                          className="admin-btn-small"
+                          disabled={reviewLoadingByOrgId[org.id]}
+                        >
+                          {reviewLoadingByOrgId[org.id] ? 'Reviewing...' : review ? 'Refresh Ghost Review' : 'Ghost Review'}
+                        </button>
+
+                        <button
+                          onClick={() => setEditingOrg(isEditing ? null : org.id)}
+                          style={{
+                            padding: '6px 14px', borderRadius: 6,
+                            border: '1px solid var(--border)', background: 'white',
+                            fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                            fontFamily: 'Outfit, sans-serif',
+                          }}
+                        >
+                          {isEditing ? 'Cancel' : 'Edit'}
+                        </button>
                       </div>
                     </div>
 
-                    {/* Right: Actions */}
-                    <button
-                      onClick={() => setEditingOrg(isEditing ? null : org.id)}
-                      style={{
-                        padding: '6px 14px', borderRadius: 6,
-                        border: '1px solid var(--border)', background: 'white',
-                        fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-                        fontFamily: 'Outfit, sans-serif',
-                      }}
-                    >
-                      {isEditing ? 'Cancel' : 'Edit'}
-                    </button>
+                    {isEditing && (
+                      <EditPanel
+                        org={org}
+                        saving={saving}
+                        onSave={(updates) => handleSave(org.id, updates)}
+                      />
+                    )}
                   </div>
 
-                  {/* Edit panel */}
-                  {isEditing && (
-                    <EditPanel
-                      org={org}
-                      saving={saving}
-                      onSave={(updates) => handleSave(org.id, updates)}
-                    />
+                  {review && (
+                    <div style={{
+                      padding: '16px 20px',
+                      borderBottom: i < orgs.length - 1 ? '1px solid #f0ede8' : 'none',
+                      background: '#fafaf8',
+                    }}>
+                      <div style={{ display: 'grid', gap: 12 }}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <span className="admin-status-badge" style={{ background: readiness.bg, color: readiness.color }}>
+                            {readiness.label}
+                          </span>
+                          <span className="admin-status-badge" style={{ background: '#eef4ff', color: '#1d4ed8' }}>
+                            Suggested client status: {review.recommended_client_status}
+                          </span>
+                          <span className="admin-status-badge" style={{ background: '#e8f5f0', color: '#0D7C66' }}>
+                            Suggested onboarding: {review.recommended_onboarding_status}
+                          </span>
+                        </div>
+
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          <strong style={{ color: '#111827' }}>Ghost summary:</strong> {review.lifecycle_summary}
+                        </div>
+
+                        <div className="admin-table-muted" style={{ lineHeight: 1.7 }}>
+                          <strong style={{ color: '#111827' }}>Recommended next action:</strong> {review.recommended_next_action}
+                        </div>
+
+                        {Array.isArray(review.blockers) && review.blockers.length > 0 && (
+                          <div>
+                            <div className="admin-card-section-title" style={{ marginBottom: 8 }}>Blockers</div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {review.blockers.map((blocker) => (
+                                <span key={blocker} className="admin-status-badge" style={{ background: '#fef3f2', color: '#b42318' }}>
+                                  {blocker}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: 8,
+                            border: '1px solid #f8d4d4',
+                            background: '#fff5f5',
+                            color: '#b42318',
+                            fontSize: '0.86rem',
+                          }}
+                        >
+                          <strong>Operator warning:</strong> {review.operator_warning}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </div>
+                </Fragment>
               )
             })}
           </div>
@@ -288,7 +395,7 @@ function EditPanel({ org, saving, onSave }) {
           <label style={labelStyle}>Primary Service</label>
           <select value={primaryService} onChange={e => setPrimaryService(e.target.value)} style={selectStyle}>
             <option value="it">IT Support</option>
-                      </select>
+          </select>
         </div>
 
         <div style={fieldStyle}>

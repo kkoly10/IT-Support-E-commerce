@@ -148,6 +148,16 @@ export default function SignupPage() {
       return
     }
 
+    if (assessmentId) {
+      await fetch('/api/assessment/link-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, organizationId: org.id }),
+      }).catch((err) => {
+        console.error('Failed to link assessment to organization:', err)
+      })
+    }
+
     setSuccess(true)
     setLoading(false)
 

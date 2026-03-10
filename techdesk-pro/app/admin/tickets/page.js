@@ -3,12 +3,49 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { CATEGORY_LABELS as SUPPORT_CATEGORY_LABELS, STATUS_COLORS, STATUS_LABELS as SUPPORT_STATUS_LABELS, toLabel } from '../../../lib/support-ui'
+import {
+  CATEGORY_LABELS as SUPPORT_CATEGORY_LABELS,
+  STATUS_COLORS,
+  STATUS_LABELS as SUPPORT_STATUS_LABELS,
+  toLabel,
+} from '../../../lib/support-ui'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
+
+const STATUS_LABELS = {
+  open: 'Open',
+  in_progress: 'In Progress',
+  waiting_on_client: 'Waiting on Client',
+  resolved: 'Resolved',
+  closed: 'Closed',
+}
+
+const CATEGORY_LABELS = {
+  helpdesk: 'General Helpdesk',
+  accounts_access: 'Accounts & Access',
+  email_collaboration: 'Email & Collaboration',
+  microsoft_365: 'Microsoft 365',
+  google_workspace: 'Google Workspace',
+  saas_admin: 'SaaS Admin',
+  device_guidance: 'Device Guidance',
+  security_review: 'Security Review',
+  project_scoped: 'Project Scoped',
+  portal_account: 'Portal Account',
+  billing_scope: 'Billing & Scope',
+  unknown: 'Needs Review',
+  other: 'Other',
+}
+
+const statusColor = {
+  open: '#e74c3c',
+  in_progress: '#f39c12',
+  waiting_on_client: '#9b59b6',
+  resolved: '#27ae60',
+  closed: '#95a5a6',
+}
 
 const priorityLabel = {
   low: '🟢',
@@ -17,13 +54,23 @@ const priorityLabel = {
   urgent: '🔴',
 }
 
+const humanize = (value, labels) => {
+  if (!value) return '—'
+  if (labels?.[value]) return labels[value]
+  return value.replace(/_/g, ' ')
+}
+
 function AdminTicketsContent() {
   const searchParams = useSearchParams()
+
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [batchLoading, setBatchLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all')
   const [priorityFilter, setPriorityFilter] = useState(searchParams.get('priority') || 'all')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [batchMessage, setBatchMessage] = useState('')
 
   useEffect(() => {
     loadTickets()
@@ -60,10 +107,40 @@ function AdminTicketsContent() {
       if (error) throw error
 
       setTickets(data || [])
+      setSelectedIds([])
     } catch (err) {
       console.error('Error loading tickets:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function runBatchAction(action) {
+    if (selectedIds.length === 0) return
+
+    setBatchLoading(true)
+    setBatchMessage('')
+
+    try {
+      const response = await fetch('/api/ai/ghost-batch-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          ticketIds: selectedIds,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Batch action failed')
+
+      setBatchMessage(data.message || 'Batch action completed.')
+      await loadTickets()
+    } catch (err) {
+      console.error('Batch action error:', err)
+      alert(err.message || 'Batch action failed')
+    } finally {
+      setBatchLoading(false)
     }
   }
 
@@ -76,12 +153,31 @@ function AdminTicketsContent() {
         ticket.title?.toLowerCase().includes(q) ||
         ticket.organization?.name?.toLowerCase().includes(q) ||
         (ticket.ai_category || '').toLowerCase().includes(q) ||
-        toLabel(ticket.ai_category, SUPPORT_CATEGORY_LABELS).toLowerCase().includes(q) ||
-        toLabel(ticket.category, SUPPORT_CATEGORY_LABELS).toLowerCase().includes(q) ||
+        humanize(ticket.ai_category, CATEGORY_LABELS).toLowerCase().includes(q) ||
+        humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q) ||
         `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q)
       )
     })
   }, [tickets, search])
+
+  const allVisibleSelected =
+    filtered.length > 0 && filtered.every((ticket) => selectedIds.includes(ticket.id))
+
+  const toggleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !filtered.some((ticket) => ticket.id === id)))
+      return
+    }
+
+    const visibleIds = filtered.map((ticket) => ticket.id)
+    setSelectedIds((prev) => [...new Set([...prev, ...visibleIds])])
+  }
+
+  const toggleTicket = (ticketId) => {
+    setSelectedIds((prev) =>
+      prev.includes(ticketId) ? prev.filter((id) => id !== ticketId) : [...prev, ticketId]
+    )
+  }
 
   const timeAgo = (date) => {
     const mins = Math.floor((Date.now() - new Date(date)) / 60000)
@@ -97,14 +193,16 @@ function AdminTicketsContent() {
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">Support Requests</h1>
-          <p className="admin-page-desc">{filtered.length} request{filtered.length !== 1 ? 's' : ''}</p>
+          <p className="admin-page-desc">
+            {filtered.length} request{filtered.length !== 1 ? 's' : ''} · {selectedIds.length} selected
+          </p>
         </div>
       </div>
 
       <div className="admin-filters">
         <input
           type="text"
-          placeholder="Search by support request, client, category, or AI triage..."
+          placeholder="Search by ticket, client, category, or AI triage..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="admin-search-input"
@@ -136,6 +234,57 @@ function AdminTicketsContent() {
         </select>
       </div>
 
+      <div className="admin-card" style={{ marginBottom: 20 }}>
+        <div className="admin-card-header">
+          <h3>Batch Queue Actions</h3>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('mark_waiting_on_client')}
+          >
+            {batchLoading ? 'Working...' : 'Mark Waiting on Client'}
+          </button>
+
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('mark_resolved')}
+          >
+            {batchLoading ? 'Working...' : 'Mark Resolved'}
+          </button>
+
+          <button
+            type="button"
+            className="admin-btn-small"
+            disabled={batchLoading || selectedIds.length === 0}
+            onClick={() => runBatchAction('publish_existing_kb')}
+          >
+            {batchLoading ? 'Publishing...' : 'Publish Existing KB Drafts'}
+          </button>
+        </div>
+
+        {batchMessage && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: '#ecfdf3',
+              border: '1px solid #b7ebcc',
+              color: '#067647',
+              fontSize: '0.86rem',
+            }}
+          >
+            {batchMessage}
+          </div>
+        )}
+      </div>
+
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
           <div className="admin-loading" style={{ padding: 40 }}>
@@ -150,6 +299,13 @@ function AdminTicketsContent() {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: 40 }}>
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                    />
+                  </th>
                   <th>Request</th>
                   <th>Client</th>
                   <th>Category</th>
@@ -163,25 +319,47 @@ function AdminTicketsContent() {
 
               <tbody>
                 {filtered.map((ticket) => (
-                  <tr
-                    key={ticket.id}
-                    onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>
+                  <tr key={ticket.id}>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(ticket.id)}
+                        onChange={() => toggleTicket(ticket.id)}
+                      />
+                    </td>
+
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="admin-table-title">
                         {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                       </div>
                       <div className="admin-table-sub">{ticket.title}</div>
                     </td>
 
-                    <td className="admin-table-muted">{ticket.organization?.name || '—'}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {ticket.organization?.name || '—'}
+                    </td>
 
-                    <td className="admin-table-muted">{toLabel(ticket.category, SUPPORT_CATEGORY_LABELS)}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {humanize(ticket.category, CATEGORY_LABELS)}
+                    </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="admin-table-title" style={{ fontSize: '0.82rem' }}>
-                        {ticket.ai_category ? toLabel(ticket.ai_category, SUPPORT_CATEGORY_LABELS) : 'Not triaged'}
+                        {ticket.ai_category ? humanize(ticket.ai_category, CATEGORY_LABELS) : 'Not triaged'}
                       </div>
 
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
@@ -211,27 +389,45 @@ function AdminTicketsContent() {
                       </div>
                     </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <span className="admin-table-sm">
-                        {priorityLabel[ticket.priority] || ''} {toLabel(ticket.priority)}
+                        {priorityLabel[ticket.priority] || ''} {humanize(ticket.priority)}
                       </span>
                     </td>
 
-                    <td>
+                    <td
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <span
                         className="admin-status-badge"
                         style={{
-                          background: `${STATUS_COLORS[ticket.status] || '#8a8a8a'}18`,
-                          color: STATUS_COLORS[ticket.status] || '#8a8a8a',
+                          background: `${statusColor[ticket.status] || '#8a8a8a'}18`,
+                          color: statusColor[ticket.status] || '#8a8a8a',
                         }}
                       >
-                        {toLabel(ticket.status, SUPPORT_STATUS_LABELS)}
+                        {humanize(ticket.status, STATUS_LABELS)}
                       </span>
                     </td>
 
-                    <td className="admin-table-muted">{ticket.assigned_agent?.full_name || 'Unassigned'}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {ticket.assigned_agent?.full_name || 'Unassigned'}
+                    </td>
 
-                    <td className="admin-table-muted">{timeAgo(ticket.created_at)}</td>
+                    <td
+                      className="admin-table-muted"
+                      onClick={() => (window.location.href = `/admin/tickets/${ticket.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {timeAgo(ticket.created_at)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

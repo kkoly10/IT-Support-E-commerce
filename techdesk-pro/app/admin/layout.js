@@ -12,9 +12,10 @@ const supabase = createBrowserClient(
 
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
+  { label: 'Ghost Operations', href: '/admin/ghost', icon: '👻' },
   { label: 'Support Requests', href: '/admin/tickets', icon: '🎫' },
-  { label: 'Free Assessments', href: '/admin/assessments', icon: '📝' },
-  { label: 'KB/SOP Drafts', href: '/admin/kb-drafts', icon: '📚' },
+  { label: 'Knowledge Drafts', href: '/admin/kb', icon: '📚' },
+  { label: 'Assessments', href: '/admin/assessments', icon: '📝' },
   { label: 'Sentinel AI', href: '/admin/sentinel', icon: '🛡️' },
   { label: 'Documents', href: '/admin/document', icon: '📄' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
@@ -74,7 +75,7 @@ export default function AdminLayout({ children }) {
           <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
             <div className="admin-logo-mark"><BrandMark stroke="#ffffff" /></div>
             <div>
-              <div className="admin-logo-text">Kocre IT Services</div>
+              <div className="admin-logo-text">TechDesk Pro</div>
               <div className="admin-logo-sub">Support Console</div>
             </div>
           </a>

@@ -6,7 +6,31 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-const normalizeAiCategory = (value) => normalizeRequestCategory(value) || 'other'
+const VALID_AI_CATEGORIES = [
+  'helpdesk',
+  'accounts_access',
+  'email_collaboration',
+  'microsoft_365',
+  'google_workspace',
+  'saas_admin',
+  'portal_account',
+  'billing_scope',
+  'device_guidance',
+  'other',
+]
+
+const normalizeAiCategory = (value) => {
+  if (!value) return 'other'
+  if (VALID_AI_CATEGORIES.includes(value)) return value
+
+  const aliasMap = {
+    security_review: 'other',
+    project_scoped: 'other',
+    unknown: 'other',
+  }
+
+  return aliasMap[value] || 'other'
+}
 
 export async function POST(request) {
   try {

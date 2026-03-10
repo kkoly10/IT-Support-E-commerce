@@ -248,7 +248,7 @@ export default function DashboardPage() {
           <h2>What happens next</h2>
         </div>
         <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-          <p>Thanks for starting with Kocre IT Services. Your account is in lead intake while we prepare your support workspace.</p>
+          <p>Thanks for starting with TechDesk Pro. Your account is in lead intake while we prepare your support workspace.</p>
           <p style={{ marginTop: 10 }}>
             Next steps: finalize agreement, confirm billing setup, and complete onboarding details so your team can move to active remote IT support.
           </p>
