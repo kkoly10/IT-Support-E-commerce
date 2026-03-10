@@ -81,6 +81,9 @@ export default function AdminTicketDetail() {
   const [kbDraftLoading, setKbDraftLoading] = useState(false)
   const [publishLoading, setPublishLoading] = useState(false)
   const [resolveAndDraftLoading, setResolveAndDraftLoading] = useState(false)
+  const [ghostActionLoading, setGhostActionLoading] = useState(false)
+  const [lastGhostAction, setLastGhostAction] = useState('')
+  const [ghostActionMessage, setGhostActionMessage] = useState('')
   const [followUpLoading, setFollowUpLoading] = useState(false)
   const [lastFollowUpType, setLastFollowUpType] = useState('')
   const [suggestedFollowUpStatus, setSuggestedFollowUpStatus] = useState('')
@@ -336,6 +339,7 @@ export default function AdminTicketDetail() {
       setReply('')
       setShowCoach(false)
       setGhostData(null)
+      setGhostActionMessage('')
 
       if (status === 'open') {
         await handleStatusChange('in_progress', false)
@@ -507,6 +511,44 @@ export default function AdminTicketDetail() {
     }
   }
 
+  async function handleGhostAction(action) {
+    setGhostActionLoading(true)
+    setLastGhostAction(action)
+    setGhostActionMessage('')
+
+    try {
+      const response = await fetch('/api/ai/ghost-ticket-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id, action }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Ghost action failed')
+
+      if (data.draft) {
+        setReply(data.draft)
+      }
+
+      if (data.updatedStatus) {
+        setStatus(data.updatedStatus)
+        setTicket((prev) => ({ ...prev, status: data.updatedStatus }))
+      }
+
+      if (data.message) {
+        setGhostActionMessage(data.message)
+      }
+
+      await Promise.all([loadTicket(), loadMessages(), loadGhostContext(), loadKnowledgeState()])
+    } catch (err) {
+      console.error('Ghost action error:', err)
+      alert(err.message || 'Ghost action failed')
+    } finally {
+      setGhostActionLoading(false)
+      setLastGhostAction('')
+    }
+  }
+
   async function handleGenerateFollowUpDraft(draftType) {
     setFollowUpLoading(true)
     setLastFollowUpType(draftType)
@@ -650,6 +692,72 @@ export default function AdminTicketDetail() {
                 <a href={`/admin/kb/published/${publishedArticle.id}`} className="admin-btn-small">
                   Open Published Article
                 </a>
+              )}
+            </div>
+
+            <div
+              style={{
+                marginBottom: 16,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: '#f8fafc',
+                border: '1px solid #e7edf4',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Ghost Action Automation</h3>
+                <span className="admin-table-muted">One-click operator moves</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('waiting_on_client_followup')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'waiting_on_client_followup'
+                    ? 'Preparing...'
+                    : 'Mark Waiting + Draft Follow-Up'}
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('request_access_details')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'request_access_details'
+                    ? 'Preparing...'
+                    : 'Request Access / Missing Details'}
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-small"
+                  onClick={() => handleGhostAction('resolve_and_publish')}
+                  disabled={ghostActionLoading}
+                >
+                  {ghostActionLoading && lastGhostAction === 'resolve_and_publish'
+                    ? 'Resolving...'
+                    : 'Resolve + Publish Knowledge'}
+                </button>
+              </div>
+
+              {ghostActionMessage && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: '#ecfdf3',
+                    border: '1px solid #b7ebcc',
+                    color: '#067647',
+                    fontSize: '0.86rem',
+                  }}
+                >
+                  {ghostActionMessage}
+                </div>
               )}
             </div>
 
@@ -873,6 +981,34 @@ export default function AdminTicketDetail() {
                       )}
                     </div>
                   </div>
+
+                  {ghostContext.published_knowledge?.length > 0 && (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        background: '#f8fbff',
+                        border: '1px solid #dbeafe',
+                      }}
+                    >
+                      <div className="admin-table-title" style={{ fontSize: '0.82rem', marginBottom: 8 }}>
+                        Published knowledge candidates
+                      </div>
+
+                      <div style={{ display: 'grid', gap: 8 }}>
+                        {ghostContext.published_knowledge.map((item) => (
+                          <div key={item.id}>
+                            <a href={`/admin/kb/published/${item.id}`} className="admin-table-title">
+                              {item.title}
+                            </a>
+                            <div className="admin-table-muted" style={{ lineHeight: 1.6 }}>
+                              {item.summary || 'No summary available'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="admin-table-muted">Ghost context is not available yet.</div>
@@ -1038,7 +1174,7 @@ export default function AdminTicketDetail() {
                   <textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
-                    placeholder="Send a clear update to the client. Tip: use follow-up drafts or Ghost Admin + Coach."
+                    placeholder="Send a clear update to the client. Tip: use Ghost actions, follow-up drafts, or Ghost Admin + Coach."
                     rows={4}
                     className="admin-reply-input"
                   />
