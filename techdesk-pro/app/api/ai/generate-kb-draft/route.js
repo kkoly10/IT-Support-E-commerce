@@ -24,7 +24,10 @@ export async function POST(request) {
     }
 
     if (!['resolved', 'closed'].includes(ticket.status)) {
-      return Response.json({ error: 'KB/SOP drafts can only be generated from resolved or closed support requests' }, { status: 400 })
+      return Response.json(
+        { error: 'KB/SOP drafts can only be generated from resolved or closed support requests' },
+        { status: 400 }
+      )
     }
 
     const { data: messages } = await supabase
@@ -106,15 +109,74 @@ Generate the KB/SOP draft now.`,
 
     const draft = {
       title: parsed.title || `SOP: ${ticket.title}`,
-      short_summary: parsed.short_summary || ticket.ai_summary || 'Support request resolution summary.',
+      short_summary:
+        parsed.short_summary || ticket.ai_summary || 'Support request resolution summary.',
       problem: parsed.problem || ticket.description || ticket.title,
       likely_cause: parsed.likely_cause || 'Cause to be confirmed by support lead.',
       steps_taken: Array.isArray(parsed.steps_taken) ? parsed.steps_taken : [],
-      reusable_fix_guidance: parsed.reusable_fix_guidance || 'Document repeatable fix pattern and verify access prerequisites.',
-      future_prevention_note: parsed.future_prevention_note || 'Add onboarding checks and proactive monitoring where applicable.',
+      reusable_fix_guidance:
+        parsed.reusable_fix_guidance ||
+        'Document repeatable fix pattern and verify access prerequisites.',
+      future_prevention_note:
+        parsed.future_prevention_note ||
+        'Add onboarding checks and proactive monitoring where applicable.',
     }
 
-    const noteBody = `📚 KB/SOP Draft generated from resolved support request\n\nTitle: ${draft.title}\nSummary: ${draft.short_summary}\n\nKB/SOP Draft JSON:\n${JSON.stringify(draft, null, 2)}`
+    const { data: existingDraft } = await supabase
+      .from('kb_sop_drafts')
+      .select('id')
+      .eq('ticket_id', ticketId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let savedDraftId = null
+
+    if (existingDraft?.id) {
+      const { error: updateError } = await supabase
+        .from('kb_sop_drafts')
+        .update({
+          title: draft.title,
+          short_summary: draft.short_summary,
+          problem: draft.problem,
+          likely_cause: draft.likely_cause,
+          steps_taken: draft.steps_taken,
+          reusable_fix_guidance: draft.reusable_fix_guidance,
+          future_prevention_note: draft.future_prevention_note,
+          status: 'draft',
+        })
+        .eq('id', existingDraft.id)
+
+      if (updateError) throw updateError
+      savedDraftId = existingDraft.id
+    } else {
+      const { data: insertedDraft, error: insertError } = await supabase
+        .from('kb_sop_drafts')
+        .insert({
+          ticket_id: ticketId,
+          title: draft.title,
+          short_summary: draft.short_summary,
+          problem: draft.problem,
+          likely_cause: draft.likely_cause,
+          steps_taken: draft.steps_taken,
+          reusable_fix_guidance: draft.reusable_fix_guidance,
+          future_prevention_note: draft.future_prevention_note,
+          status: 'draft',
+        })
+        .select('id')
+        .single()
+
+      if (insertError) throw insertError
+      savedDraftId = insertedDraft.id
+    }
+
+    const noteBody = `📚 KB/SOP Draft generated from resolved support request
+
+Title: ${draft.title}
+Summary: ${draft.short_summary}
+
+KB/SOP Draft JSON:
+${JSON.stringify(draft, null, 2)}`
 
     const { error: noteError } = await supabase.from('ticket_messages').insert({
       ticket_id: ticketId,
@@ -125,9 +187,17 @@ Generate the KB/SOP draft now.`,
 
     if (noteError) throw noteError
 
-    return Response.json({ success: true, draft, stored_in: 'ticket_messages.is_internal_note=true' })
+    return Response.json({
+      success: true,
+      draft,
+      draftId: savedDraftId,
+      stored_in: 'kb_sop_drafts + ticket_messages.is_internal_note=true',
+    })
   } catch (err) {
     console.error('KB/SOP draft generation error:', err)
-    return Response.json({ error: err.message || 'Failed to generate KB/SOP draft' }, { status: 500 })
+    return Response.json(
+      { error: err.message || 'Failed to generate KB/SOP draft' },
+      { status: 500 }
+    )
   }
 }
