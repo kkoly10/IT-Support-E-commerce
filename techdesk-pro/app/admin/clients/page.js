@@ -28,8 +28,6 @@ const STATUS_LABELS = {
 
 const SERVICE_LABELS = {
   it: 'IT Support',
-  ecommerce: 'E-Commerce',
-  automation: 'Automation',
 }
 
 export default function AdminClients() {
@@ -290,15 +288,13 @@ function EditPanel({ org, saving, onSave }) {
           <label style={labelStyle}>Primary Service</label>
           <select value={primaryService} onChange={e => setPrimaryService(e.target.value)} style={selectStyle}>
             <option value="it">IT Support</option>
-            <option value="ecommerce">E-Commerce</option>
-            <option value="automation">Automation</option>
-          </select>
+                      </select>
         </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>Service Types</label>
           <div style={{ display: 'flex', gap: 12, paddingTop: 4 }}>
-            {['it', 'ecommerce', 'automation'].map(svc => (
+            {['it'].map(svc => (
               <label key={svc} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem', cursor: 'pointer' }}>
                 <input type="checkbox" checked={serviceTypes.includes(svc)} onChange={() => toggleService(svc)} />
                 {SERVICE_LABELS[svc]}
@@ -343,7 +339,7 @@ function EditPanel({ org, saving, onSave }) {
           <select value={onboardingStatus} onChange={e => setOnboardingStatus(e.target.value)} style={selectStyle}>
             <option value="not_started">Not Started</option>
             <option value="in_progress">In Progress</option>
-            <option value="complete">Complete</option>
+            <option value="completed">Completed</option>
           </select>
         </div>
       </div>

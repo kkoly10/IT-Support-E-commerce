@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import BrandMark from '../components/BrandMark'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -51,33 +52,13 @@ export default function LoginPage() {
         <div className="auth-header">
           <a href="/" className="auth-logo">
             <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
-              T
+              <BrandMark />
             </div>
-            <span>TechDesk Pro</span>
+            <span>Kocre IT Services</span>
           </a>
 
           <h1>Welcome back</h1>
           <p>Sign in to your client support portal</p>
-
-          <p
-            style={{
-              marginTop: 12,
-              fontSize: '0.85rem',
-              color: 'var(--ink-muted)',
-              lineHeight: 1.6,
-            }}
-          >
-            Need a website, online store, or automation build instead?{' '}
-            <a
-              href="https://crecystudio.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
-            >
-              Visit CrecyStudio
-            </a>
-            .
-          </p>
         </div>
 
         <form onSubmit={handleLogin} className="auth-form">

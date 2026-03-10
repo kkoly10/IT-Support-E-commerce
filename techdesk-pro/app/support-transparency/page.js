@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Support & AI Transparency | TechDesk Pro',
+  title: 'Support & AI Transparency | Kocre IT Services',
   description:
-    'Learn how TechDesk Pro defines support tickets, emergencies, response times, AI-assisted workflows, and business-hours coverage.',
+    'Learn how Kocre IT Services defines support tickets, emergencies, response times, AI-assisted workflows, and business-hours coverage.',
 }
 
 export default function SupportTransparencyPage() {
@@ -45,7 +45,7 @@ export default function SupportTransparencyPage() {
 
         <section style={sectionStyle}>
           <p style={pStyle}>
-            TechDesk Pro provides AI-assisted, human-supervised support and operational services
+            Kocre IT Services provides AI-assisted, human-supervised support and operational services
             for businesses. This page explains how our support model works in plain English.
           </p>
         </section>
@@ -86,8 +86,8 @@ export default function SupportTransparencyPage() {
           <p style={pStyle}>Standard support tickets do not include:</p>
           <ul style={ulStyle}>
             <li>Major migrations</li>
-            <li>Custom automations</li>
-            <li>Website or store builds</li>
+            <li>Custom implementation projects</li>
+            <li>Custom software implementation projects</li>
             <li>Major remediation work</li>
             <li>Compliance documentation projects</li>
             <li>Full platform implementation</li>
@@ -116,7 +116,7 @@ export default function SupportTransparencyPage() {
             <li>Loss of access to a core operational system affecting multiple users</li>
           </ul>
           <p style={pStyle}>
-            A single-user issue, low-impact inconvenience, cosmetic website issue, or routine
+            A single-user issue, low-impact inconvenience, cosmetic non-critical issue, or routine
             request is generally not an emergency.
           </p>
         </section>

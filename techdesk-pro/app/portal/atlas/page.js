@@ -64,8 +64,8 @@ export default function AtlasAIPage() {
 
   const SUGGESTIONS = [
     'What is the status of my open tickets?',
-    'How can I improve my store SEO?',
-    'What apps do you recommend for Shopify?',
+    'How can we reduce repeated account-access issues?',
+    'What admin controls should we tighten in Google Workspace?',
     'Help me troubleshoot my email setup',
   ]
 
@@ -104,7 +104,7 @@ export default function AtlasAIPage() {
             }}>A</div>
             <h2 style={{ fontSize: '1.2rem', marginBottom: 8, color: 'var(--ink)' }}>Hey! I'm Atlas AI</h2>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem', maxWidth: 400, margin: '0 auto 24px' }}>
-              I know your account, your tickets, and your tech stack. Ask me anything about your business, store, or IT setup.
+              I know your account, your tickets, and your tech stack. Ask me anything about your support requests, tools, users, or IT setup.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 500, margin: '0 auto' }}>
               {SUGGESTIONS.map((s, i) => (
