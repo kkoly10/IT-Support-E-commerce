@@ -7,6 +7,7 @@ const TYPE_STYLES = {
   organization: { bg: '#ecfdf3', color: '#067647', label: 'Organization' },
   assessment: { bg: '#fffaeb', color: '#b54708', label: 'Assessment' },
   kb_draft: { bg: '#f3e8ff', color: '#7c3aed', label: 'KB Draft' },
+  kb_article: { bg: '#e0f2fe', color: '#0369a1', label: 'Published KB' },
 }
 
 const EXAMPLE_QUERIES = [
@@ -14,7 +15,7 @@ const EXAMPLE_QUERIES = [
   'Do we have repeat Google Workspace login issues?',
   'Which leads need review before onboarding?',
   'Have we seen this permissions issue before?',
-  'Which resolved tickets should become SOPs?',
+  'Do we already have published knowledge for MFA reset problems?',
 ]
 
 export default function GhostSearchPage() {
@@ -61,7 +62,7 @@ export default function GhostSearchPage() {
         <div>
           <h1 className="admin-page-title">Ghost Search</h1>
           <p className="admin-page-desc">
-            Search across support requests, clients, assessments, and knowledge drafts.
+            Search across support requests, clients, assessments, drafts, and published knowledge.
           </p>
         </div>
       </div>
@@ -156,6 +157,9 @@ export default function GhostSearchPage() {
               </span>
               <span className="admin-status-badge" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
                 KB Drafts: {result.counts?.kb_drafts || 0}
+              </span>
+              <span className="admin-status-badge" style={{ background: '#e0f2fe', color: '#0369a1' }}>
+                Published KB: {result.counts?.kb_articles || 0}
               </span>
             </div>
           </div>
