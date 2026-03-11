@@ -13,6 +13,7 @@ import {
   groupOnboardingTasks,
   sortOnboardingTasks,
 } from '../../../lib/onboarding'
+import { deriveContactMatrixSummary } from '../../../lib/contacts'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -58,6 +59,7 @@ export default function AdminOnboardingPage() {
   const [organizations, setOrganizations] = useState([])
   const [selectedOrgId, setSelectedOrgId] = useState('')
   const [tasks, setTasks] = useState([])
+  const [contacts, setContacts] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
 
@@ -108,16 +110,25 @@ export default function AdminOnboardingPage() {
 
   async function loadTasks(orgId) {
     try {
-      const { data } = await supabase
-        .from('onboarding_tasks')
-        .select('*')
-        .eq('organization_id', orgId)
-        .order('sort_order', { ascending: true })
+      const [{ data: taskRows }, { data: contactRows }] = await Promise.all([
+        supabase
+          .from('onboarding_tasks')
+          .select('*')
+          .eq('organization_id', orgId)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('organization_contacts')
+          .select('*')
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: true }),
+      ])
 
-      setTasks(sortOnboardingTasks(data || []))
+      setTasks(sortOnboardingTasks(taskRows || []))
+      setContacts(contactRows || [])
     } catch (err) {
       console.error('Load tasks error:', err)
       setTasks([])
+      setContacts([])
     }
   }
 
@@ -242,6 +253,7 @@ export default function AdminOnboardingPage() {
 
   const summary = useMemo(() => deriveOnboardingSummary(tasks), [tasks])
   const grouped = useMemo(() => groupOnboardingTasks(tasks), [tasks])
+  const contactSummary = useMemo(() => deriveContactMatrixSummary(contacts), [contacts])
 
   const filteredOrganizations = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -265,7 +277,7 @@ export default function AdminOnboardingPage() {
         <div>
           <h1 className="admin-page-title">Onboarding</h1>
           <p className="admin-page-desc">
-            Manage onboarding checklists, discovery review, blockers, and transition progress from lead to active support.
+            Manage onboarding checklists, discovery review, contacts, blockers, and transition progress from lead to active support.
           </p>
         </div>
       </div>
@@ -396,8 +408,8 @@ export default function AdminOnboardingPage() {
                     <a href="/admin/clients" className="admin-btn-small">
                       Open clients
                     </a>
-                    <a href="/admin/document" className="admin-btn-small">
-                      Review docs
+                    <a href="/admin/contacts" className="admin-btn-small">
+                      Open contacts
                     </a>
                   </div>
                 </div>
@@ -456,6 +468,52 @@ export default function AdminOnboardingPage() {
                     Sync organization status
                   </button>
                 </div>
+              </div>
+
+              <div className="admin-card" style={{ marginBottom: 20 }}>
+                <div className="admin-card-header">
+                  <h3>Contacts matrix</h3>
+                  <a href="/admin/contacts" className="admin-btn-small">
+                    Manage contacts
+                  </a>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+                  <span
+                    className="admin-status-badge"
+                    style={{
+                      background: contactSummary.hasPrimary ? '#ecfdf3' : '#fffaeb',
+                      color: contactSummary.hasPrimary ? '#067647' : '#b54708',
+                    }}
+                  >
+                    Primary: {contactSummary.hasPrimary ? contactSummary.primaryName : 'Missing'}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                    Authorized: {contactSummary.authorizedCount}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                    Billing: {contactSummary.billingCount}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#fff7ed', color: '#9a3412' }}>
+                    Security: {contactSummary.securityCount}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#fef3f2', color: '#b42318' }}>
+                    Emergency: {contactSummary.emergencyCount}
+                  </span>
+                </div>
+
+                {contacts.length === 0 ? (
+                  <div className="admin-empty-text">No contacts added yet.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {contacts.map((contact) => (
+                      <div key={contact.id} className="admin-table-muted">
+                        <strong style={{ color: '#111827' }}>{contact.full_name}</strong> · {contact.email || '—'} ·{' '}
+                        {contact.role_type}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="admin-card" style={{ marginBottom: 20 }}>
