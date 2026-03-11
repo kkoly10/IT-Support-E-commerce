@@ -65,17 +65,28 @@ export default function AdminLayout({ children }) {
           <span />
           <span />
         </button>
-        <span className="admin-mobile-title">TechDesk Admin</span>
+        <span className="admin-mobile-title">Kocre IT Admin</span>
       </div>
 
       {sidebarOpen && <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
-          <a href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="admin-logo-mark"><BrandMark stroke="#ffffff" /></div>
+          <a
+            href="/"
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <div className="admin-logo-mark">
+              <BrandMark stroke="#ffffff" />
+            </div>
             <div>
-              <div className="admin-logo-text">TechDesk Pro</div>
+              <div className="admin-logo-text">Kocre IT Services</div>
               <div className="admin-logo-sub">Support Console</div>
             </div>
           </a>
@@ -97,7 +108,11 @@ export default function AdminLayout({ children }) {
 
         <div className="admin-sidebar-divider" />
 
-        <a href="/portal/dashboard" className="admin-nav-item" style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
+        <a
+          href="/portal/dashboard"
+          className="admin-nav-item"
+          style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}
+        >
           <span className="admin-nav-icon">↩️</span>
           Switch to Client Portal
         </a>
