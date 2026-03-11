@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { label: 'Documents', href: '/admin/document', icon: '📄' },
   { label: 'Onboarding', href: '/admin/onboarding', icon: '🧭' },
   { label: 'Contacts', href: '/admin/contacts', icon: '👥' },
+  { label: 'Access', href: '/admin/access', icon: '🔐' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
   { label: 'Reports & CSAT', href: '/admin/reports', icon: '📈' },
   { label: 'Compliance', href: '/admin/compliance', icon: '📋' },
