@@ -13,6 +13,7 @@ const ACTIVE_NAV = [
   { label: 'Atlas Assistant', href: '/portal/atlas', icon: '🧠' },
   { label: 'Training', href: '/portal/training', icon: '🎓' },
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
+  { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
   { label: 'Billing', href: '/portal/billing', icon: '💳' },
   { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
 ]
@@ -26,6 +27,7 @@ const BREADCRUMB_LABELS = {
   atlas: 'Atlas Assistant',
   training: 'Training',
   documents: 'Documents',
+  contacts: 'Contacts',
   billing: 'Billing',
   settings: 'Settings',
   new: 'New Request',
@@ -39,6 +41,7 @@ function buildNav(org) {
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
       { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
+      { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
   }
@@ -48,6 +51,7 @@ function buildNav(org) {
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
       { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
+      { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
@@ -57,6 +61,7 @@ function buildNav(org) {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
+      { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
