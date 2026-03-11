@@ -12,6 +12,7 @@ import {
   groupOnboardingTasks,
   sortOnboardingTasks,
 } from '../../../lib/onboarding'
+import { deriveContactMatrixSummary } from '../../../lib/contacts'
 
 const supabase = createClient()
 
@@ -45,6 +46,7 @@ export default function PortalOnboardingPage() {
   const [profile, setProfile] = useState(null)
   const [org, setOrg] = useState(null)
   const [tasks, setTasks] = useState([])
+  const [contacts, setContacts] = useState([])
 
   useEffect(() => {
     loadData()
@@ -77,13 +79,21 @@ export default function PortalOnboardingPage() {
       setProfile(profileData)
       setOrg(profileData.organizations)
 
-      const { data: taskRows } = await supabase
-        .from('onboarding_tasks')
-        .select('*')
-        .eq('organization_id', profileData.organization_id)
-        .order('sort_order', { ascending: true })
+      const [{ data: taskRows }, { data: contactRows }] = await Promise.all([
+        supabase
+          .from('onboarding_tasks')
+          .select('*')
+          .eq('organization_id', profileData.organization_id)
+          .order('sort_order', { ascending: true }),
+        supabase
+          .from('organization_contacts')
+          .select('*')
+          .eq('organization_id', profileData.organization_id)
+          .order('created_at', { ascending: true }),
+      ])
 
       setTasks(sortOnboardingTasks(taskRows || []))
+      setContacts(contactRows || [])
     } catch (err) {
       console.error('Portal onboarding load error:', err)
     } finally {
@@ -100,6 +110,7 @@ export default function PortalOnboardingPage() {
 
   const discoveryCompleted = !!org?.discovery_completed
   const discoveryReviewed = org?.discovery_review_status === 'reviewed'
+  const contactSummary = useMemo(() => deriveContactMatrixSummary(contacts), [contacts])
 
   if (loading) {
     return <div className="portal-page-loading">Loading onboarding checklist...</div>
@@ -143,6 +154,27 @@ export default function PortalOnboardingPage() {
         </div>
       </div>
 
+      <div className="dashboard-stats" style={{ marginBottom: 20 }}>
+        <div className="stat-card">
+          <div className="stat-card-value">{contactSummary.total}</div>
+          <div className="stat-card-label">Contacts listed</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-value" style={{ color: contactSummary.hasPrimary ? '#067647' : '#b54708' }}>
+            {contactSummary.hasPrimary ? 'Present' : 'Missing'}
+          </div>
+          <div className="stat-card-label">Primary contact</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-value">{contactSummary.authorizedCount}</div>
+          <div className="stat-card-label">Authorized requesters</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-value">{contactSummary.emergencyCount}</div>
+          <div className="stat-card-label">Emergency contacts</div>
+        </div>
+      </div>
+
       <div className="dashboard-section" style={{ marginBottom: 20 }}>
         <div className="dashboard-section-header">
           <h2>Onboarding overview</h2>
@@ -153,22 +185,35 @@ export default function PortalOnboardingPage() {
             Onboarding is a short setup project that prepares your account for reliable support. The checklist below shows which items are waiting on your team and which items Kocre IT is handling internally.
           </p>
           <p style={{ marginTop: 10 }}>
-            Full support begins after discovery, access, documents, and readiness review are complete.
+            Full support begins after contacts, discovery, access, documents, and readiness review are complete.
           </p>
         </div>
 
         <div className="dashboard-actions" style={{ marginTop: 16 }}>
+          <Link href="/portal/contacts" className="action-card">
+            <span className="action-icon">👥</span>Update contact matrix
+          </Link>
           <Link href="/portal/settings" className="action-card">
             <span className="action-icon">🧾</span>Complete discovery questionnaire
           </Link>
           <Link href="/portal/documents" className="action-card">
             <span className="action-icon">📄</span>Upload documents
           </Link>
-          <Link href="/portal/dashboard" className="action-card">
-            <span className="action-icon">📊</span>Back to dashboard
-          </Link>
         </div>
       </div>
+
+      {!contactSummary.hasPrimary && (
+        <div className="dashboard-section" style={{ marginBottom: 20 }}>
+          <div className="dashboard-section-header">
+            <h2>Contact matrix needed</h2>
+          </div>
+          <div className="dashboard-empty" style={{ textAlign: 'left' }}>
+            <p>
+              Kocre IT still needs your primary support contact and escalation contacts before onboarding can be fully validated.
+            </p>
+          </div>
+        </div>
+      )}
 
       {!discoveryCompleted && (
         <div className="dashboard-section" style={{ marginBottom: 20 }}>
@@ -223,7 +268,7 @@ export default function PortalOnboardingPage() {
               Your onboarding checklist has not been initialized yet. Kocre IT will set it up as part of your onboarding project.
             </p>
             <p style={{ marginTop: 10 }}>
-              In the meantime, complete your discovery questionnaire and upload documents so we can prepare your workspace faster.
+              In the meantime, complete your contact matrix, discovery questionnaire, and upload documents so we can prepare your workspace faster.
             </p>
           </div>
         </div>
