@@ -21,6 +21,7 @@ const BREADCRUMB_LABELS = {
   portal: 'Client Portal',
   tickets: 'Support Requests',
   dashboard: 'Dashboard',
+  onboarding: 'Onboarding',
   health: 'System Health',
   atlas: 'Atlas Assistant',
   training: 'Training',
@@ -36,6 +37,7 @@ function buildNav(org) {
   if (clientStatus === 'lead') {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+      { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
@@ -44,6 +46,7 @@ function buildNav(org) {
   if (clientStatus === 'onboarding') {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+      { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
@@ -216,7 +219,9 @@ export default function PortalLayout({ children }) {
               .map((seg, i, arr) => (
                 <span key={i}>
                   {i > 0 && <span className="topbar-sep">/</span>}
-                  <span className={i === arr.length - 1 ? 'topbar-current' : ''}>{breadcrumbLabel(seg)}</span>
+                  <span className={i === arr.length - 1 ? 'topbar-current' : ''}>
+                    {breadcrumbLabel(seg)}
+                  </span>
                 </span>
               ))}
           </div>
