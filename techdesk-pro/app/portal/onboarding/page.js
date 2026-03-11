@@ -98,6 +98,9 @@ export default function PortalOnboardingPage() {
     [tasks]
   )
 
+  const discoveryCompleted = !!org?.discovery_completed
+  const discoveryReviewed = org?.discovery_review_status === 'reviewed'
+
   if (loading) {
     return <div className="portal-page-loading">Loading onboarding checklist...</div>
   }
@@ -130,8 +133,13 @@ export default function PortalOnboardingPage() {
           <div className="stat-card-label">Blocked tasks</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-value">{summary.total}</div>
-          <div className="stat-card-label">Total tasks</div>
+          <div
+            className="stat-card-value"
+            style={{ color: discoveryReviewed ? '#067647' : discoveryCompleted ? '#1d4ed8' : '#b54708' }}
+          >
+            {discoveryReviewed ? 'Reviewed' : discoveryCompleted ? 'Submitted' : 'Incomplete'}
+          </div>
+          <div className="stat-card-label">Discovery profile</div>
         </div>
       </div>
 
@@ -145,22 +153,38 @@ export default function PortalOnboardingPage() {
             Onboarding is a short setup project that prepares your account for reliable support. The checklist below shows which items are waiting on your team and which items Kocre IT is handling internally.
           </p>
           <p style={{ marginTop: 10 }}>
-            Full support begins after access, documents, and readiness review are complete.
+            Full support begins after discovery, access, documents, and readiness review are complete.
           </p>
         </div>
 
         <div className="dashboard-actions" style={{ marginTop: 16 }}>
+          <Link href="/portal/settings" className="action-card">
+            <span className="action-icon">🧾</span>Complete discovery questionnaire
+          </Link>
           <Link href="/portal/documents" className="action-card">
             <span className="action-icon">📄</span>Upload documents
-          </Link>
-          <Link href="/portal/settings" className="action-card">
-            <span className="action-icon">⚙️</span>Complete environment details
           </Link>
           <Link href="/portal/dashboard" className="action-card">
             <span className="action-icon">📊</span>Back to dashboard
           </Link>
         </div>
       </div>
+
+      {!discoveryCompleted && (
+        <div className="dashboard-section" style={{ marginBottom: 20 }}>
+          <div className="dashboard-section-header">
+            <h2>Discovery questionnaire needed</h2>
+          </div>
+          <div className="dashboard-empty" style={{ textAlign: 'left' }}>
+            <p>
+              Kocre IT still needs your structured environment details before support can be fully validated.
+            </p>
+            <p style={{ marginTop: 10 }}>
+              Complete your company profile, email/identity platform details, core business apps, backup status, and urgent systems in Settings.
+            </p>
+          </div>
+        </div>
+      )}
 
       {blockers.length > 0 && (
         <div className="dashboard-section" style={{ marginBottom: 20 }}>
@@ -199,7 +223,7 @@ export default function PortalOnboardingPage() {
               Your onboarding checklist has not been initialized yet. Kocre IT will set it up as part of your onboarding project.
             </p>
             <p style={{ marginTop: 10 }}>
-              In the meantime, you can upload documents and complete your company settings so we can prepare your workspace faster.
+              In the meantime, complete your discovery questionnaire and upload documents so we can prepare your workspace faster.
             </p>
           </div>
         </div>
