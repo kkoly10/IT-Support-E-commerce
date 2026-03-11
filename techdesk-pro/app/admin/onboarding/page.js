@@ -83,7 +83,12 @@ export default function AdminOnboardingPage() {
           agreement_status,
           payment_status,
           support_ready,
-          onboarding_blockers
+          onboarding_blockers,
+          discovery_profile,
+          discovery_completed,
+          discovery_review_status,
+          discovery_reviewed_at,
+          discovery_review_notes
         `)
         .in('client_status', ['lead', 'onboarding', 'active'])
         .order('created_at', { ascending: false })
@@ -127,7 +132,6 @@ export default function AdminOnboardingPage() {
         .from('onboarding_tasks')
         .upsert(rows, {
           onConflict: 'organization_id,task_key',
-          ignoreDuplicates: true,
         })
 
       if (error) throw error
@@ -177,7 +181,8 @@ export default function AdminOnboardingPage() {
     let onboardingStatus = 'not_started'
     if (blocked.length > 0) onboardingStatus = 'blocked'
     else if (done === total && total > 0) onboardingStatus = 'completed'
-    else if (rows.some((task) => task.status === 'in_progress' || task.status === 'done')) onboardingStatus = 'in_progress'
+    else if (rows.some((task) => task.status === 'in_progress' || task.status === 'done'))
+      onboardingStatus = 'in_progress'
 
     const blockers = blocked.map((task) => task.title)
 
@@ -190,6 +195,44 @@ export default function AdminOnboardingPage() {
       .eq('id', orgId)
 
     await loadOrganizations()
+  }
+
+  async function updateDiscoveryReview(orgId, status) {
+    setSaving(true)
+    try {
+      const payload = {
+        discovery_review_status: status,
+        discovery_reviewed_at: status === 'reviewed' ? new Date().toISOString() : null,
+      }
+
+      const { error } = await supabase
+        .from('organizations')
+        .update(payload)
+        .eq('id', orgId)
+
+      if (error) throw error
+      await loadOrganizations()
+    } catch (err) {
+      console.error('Update discovery review error:', err)
+      alert(err.message || 'Failed to update discovery review status')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function updateDiscoveryNotes(orgId, notes) {
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({ discovery_review_notes: notes || null })
+        .eq('id', orgId)
+
+      if (error) throw error
+      await loadOrganizations()
+    } catch (err) {
+      console.error('Update discovery notes error:', err)
+      alert(err.message || 'Failed to save discovery review notes')
+    }
   }
 
   const selectedOrg = useMemo(
@@ -210,6 +253,8 @@ export default function AdminOnboardingPage() {
     })
   }, [organizations, statusFilter, search])
 
+  const discovery = selectedOrg?.discovery_profile || {}
+
   if (loading) {
     return <div className="admin-loading">Loading onboarding console...</div>
   }
@@ -220,7 +265,7 @@ export default function AdminOnboardingPage() {
         <div>
           <h1 className="admin-page-title">Onboarding</h1>
           <p className="admin-page-desc">
-            Manage onboarding checklists, blockers, and transition progress from lead to active support.
+            Manage onboarding checklists, discovery review, blockers, and transition progress from lead to active support.
           </p>
         </div>
       </div>
@@ -306,6 +351,15 @@ export default function AdminOnboardingPage() {
                       </span>
                       <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
                         {org.onboarding_status || 'not_started'}
+                      </span>
+                      <span
+                        className="admin-status-badge"
+                        style={{
+                          background: org.discovery_completed ? '#eef4ff' : '#fffaeb',
+                          color: org.discovery_completed ? '#1d4ed8' : '#b54708',
+                        }}
+                      >
+                        Discovery: {org.discovery_completed ? org.discovery_review_status || 'pending_review' : 'missing'}
                       </span>
                       <span
                         className="admin-status-badge"
@@ -401,6 +455,101 @@ export default function AdminOnboardingPage() {
                   >
                     Sync organization status
                   </button>
+                </div>
+              </div>
+
+              <div className="admin-card" style={{ marginBottom: 20 }}>
+                <div className="admin-card-header">
+                  <h3>Discovery profile</h3>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => updateDiscoveryReview(selectedOrg.id, 'in_review')}
+                      className="admin-btn-small"
+                      disabled={saving || !selectedOrg.discovery_completed}
+                    >
+                      Mark In Review
+                    </button>
+                    <button
+                      onClick={() => updateDiscoveryReview(selectedOrg.id, 'reviewed')}
+                      className="admin-btn-small"
+                      disabled={saving || !selectedOrg.discovery_completed}
+                    >
+                      Mark Reviewed
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+                  <span
+                    className="admin-status-badge"
+                    style={{
+                      background: selectedOrg.discovery_completed ? '#eef4ff' : '#fffaeb',
+                      color: selectedOrg.discovery_completed ? '#1d4ed8' : '#b54708',
+                    }}
+                  >
+                    {selectedOrg.discovery_completed ? 'Submitted' : 'Incomplete'}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                    Review status: {selectedOrg.discovery_review_status || 'not_started'}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#ecfdf3', color: '#067647' }}>
+                    Reviewed at: {fmtDate(selectedOrg.discovery_reviewed_at)}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Users:</strong> {discovery.user_count || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Devices:</strong> {discovery.device_count || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Locations:</strong> {discovery.location_count || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Email platform:</strong> {discovery.email_platform || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Identity provider:</strong> {discovery.identity_provider || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Remote work model:</strong> {discovery.remote_work_model || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Core apps:</strong>{' '}
+                    {Array.isArray(discovery.core_business_apps) ? discovery.core_business_apps.join(', ') : '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Key vendors:</strong>{' '}
+                    {Array.isArray(discovery.key_vendors) ? discovery.key_vendors.join(', ') : '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Backup status:</strong> {discovery.backup_status || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Security requirements:</strong>{' '}
+                    {discovery.security_requirements || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Compliance requirements:</strong>{' '}
+                    {discovery.compliance_requirements || '—'}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Urgent systems:</strong>{' '}
+                    {Array.isArray(discovery.urgent_systems) ? discovery.urgent_systems.join(', ') : '—'}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <label style={labelStyle}>Discovery review notes</label>
+                  <textarea
+                    defaultValue={selectedOrg.discovery_review_notes || ''}
+                    onBlur={(e) => updateDiscoveryNotes(selectedOrg.id, e.target.value.trim())}
+                    rows={4}
+                    placeholder="Operator notes after reviewing the discovery questionnaire"
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
                 </div>
               </div>
 
