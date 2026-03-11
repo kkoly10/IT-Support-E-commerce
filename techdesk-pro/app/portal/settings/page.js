@@ -1,297 +1,319 @@
-// File: app/portal/settings/page.js (replace existing placeholder)
-
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
-const PLATFORMS = [
-  {
-    id: 'shopify',
-    name: 'Shopify',
-    icon: '🛍️',
-    color: '#96BF48',
-    description: 'Connect a platform endpoint for operational monitoring and diagnostics.',
-    needsShopDomain: true,
-  },
-  {
-    id: 'wix',
-    name: 'Wix',
-    icon: '🌐',
-    color: '#0C6EFC',
-    description: 'Connect to monitor service availability and key platform signals.',
-    needsShopDomain: false,
-  },
-  {
-    id: 'woocommerce',
-    name: 'WooCommerce',
-    icon: '🟣',
-    color: '#96588A',
-    description: 'Connect for operational monitoring and service diagnostics.',
-    needsShopDomain: true,
-  },
-  {
-    id: 'google_workspace',
-    name: 'Google Workspace',
-    icon: '📧',
-    color: '#4285F4',
-    description: 'Monitor email, calendar, and admin health.',
-    needsShopDomain: false,
-  },
-  {
-    id: 'squarespace',
-    name: 'Squarespace',
-    icon: '◼️',
-    color: '#000000',
-    description: 'Connect to monitor service availability and basic platform signals.',
-    needsShopDomain: false,
-  },
-]
+const supabase = createClient()
 
-function SettingsContent() {
-  const searchParams = useSearchParams()
-  const [integrations, setIntegrations] = useState([])
+function parseList(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join(', ')
+}
+
+export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [profileId, setProfileId] = useState(null)
   const [orgId, setOrgId] = useState(null)
-  const [shopDomains, setShopDomains] = useState({})
-  const [disconnecting, setDisconnecting] = useState(null)
-  const [successMsg, setSuccessMsg] = useState(null)
-  const [errorMsg, setErrorMsg] = useState(null)
-  const supabase = createClient()
+  const [message, setMessage] = useState(null)
+  const [error, setError] = useState(null)
+
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [teamSize, setTeamSize] = useState('')
+  const [industry, setIndustry] = useState('')
+  const [environmentSummary, setEnvironmentSummary] = useState('')
+  const [supportedPlatforms, setSupportedPlatforms] = useState('')
+  const [supportHoursNote, setSupportHoursNote] = useState('')
+  const [leadInterest, setLeadInterest] = useState('')
 
   useEffect(() => {
-    // Check URL params for OAuth results
-    const connected = searchParams.get('connected')
-    const error = searchParams.get('error')
-    if (connected) {
-      setSuccessMsg(`Successfully connected ${connected}!`)
-      setTimeout(() => setSuccessMsg(null), 5000)
-    }
-    if (error) {
-      setErrorMsg(`Connection failed: ${error.replace(/_/g, ' ')}`)
-      setTimeout(() => setErrorMsg(null), 5000)
-    }
-
-    loadData()
+    loadSettings()
   }, [])
 
-  async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    setUserId(user.id)
+  async function loadSettings() {
+    setLoading(true)
+    setError(null)
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-    if (profile) {
-      setOrgId(profile.organization_id)
-
-      const { data: ints } = await supabase
-        .from('connected_integrations')
-        .select('*')
-        .eq('organization_id', profile.organization_id)
-
-      setIntegrations(ints || [])
-    }
-    setLoading(false)
-  }
-
-  function isConnected(platformId) {
-    return integrations.some(i => i.platform === platformId && i.status === 'connected')
-  }
-
-  function getIntegration(platformId) {
-    return integrations.find(i => i.platform === platformId)
-  }
-
-  async function handleConnect(platform) {
-    if (platform.needsShopDomain) {
-      const domain = shopDomains[platform.id]
-      if (!domain) {
-        alert(`Please enter your ${platform.name} domain first.`)
+      if (!user) {
+        setLoading(false)
         return
       }
-      window.location.href = `/api/oauth/${platform.id}?shop=${encodeURIComponent(domain)}`
-    } else {
-      window.location.href = `/api/oauth/${platform.id}`
-    }
-  }
 
-  async function handleDisconnect(platformId) {
-    if (!confirm('Are you sure you want to disconnect this integration?')) return
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, organization_id, organizations(*)')
+        .eq('id', user.id)
+        .single()
 
-    setDisconnecting(platformId)
-    try {
-      const res = await fetch('/api/oauth/disconnect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: platformId, orgId, userId }),
-      })
+      if (profileError) throw profileError
 
-      if (res.ok) {
-        setIntegrations(prev => prev.filter(i => i.platform !== platformId))
-        setSuccessMsg(`Disconnected ${platformId}`)
-        setTimeout(() => setSuccessMsg(null), 3000)
-      }
+      const org = profileData.organizations || {}
+
+      setProfileId(profileData.id)
+      setOrgId(profileData.organization_id)
+      setFullName(profileData.full_name || '')
+      setEmail(profileData.email || '')
+      setCompanyName(org.name || '')
+      setTeamSize(org.team_size || '')
+      setIndustry(org.industry || '')
+      setEnvironmentSummary(org.environment_summary || '')
+      setSupportedPlatforms(parseList(org.supported_platforms))
+      setSupportHoursNote(org.support_hours_note || '')
+      setLeadInterest(org.lead_interest || '')
     } catch (err) {
-      console.error('Disconnect error:', err)
+      console.error('Settings load error:', err)
+      setError(err.message || 'Failed to load settings.')
     } finally {
-      setDisconnecting(null)
+      setLoading(false)
     }
   }
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
-    })
+  async function handleSave(e) {
+    e.preventDefault()
+    if (!profileId || !orgId) return
+
+    setSaving(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName.trim() || null,
+        })
+        .eq('id', profileId)
+
+      if (profileError) throw profileError
+
+      const { error: orgError } = await supabase
+        .from('organizations')
+        .update({
+          name: companyName.trim() || null,
+          team_size: teamSize ? Number(teamSize) : null,
+          industry: industry.trim() || null,
+          environment_summary: environmentSummary.trim() || null,
+          supported_platforms: supportedPlatforms
+            ? supportedPlatforms.split(',').map((item) => item.trim()).filter(Boolean)
+            : [],
+          support_hours_note: supportHoursNote.trim() || null,
+          lead_interest: leadInterest.trim() || null,
+        })
+        .eq('id', orgId)
+
+      if (orgError) throw orgError
+
+      setMessage('Settings updated successfully.')
+    } catch (err) {
+      console.error('Settings save error:', err)
+      setError(err.message || 'Failed to save settings.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="portal-page-loading">Loading settings...</div>
   }
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.6rem', marginBottom: 4 }}>Settings</h1>
-      <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem', marginBottom: 32 }}>
-        Manage your integrations and company profile.
-      </p>
+      <div className="portal-page-header" style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: '1.6rem', marginBottom: 4 }}>Settings</h1>
+        <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem' }}>
+          Manage your company details, support contact info, and environment profile.
+        </p>
+      </div>
 
-      {/* Success/Error banners */}
-      {successMsg && (
-        <div style={{
-          background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#059669',
-          padding: '12px 16px', borderRadius: 8, marginBottom: 16, fontSize: '0.88rem'
-        }}>
-          ✅ {successMsg}
+      {message && (
+        <div
+          style={{
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            color: '#059669',
+            padding: '12px 16px',
+            borderRadius: 8,
+            marginBottom: 16,
+            fontSize: '0.88rem',
+          }}
+        >
+          {message}
         </div>
       )}
-      {errorMsg && (
-        <div style={{
-          background: '#fee', border: '1px solid #fcc', color: '#c00',
-          padding: '12px 16px', borderRadius: 8, marginBottom: 16, fontSize: '0.88rem'
-        }}>
-          ❌ {errorMsg}
+
+      {error && (
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            padding: '12px 16px',
+            borderRadius: 8,
+            marginBottom: 16,
+            fontSize: '0.88rem',
+          }}
+        >
+          {error}
         </div>
       )}
 
-      {/* Connected Integrations */}
-      <div style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: 16 }}>Connected Platforms</h2>
+      <form onSubmit={handleSave}>
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 20,
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 16 }}>Primary contact</h3>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', color: 'var(--ink-muted)', padding: 20 }}>Loading...</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {PLATFORMS.map((platform) => {
-              const connected = isConnected(platform.id)
-              const integration = getIntegration(platform.id)
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Full name</label>
+              <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
+            </div>
 
-              return (
-                <div
-                  key={platform.id}
-                  style={{
-                    background: 'white', border: '1px solid var(--border)', borderRadius: 12,
-                    padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16,
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {/* Platform icon */}
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 10,
-                    background: platform.color + '15',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.3rem', flexShrink: 0,
-                  }}>
-                    {platform.icon}
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 150 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--ink)' }}>
-                      {platform.name}
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginTop: 2 }}>
-                      {connected
-                        ? `Connected ${integration?.connected_at ? formatDate(integration.connected_at) : ''}`
-                        : platform.description
-                      }
-                    </div>
-                    {connected && integration?.shop_domain && (
-                      <div style={{ fontSize: '0.78rem', color: 'var(--teal)', marginTop: 2 }}>
-                        {integration.shop_domain}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Shop domain input for platforms that need it */}
-                  {!connected && platform.needsShopDomain && (
-                    <input
-                      type="text"
-                      placeholder={`your-domain.${platform.id === 'shopify' ? 'myshopify.com' : 'com'}`}
-                      value={shopDomains[platform.id] || ''}
-                      onChange={(e) => setShopDomains(prev => ({ ...prev, [platform.id]: e.target.value }))}
-                      style={{
-                        padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 6,
-                        fontSize: '0.82rem', fontFamily: 'Outfit, sans-serif', width: 200,
-                      }}
-                    />
-                  )}
-
-                  {/* Connect/Disconnect button */}
-                  {connected ? (
-                    <button
-                      onClick={() => handleDisconnect(platform.id)}
-                      disabled={disconnecting === platform.id}
-                      style={{
-                        padding: '8px 16px', borderRadius: 6,
-                        border: '1px solid #e74c3c30', background: '#e74c3c08',
-                        color: '#e74c3c', fontSize: '0.82rem', fontWeight: 600,
-                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
-                        opacity: disconnecting === platform.id ? 0.5 : 1,
-                      }}
-                    >
-                      {disconnecting === platform.id ? 'Disconnecting...' : 'Disconnect'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleConnect(platform)}
-                      style={{
-                        padding: '8px 16px', borderRadius: 6,
-                        border: 'none', background: platform.color,
-                        color: 'white', fontSize: '0.82rem', fontWeight: 600,
-                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
-                      }}
-                    >
-                      Connect {platform.name}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Email</label>
+              <input value={email} disabled style={{ ...inputStyle, background: '#f9fafb' }} />
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* Company info section */}
-      <div>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: 16 }}>Company Profile</h2>
-        <div style={{
-          background: 'white', border: '1px solid var(--border)', borderRadius: 12,
-          padding: 24, color: 'var(--ink-muted)', fontSize: '0.9rem'
-        }}>
-          Company profile management is coming soon. You'll be able to update your company details, invite team members, and configure notifications here.
         </div>
-      </div>
+
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 20,
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 16 }}>Company profile</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Company name</label>
+              <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Team size</label>
+              <input
+                type="number"
+                value={teamSize}
+                onChange={(e) => setTeamSize(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Industry</label>
+              <input value={industry} onChange={(e) => setIndustry(e.target.value)} style={inputStyle} />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Primary service interest</label>
+              <input
+                value={leadInterest}
+                onChange={(e) => setLeadInterest(e.target.value)}
+                placeholder="Remote IT support, Microsoft 365 admin, onboarding support"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid var(--border)',
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 20,
+          }}
+        >
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 16 }}>Environment details</h3>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Environment summary</label>
+            <textarea
+              rows={4}
+              value={environmentSummary}
+              onChange={(e) => setEnvironmentSummary(e.target.value)}
+              placeholder="Describe your current business systems, users, locations, devices, and key tools."
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Supported platforms</label>
+            <input
+              value={supportedPlatforms}
+              onChange={(e) => setSupportedPlatforms(e.target.value)}
+              placeholder="Microsoft 365, Google Workspace, Slack, Zoom"
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ marginBottom: 8 }}>
+            <label style={labelStyle}>Support hours note</label>
+            <input
+              value={supportHoursNote}
+              onChange={(e) => setSupportHoursNote(e.target.value)}
+              placeholder="Example: Main staff works Monday-Friday 8 AM to 5 PM ET"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="portal-btn-primary"
+          style={{
+            background: 'var(--teal)',
+            color: 'white',
+            border: 'none',
+            padding: '12px 22px',
+            borderRadius: 8,
+            fontWeight: 600,
+            cursor: 'pointer',
+            opacity: saving ? 0.65 : 1,
+          }}
+        >
+          {saving ? 'Saving...' : 'Save Settings'}
+        </button>
+      </form>
     </div>
   )
 }
 
-export default function SettingsPage() {
-  return (
-    <Suspense fallback={<div style={{ textAlign: 'center', color: 'var(--ink-muted)', padding: 60 }}>Loading settings...</div>}>
-      <SettingsContent />
-    </Suspense>
-  )
+const labelStyle = {
+  display: 'block',
+  fontSize: '0.85rem',
+  fontWeight: 500,
+  marginBottom: 6,
+  color: 'var(--ink-light)',
+}
+
+const inputStyle = {
+  width: '100%',
+  padding: '10px 14px',
+  border: '1px solid var(--border)',
+  borderRadius: 8,
+  fontSize: '0.9rem',
+  fontFamily: 'Outfit, sans-serif',
 }
