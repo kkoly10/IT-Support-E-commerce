@@ -15,6 +15,7 @@ const ACTIVE_NAV = [
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
   { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
   { label: 'Access', href: '/portal/access', icon: '🔐' },
+  { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
   { label: 'Billing', href: '/portal/billing', icon: '💳' },
   { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
 ]
@@ -30,6 +31,7 @@ const BREADCRUMB_LABELS = {
   documents: 'Documents',
   contacts: 'Contacts',
   access: 'Access',
+  launch: 'Launch Pack',
   billing: 'Billing',
   settings: 'Settings',
   new: 'New Request',
@@ -45,6 +47,7 @@ function buildNav(org) {
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Access', href: '/portal/access', icon: '🔐' },
+      { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
   }
@@ -56,6 +59,7 @@ function buildNav(org) {
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Access', href: '/portal/access', icon: '🔐' },
+      { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
@@ -67,6 +71,7 @@ function buildNav(org) {
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Access', href: '/portal/access', icon: '🔐' },
+      { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
       { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
     ]
