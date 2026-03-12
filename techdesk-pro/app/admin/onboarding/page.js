@@ -16,6 +16,13 @@ import {
 import { deriveContactMatrixSummary } from '../../../lib/contacts'
 import { deriveAccessSummary } from '../../../lib/access'
 import { deriveSupportReadiness } from '../../../lib/readiness'
+import {
+  deriveTransitionSummary,
+  formatDateTime,
+  HYPERCARE_STATUS_LABELS,
+  KICKOFF_STATUS_LABELS,
+  toLocalInputValue,
+} from '../../../lib/transition'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -72,7 +79,7 @@ export default function AdminOnboardingPage() {
   }, [])
 
   useEffect(() => {
-    if (selectedOrgId) loadTasks(selectedOrgId)
+    if (selectedOrgId) loadContext(selectedOrgId)
   }, [selectedOrgId])
 
   async function loadOrganizations() {
@@ -94,7 +101,16 @@ export default function AdminOnboardingPage() {
           discovery_completed,
           discovery_review_status,
           discovery_reviewed_at,
-          discovery_review_notes
+          discovery_review_notes,
+          kickoff_status,
+          kickoff_scheduled_for,
+          kickoff_completed_at,
+          support_activated_at,
+          hypercare_status,
+          hypercare_start_at,
+          hypercare_end_at,
+          first_review_scheduled_for,
+          onboarding_handoff_notes
         `)
         .in('client_status', ['lead', 'onboarding', 'active'])
         .order('created_at', { ascending: false })
@@ -112,7 +128,7 @@ export default function AdminOnboardingPage() {
     }
   }
 
-  async function loadTasks(orgId) {
+  async function loadContext(orgId) {
     try {
       const [{ data: taskRows }, { data: contactRows }, { data: accessData }, { data: docRows }] =
         await Promise.all([
@@ -143,7 +159,7 @@ export default function AdminOnboardingPage() {
       setAccessRows(accessData || [])
       setDocuments(docRows || [])
     } catch (err) {
-      console.error('Load tasks error:', err)
+      console.error('Load context error:', err)
       setTasks([])
       setContacts([])
       setAccessRows([])
@@ -160,13 +176,11 @@ export default function AdminOnboardingPage() {
 
       const { error } = await supabase
         .from('onboarding_tasks')
-        .upsert(rows, {
-          onConflict: 'organization_id,task_key',
-        })
+        .upsert(rows, { onConflict: 'organization_id,task_key' })
 
       if (error) throw error
 
-      await loadTasks(selectedOrgId)
+      await loadContext(selectedOrgId)
       await syncOrganizationFromTasks(selectedOrgId)
     } catch (err) {
       console.error('Initialize checklist error:', err)
@@ -178,20 +192,29 @@ export default function AdminOnboardingPage() {
 
   async function updateTask(taskId, updates) {
     setSaving(true)
-
     try {
-      const { error } = await supabase
-        .from('onboarding_tasks')
-        .update(updates)
-        .eq('id', taskId)
-
+      const { error } = await supabase.from('onboarding_tasks').update(updates).eq('id', taskId)
       if (error) throw error
 
-      await loadTasks(selectedOrgId)
+      await loadContext(selectedOrgId)
       await syncOrganizationFromTasks(selectedOrgId)
     } catch (err) {
       console.error('Update task error:', err)
       alert(err.message || 'Failed to update onboarding task')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function updateOrganizationFields(orgId, updates) {
+    setSaving(true)
+    try {
+      const { error } = await supabase.from('organizations').update(updates).eq('id', orgId)
+      if (error) throw error
+      await loadOrganizations()
+    } catch (err) {
+      console.error('Update organization fields error:', err)
+      alert(err.message || 'Failed to update organization')
     } finally {
       setSaving(false)
     }
@@ -218,8 +241,6 @@ export default function AdminOnboardingPage() {
       onboardingStatus = 'in_progress'
     }
 
-    const blockers = readiness.blockers
-
     const primaryContactConfirmed = contacts.some((c) => c.is_primary_contact)
     const approvedAccess = accessRows.filter((row) => row.status === 'approved').length
     const reviewedDocs = documents.filter((doc) => doc.status === 'reviewed').length
@@ -236,7 +257,7 @@ export default function AdminOnboardingPage() {
       .from('organizations')
       .update({
         onboarding_status: onboardingStatus,
-        onboarding_blockers: blockers,
+        onboarding_blockers: readiness.blockers,
         support_ready: readiness.ready,
         primary_contact_confirmed: primaryContactConfirmed,
         access_status: accessStatus,
@@ -255,11 +276,7 @@ export default function AdminOnboardingPage() {
         discovery_reviewed_at: status === 'reviewed' ? new Date().toISOString() : null,
       }
 
-      const { error } = await supabase
-        .from('organizations')
-        .update(payload)
-        .eq('id', orgId)
-
+      const { error } = await supabase.from('organizations').update(payload).eq('id', orgId)
       if (error) throw error
       await loadOrganizations()
     } catch (err) {
@@ -305,6 +322,7 @@ export default function AdminOnboardingPage() {
       }),
     [selectedOrg, tasks, contacts, accessRows, documents]
   )
+  const transition = useMemo(() => deriveTransitionSummary(selectedOrg || {}), [selectedOrg])
 
   const filteredOrganizations = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -503,11 +521,7 @@ export default function AdminOnboardingPage() {
                 </div>
 
                 <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button
-                    onClick={initializeChecklist}
-                    className="admin-btn-small"
-                    disabled={saving}
-                  >
+                  <button onClick={initializeChecklist} className="admin-btn-small" disabled={saving}>
                     {saving ? 'Working...' : tasks.length ? 'Refresh template rows' : 'Initialize checklist'}
                   </button>
 
@@ -518,6 +532,170 @@ export default function AdminOnboardingPage() {
                   >
                     Sync readiness + organization status
                   </button>
+                </div>
+              </div>
+
+              <div className="admin-card" style={{ marginBottom: 20 }}>
+                <div className="admin-card-header">
+                  <h3>Kickoff / handoff / hypercare</h3>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+                  <span className="admin-status-badge" style={{ background: '#eef4ff', color: '#1d4ed8' }}>
+                    Kickoff: {KICKOFF_STATUS_LABELS[selectedOrg.kickoff_status || 'not_scheduled']}
+                  </span>
+                  <span
+                    className="admin-status-badge"
+                    style={{
+                      background: selectedOrg.support_activated_at ? '#ecfdf3' : '#fffaeb',
+                      color: selectedOrg.support_activated_at ? '#067647' : '#b54708',
+                    }}
+                  >
+                    Support: {selectedOrg.support_activated_at ? 'Activated' : 'Not activated'}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                    Hypercare: {HYPERCARE_STATUS_LABELS[selectedOrg.hypercare_status || 'not_started']}
+                  </span>
+                  <span
+                    className="admin-status-badge"
+                    style={{
+                      background: transition.stageLabel.includes('Complete') || transition.stageLabel.includes('Active')
+                        ? '#ecfdf3'
+                        : '#f3f4f6',
+                      color:
+                        transition.stageLabel.includes('Complete') || transition.stageLabel.includes('Active')
+                          ? '#067647'
+                          : '#4b5563',
+                    }}
+                  >
+                    Stage: {transition.stageLabel}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Kickoff scheduled for</label>
+                    <input
+                      type="datetime-local"
+                      defaultValue={toLocalInputValue(selectedOrg.kickoff_scheduled_for)}
+                      onBlur={(e) =>
+                        updateOrganizationFields(selectedOrg.id, {
+                          kickoff_scheduled_for: e.target.value ? new Date(e.target.value).toISOString() : null,
+                          kickoff_status: e.target.value ? 'scheduled' : 'not_scheduled',
+                        })
+                      }
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>First review scheduled for</label>
+                    <input
+                      type="datetime-local"
+                      defaultValue={toLocalInputValue(selectedOrg.first_review_scheduled_for)}
+                      onBlur={(e) =>
+                        updateOrganizationFields(selectedOrg.id, {
+                          first_review_scheduled_for: e.target.value
+                            ? new Date(e.target.value).toISOString()
+                            : null,
+                        })
+                      }
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16, display: 'grid', gap: 8 }}>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Kickoff completed:</strong>{' '}
+                    {formatDateTime(selectedOrg.kickoff_completed_at)}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Support activated:</strong>{' '}
+                    {formatDateTime(selectedOrg.support_activated_at)}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Hypercare start:</strong>{' '}
+                    {formatDateTime(selectedOrg.hypercare_start_at)}
+                  </div>
+                  <div className="admin-table-muted">
+                    <strong style={{ color: '#111827' }}>Hypercare end:</strong>{' '}
+                    {formatDateTime(selectedOrg.hypercare_end_at)}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() =>
+                      updateOrganizationFields(selectedOrg.id, {
+                        kickoff_status: 'scheduled',
+                        kickoff_scheduled_for:
+                          selectedOrg.kickoff_scheduled_for || new Date().toISOString(),
+                      })
+                    }
+                    className="admin-btn-small"
+                    disabled={saving}
+                  >
+                    Mark kickoff scheduled
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      updateOrganizationFields(selectedOrg.id, {
+                        kickoff_status: 'completed',
+                        kickoff_completed_at: new Date().toISOString(),
+                      })
+                    }
+                    className="admin-btn-small"
+                    disabled={saving}
+                  >
+                    Mark kickoff complete
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      updateOrganizationFields(selectedOrg.id, {
+                        client_status: 'active',
+                        onboarding_status: 'completed',
+                        support_ready: true,
+                        support_activated_at: new Date().toISOString(),
+                        hypercare_status: 'active',
+                        hypercare_start_at: new Date().toISOString(),
+                      })
+                    }
+                    className="admin-btn-small"
+                    disabled={saving || !readiness.ready}
+                  >
+                    Activate support + start hypercare
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      updateOrganizationFields(selectedOrg.id, {
+                        hypercare_status: 'completed',
+                        hypercare_end_at: new Date().toISOString(),
+                      })
+                    }
+                    className="admin-btn-small"
+                    disabled={saving}
+                  >
+                    Complete hypercare
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <label style={labelStyle}>Onboarding handoff notes</label>
+                  <textarea
+                    defaultValue={selectedOrg.onboarding_handoff_notes || ''}
+                    onBlur={(e) =>
+                      updateOrganizationFields(selectedOrg.id, {
+                        onboarding_handoff_notes: e.target.value.trim() || null,
+                      })
+                    }
+                    rows={4}
+                    placeholder="Key handoff notes, launch caveats, first-week focus, known risks"
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                  />
                 </div>
               </div>
 
