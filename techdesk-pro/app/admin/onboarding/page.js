@@ -14,6 +14,7 @@ import {
   sortOnboardingTasks,
 } from '../../../lib/onboarding'
 import { deriveContactMatrixSummary } from '../../../lib/contacts'
+import { deriveAccessSummary } from '../../../lib/access'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -60,6 +61,7 @@ export default function AdminOnboardingPage() {
   const [selectedOrgId, setSelectedOrgId] = useState('')
   const [tasks, setTasks] = useState([])
   const [contacts, setContacts] = useState([])
+  const [accessRows, setAccessRows] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
 
@@ -110,7 +112,7 @@ export default function AdminOnboardingPage() {
 
   async function loadTasks(orgId) {
     try {
-      const [{ data: taskRows }, { data: contactRows }] = await Promise.all([
+      const [{ data: taskRows }, { data: contactRows }, { data: accessData }] = await Promise.all([
         supabase
           .from('onboarding_tasks')
           .select('*')
@@ -121,14 +123,21 @@ export default function AdminOnboardingPage() {
           .select('*')
           .eq('organization_id', orgId)
           .order('created_at', { ascending: true }),
+        supabase
+          .from('organization_access_requests')
+          .select('*')
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: false }),
       ])
 
       setTasks(sortOnboardingTasks(taskRows || []))
       setContacts(contactRows || [])
+      setAccessRows(accessData || [])
     } catch (err) {
       console.error('Load tasks error:', err)
       setTasks([])
       setContacts([])
+      setAccessRows([])
     }
   }
 
@@ -254,6 +263,7 @@ export default function AdminOnboardingPage() {
   const summary = useMemo(() => deriveOnboardingSummary(tasks), [tasks])
   const grouped = useMemo(() => groupOnboardingTasks(tasks), [tasks])
   const contactSummary = useMemo(() => deriveContactMatrixSummary(contacts), [contacts])
+  const accessSummary = useMemo(() => deriveAccessSummary(accessRows), [accessRows])
 
   const filteredOrganizations = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -277,7 +287,7 @@ export default function AdminOnboardingPage() {
         <div>
           <h1 className="admin-page-title">Onboarding</h1>
           <p className="admin-page-desc">
-            Manage onboarding checklists, discovery review, contacts, blockers, and transition progress from lead to active support.
+            Manage onboarding checklists, discovery review, contacts, access, blockers, and transition progress from lead to active support.
           </p>
         </div>
       </div>
@@ -408,8 +418,8 @@ export default function AdminOnboardingPage() {
                     <a href="/admin/clients" className="admin-btn-small">
                       Open clients
                     </a>
-                    <a href="/admin/contacts" className="admin-btn-small">
-                      Open contacts
+                    <a href="/admin/access" className="admin-btn-small">
+                      Open access
                     </a>
                   </div>
                 </div>
@@ -510,6 +520,45 @@ export default function AdminOnboardingPage() {
                       <div key={contact.id} className="admin-table-muted">
                         <strong style={{ color: '#111827' }}>{contact.full_name}</strong> · {contact.email || '—'} ·{' '}
                         {contact.role_type}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-card" style={{ marginBottom: 20 }}>
+                <div className="admin-card-header">
+                  <h3>Access workflow</h3>
+                  <a href="/admin/access" className="admin-btn-small">
+                    Manage access
+                  </a>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
+                    Total: {accessSummary.total}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#eef4ff', color: '#1d4ed8' }}>
+                    Submitted: {accessSummary.submitted}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#fff7ed', color: '#9a3412' }}>
+                    Under review: {accessSummary.underReview}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#ecfdf3', color: '#067647' }}>
+                    Approved: {accessSummary.approved}
+                  </span>
+                  <span className="admin-status-badge" style={{ background: '#fef3f2', color: '#b42318' }}>
+                    Follow-up: {accessSummary.needsFollowup}
+                  </span>
+                </div>
+
+                {accessRows.length === 0 ? (
+                  <div className="admin-empty-text">No access items added yet.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {accessRows.map((row) => (
+                      <div key={row.id} className="admin-table-muted">
+                        <strong style={{ color: '#111827' }}>{row.platform_name}</strong> · {row.access_method} · {row.status}
                       </div>
                     ))}
                   </div>
