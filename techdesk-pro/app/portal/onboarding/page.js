@@ -14,6 +14,12 @@ import {
 } from '../../../lib/onboarding'
 import { deriveContactMatrixSummary } from '../../../lib/contacts'
 import { deriveAccessSummary } from '../../../lib/access'
+import {
+  deriveTransitionSummary,
+  formatDateTime,
+  HYPERCARE_STATUS_LABELS,
+  KICKOFF_STATUS_LABELS,
+} from '../../../lib/transition'
 
 const supabase = createClient()
 
@@ -120,6 +126,7 @@ export default function PortalOnboardingPage() {
   const discoveryReviewed = org?.discovery_review_status === 'reviewed'
   const contactSummary = useMemo(() => deriveContactMatrixSummary(contacts), [contacts])
   const accessSummary = useMemo(() => deriveAccessSummary(accessRows), [accessRows])
+  const transition = useMemo(() => deriveTransitionSummary(org || {}), [org])
 
   if (loading) {
     return <div className="portal-page-loading">Loading onboarding checklist...</div>
@@ -188,6 +195,82 @@ export default function PortalOnboardingPage() {
 
       <div className="dashboard-section" style={{ marginBottom: 20 }}>
         <div className="dashboard-section-header">
+          <h2>Kickoff and launch plan</h2>
+        </div>
+
+        <div className="dashboard-stats">
+          <div className="stat-card">
+            <div className="stat-card-value" style={{ fontSize: '1rem' }}>
+              {KICKOFF_STATUS_LABELS[org?.kickoff_status || 'not_scheduled']}
+            </div>
+            <div className="stat-card-label">Kickoff</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-value" style={{ fontSize: '1rem' }}>
+              {transition.activated ? 'Live' : 'Pending'}
+            </div>
+            <div className="stat-card-label">Support activation</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-value" style={{ fontSize: '1rem' }}>
+              {HYPERCARE_STATUS_LABELS[org?.hypercare_status || 'not_started']}
+            </div>
+            <div className="stat-card-label">Hypercare</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-card-value" style={{ fontSize: '1rem' }}>
+              {transition.stageLabel}
+            </div>
+            <div className="stat-card-label">Current transition stage</div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>Kickoff scheduled:</strong>{' '}
+            {formatDateTime(org?.kickoff_scheduled_for)}
+          </div>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>Kickoff completed:</strong>{' '}
+            {formatDateTime(org?.kickoff_completed_at)}
+          </div>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>Support activated:</strong>{' '}
+            {formatDateTime(org?.support_activated_at)}
+          </div>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>Hypercare start:</strong>{' '}
+            {formatDateTime(org?.hypercare_start_at)}
+          </div>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>Hypercare end:</strong>{' '}
+            {formatDateTime(org?.hypercare_end_at)}
+          </div>
+          <div className="admin-table-muted">
+            <strong style={{ color: '#111827' }}>First review scheduled:</strong>{' '}
+            {formatDateTime(org?.first_review_scheduled_for)}
+          </div>
+        </div>
+
+        {org?.onboarding_handoff_notes ? (
+          <div
+            style={{
+              marginTop: 14,
+              background: '#fafaf8',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: '14px 16px',
+              color: 'var(--ink-muted)',
+              fontSize: '0.88rem',
+            }}
+          >
+            <strong style={{ color: '#111827' }}>Handoff notes:</strong> {org.onboarding_handoff_notes}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="dashboard-section" style={{ marginBottom: 20 }}>
+        <div className="dashboard-section-header">
           <h2>Onboarding overview</h2>
         </div>
 
@@ -219,9 +302,7 @@ export default function PortalOnboardingPage() {
             <h2>Contact matrix needed</h2>
           </div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Kocre IT still needs your primary support contact and escalation contacts before onboarding can be fully validated.
-            </p>
+            <p>Kocre IT still needs your primary support contact and escalation contacts before onboarding can be fully validated.</p>
           </div>
         </div>
       )}
@@ -232,9 +313,7 @@ export default function PortalOnboardingPage() {
             <h2>Discovery questionnaire needed</h2>
           </div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Kocre IT still needs your structured environment details before support can be fully validated.
-            </p>
+            <p>Kocre IT still needs your structured environment details before support can be fully validated.</p>
           </div>
         </div>
       )}
@@ -245,9 +324,7 @@ export default function PortalOnboardingPage() {
             <h2>Access items needed</h2>
           </div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Kocre IT still needs your platform access details before support reach can be validated.
-            </p>
+            <p>Kocre IT still needs your platform access details before support reach can be validated.</p>
           </div>
         </div>
       )}
@@ -285,9 +362,7 @@ export default function PortalOnboardingPage() {
             <h2>Checklist</h2>
           </div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Your onboarding checklist has not been initialized yet. Kocre IT will set it up as part of your onboarding project.
-            </p>
+            <p>Your onboarding checklist has not been initialized yet. Kocre IT will set it up as part of your onboarding project.</p>
           </div>
         </div>
       ) : (
@@ -367,9 +442,7 @@ export default function PortalOnboardingPage() {
             <h2>Support launch status</h2>
           </div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Your account is marked support-ready. You can continue using the portal for tickets, documents, and account updates.
-            </p>
+            <p>Your account is marked support-ready. You can continue using the portal for tickets, documents, and account updates.</p>
           </div>
         </div>
       ) : null}
