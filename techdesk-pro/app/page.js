@@ -60,7 +60,7 @@ const PLANS = [
       'Client portal access',
       'First response within 1 business day',
     ],
-    cta: 'Book Free Assessment',
+    cta: 'Start Free Assessment',
     featured: false,
   },
   {
@@ -76,7 +76,7 @@ const PLANS = [
       'Monthly review call',
       'First response within 4 business hours',
     ],
-    cta: 'Start with Growth',
+    cta: 'Find Your Fit',
     featured: true,
   },
   {
@@ -93,7 +93,7 @@ const PLANS = [
       'Strategic check-ins',
       'First response within 2 business hours',
     ],
-    cta: 'Talk About Scale',
+    cta: 'Request Guided Review',
     featured: false,
   },
 ]
@@ -138,9 +138,18 @@ const TOOLS = [
 
 const HERO_POINTS = [
   { title: 'Business-hours support', desc: 'Monday–Friday, 9:00 AM–6:00 PM ET' },
-  { title: 'Remote-only model', desc: 'Built for U.S. small businesses that need practical technical support without an internal IT team' },
-  { title: 'Clear scope boundaries', desc: 'Standard support and larger project work are defined separately' },
-  { title: 'Human-supervised AI', desc: 'AI helps speed up workflows, but human oversight remains part of delivery' },
+  {
+    title: 'Remote-only model',
+    desc: 'Built for U.S. small businesses that need practical technical support without an internal IT team',
+  },
+  {
+    title: 'Fit-first onboarding',
+    desc: 'Assessment, signup, onboarding, and support activation are intentionally separated',
+  },
+  {
+    title: 'Human-supervised AI',
+    desc: 'AI helps speed up workflows, but human oversight remains part of delivery',
+  },
 ]
 
 const BEST_FIT = [
@@ -158,18 +167,18 @@ const STEPS = [
   },
   {
     n: '02',
-    t: 'Get a Clear Recommendation',
-    d: 'We recommend the right support path based on team size, support volume, and complexity.',
+    t: 'Get a Fit Recommendation',
+    d: 'We recommend the right support path based on team size, support volume, urgency, and operational complexity.',
   },
   {
     n: '03',
-    t: 'Onboard Your Team',
-    d: 'We align on access, support scope, communication flow, and the platforms that will be supported.',
+    t: 'Create Your Portal Workspace',
+    d: 'Signup reserves your onboarding workspace so contacts, access, documents, and readiness can be tracked properly.',
   },
   {
     n: '04',
-    t: 'Use Support as Needed',
-    d: 'Submit routine support requests through the portal and keep your day-to-day operations moving.',
+    t: 'Complete Onboarding Before Activation',
+    d: 'Support goes live only after fit, scope, readiness, and handoff are actually confirmed.',
   },
 ]
 
@@ -181,13 +190,13 @@ const ASSESSMENT_FLOW = [
   },
   {
     n: '02',
-    t: 'We recommend the right support path',
-    d: 'You get a sensible recommendation instead of being pushed into the biggest plan.',
+    t: 'We recommend the right path',
+    d: 'You get a practical recommendation instead of being pushed into the biggest monthly plan by default.',
   },
   {
     n: '03',
-    t: 'You decide whether to move forward',
-    d: 'No-pressure next step. Move ahead only if the scope and approach make sense for your business.',
+    t: 'You move forward only if it fits',
+    d: 'No-pressure next step. Good-fit businesses continue into signup and onboarding; edge cases go to guided review.',
   },
 ]
 
@@ -212,7 +221,7 @@ const FOUNDER_PROOF = [
   },
   {
     title: 'Platform-minded operations',
-    desc: 'The business is designed around actual workflows — tickets, portal access, documents, and operational visibility — not just marketing copy.',
+    desc: 'The business is designed around actual workflows — tickets, portal access, onboarding, launch discipline, documents, and operational visibility — not just marketing copy.',
   },
   {
     title: 'Practical over performative',
@@ -241,7 +250,9 @@ export default function Home() {
       <nav className={`nav ${scrolled ? 'scrolled' : ''}`}>
         <div className="nav-inner">
           <div className="logo">
-            <div className="logo-mark"><BrandMark /></div>
+            <div className="logo-mark">
+              <BrandMark />
+            </div>
             Kocre IT Services
           </div>
 
@@ -265,7 +276,10 @@ export default function Home() {
             >
               Client Portal
             </a>
-            <button className="nav-cta" onClick={() => scrollTo('contact')}>
+            <button
+              className="nav-cta"
+              onClick={() => window.location.assign('/free-assessment')}
+            >
               Free Assessment
             </button>
           </div>
@@ -293,7 +307,7 @@ export default function Home() {
           <button
             className="nav-cta"
             style={{ textAlign: 'center', marginTop: 8 }}
-            onClick={() => scrollTo('contact')}
+            onClick={() => window.location.assign('/free-assessment')}
           >
             Free Assessment
           </button>
@@ -310,17 +324,23 @@ export default function Home() {
             </h1>
 
             <p className="hero-desc">
-              Kocre IT Services helps small businesses handle day-to-day technical support, user issues,
-              and cloud administration without hiring a full internal IT team — with AI-assisted
-              workflows, human oversight, and clear service boundaries.
+              Kocre IT Services helps small businesses handle day-to-day technical support, user
+              issues, and cloud administration without hiring a full internal IT team — with
+              AI-assisted workflows, human oversight, and a fit-first onboarding process.
             </p>
 
             <div className="hero-btns">
-              <button className="btn-primary" onClick={() => scrollTo('contact')}>
+              <button
+                className="btn-primary"
+                onClick={() => window.location.assign('/free-assessment')}
+              >
                 Request Free Assessment →
               </button>
-              <button className="btn-secondary" onClick={() => scrollTo('services')}>
-                See Services
+              <button
+                className="btn-secondary"
+                onClick={() => window.location.assign('/pilot')}
+              >
+                Review Pilot Path
               </button>
             </div>
 
@@ -333,14 +353,14 @@ export default function Home() {
                 maxWidth: 560,
               }}
             >
-              Need help with support scope details instead?{' '}
+              Need scope clarity first?{' '}
               <a
                 href="/support-transparency"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: 'var(--teal)', fontWeight: 600, textDecoration: 'none' }}
               >
-                View Support Scope
+                Review Support Scope
               </a>
               .
             </div>
@@ -348,7 +368,7 @@ export default function Home() {
 
           <div className="hero-visual">
             <div className="section-tag" style={{ marginBottom: 16 }}>
-              How Kocre IT Services Works
+              How Kocre IT Works
             </div>
 
             <div className="stats-grid">
@@ -396,7 +416,9 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center', marginBottom: 32 }}>
             <div className="section-tag">Best Fit</div>
-            <h2 className="section-title">Built for businesses that need practical support without full-time internal IT.</h2>
+            <h2 className="section-title">
+              Built for businesses that need practical support without full-time internal IT.
+            </h2>
           </div>
 
           <div
@@ -437,7 +459,9 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header">
             <div className="section-tag">Core Services</div>
-            <h2 className="section-title">Remote support for the systems your business depends on.</h2>
+            <h2 className="section-title">
+              Remote support for the systems your business depends on.
+            </h2>
             <p className="section-desc">
               Kocre IT Services is focused on remote IT support, cloud administration, and routine
               technical help for small businesses that need dependable support without building a
@@ -475,10 +499,13 @@ export default function Home() {
       <section className="section section-alt">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <div className="section-tag">How It Works</div>
-          <h2 className="section-title">A simple support path from assessment to ongoing help.</h2>
+          <h2 className="section-title">
+            A simple support path from assessment to activation.
+          </h2>
           <p className="section-desc" style={{ margin: '12px auto 0' }}>
-            We keep the process straightforward: assess the environment, recommend the right support
-            path, onboard carefully, and define where standard support ends and larger scoped work begins.
+            We keep the process straightforward: assess the environment, recommend the right
+            support path, reserve the client workspace, and complete onboarding before support goes
+            live.
           </p>
 
           <div className="steps">
@@ -497,10 +524,12 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">What Happens Next</div>
-            <h2 className="section-title">A free assessment is a conversation, not a trap.</h2>
+            <h2 className="section-title">
+              A free assessment is a fit review, not a pressure funnel.
+            </h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              The goal is to understand your setup, recommend the most sensible support path, and let you
-              decide whether moving forward makes sense.
+              The goal is to understand your setup, recommend the most sensible support path, and
+              let you decide whether moving forward makes sense.
             </p>
           </div>
 
@@ -519,26 +548,30 @@ export default function Home() {
       <section className="section section-alt">
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
-            <div className="section-tag">Need Build Work Instead?</div>
-            <h2 className="section-title">Support scope stays focused on remote IT and cloud/SaaS operations.</h2>
+            <div className="section-tag">Know the Boundary</div>
+            <h2 className="section-title">
+              Standard support is focused. Larger projects are scoped separately.
+            </h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              TechDesk Pro focuses on remote IT support requests, cloud/SaaS admin work, and lifecycle-aware client support operations.
+              Kocre IT is built for remote IT support requests, cloud/SaaS admin work, and
+              lifecycle-aware client support operations — not every kind of technical project under
+              the sun.
             </p>
           </div>
 
           <div className="pricing-grid" style={{ maxWidth: 720, margin: '0 auto' }}>
             <div className="plan featured">
-              <div className="plan-badge">Related Service</div>
-              <div className="plan-name">Support Scope Policy</div>
+              <div className="plan-badge">Scope Policy</div>
+              <div className="plan-name">Review Service Boundaries</div>
               <div className="plan-desc">
-                Support operations guidance for businesses that
-                need implementation work instead of remote IT support.
+                Use the support scope page to see what fits standard support and what should be
+                handled as separate project work.
               </div>
               <ul className="plan-features">
-                <li>Website design & builds</li>
-                <li>Major migrations and implementations</li>
-                <li>Structured project work outside routine support</li>
-                <li>Project-based implementation work</li>
+                <li>Routine remote support is standard</li>
+                <li>Major migrations are scoped separately</li>
+                <li>Implementations are not assumed inside monthly support</li>
+                <li>Activation follows onboarding and fit review</li>
               </ul>
               <a
                 href="/support-transparency"
@@ -557,17 +590,20 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Pricing</div>
-            <h2 className="section-title">Simple monthly remote support for growing businesses.</h2>
+            <h2 className="section-title">
+              Simple monthly remote support for growing businesses.
+            </h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              Choose the plan that fits your team size and support needs. Standard remote support is billed
-              monthly. Larger projects, migrations, and major remediation are scoped separately.
+              Choose the plan that fits your team size and support needs. Standard remote support
+              is billed monthly. Larger projects, migrations, and major remediation are scoped
+              separately.
             </p>
           </div>
 
           <div className="pricing-grid">
             {PLANS.map((plan, i) => (
               <div key={i} className={`plan ${plan.featured ? 'featured' : ''}`}>
-                {plan.featured && <div className="plan-badge">Most Popular</div>}
+                {plan.featured && <div className="plan-badge">Most Practical Fit</div>}
 
                 <div className="plan-name">{plan.name}</div>
                 <div className="plan-desc">{plan.desc}</div>
@@ -600,7 +636,7 @@ export default function Home() {
 
                 <button
                   className={`plan-btn ${plan.featured ? 'plan-btn-primary' : 'plan-btn-outline'}`}
-                  onClick={() => scrollTo('contact')}
+                  onClick={() => window.location.assign('/free-assessment')}
                 >
                   {plan.cta}
                 </button>
@@ -609,10 +645,12 @@ export default function Home() {
           </div>
 
           <p className="pricing-note">
-            Not sure which plan fits? Start with a free assessment and we’ll recommend the most sensible support path.
+            Not sure which plan fits? Start with a free assessment and we’ll recommend the most
+            sensible support path.
           </p>
           <p className="pricing-note" style={{ marginTop: 8 }}>
-            Major implementation projects are not part of TechDesk Pro&apos;s standard support scope.
+            Final support scope is confirmed through review and onboarding, not by pricing page
+            assumptions alone.
           </p>
         </div>
       </section>
@@ -621,10 +659,13 @@ export default function Home() {
         <div className="section-inner">
           <div className="section-header" style={{ textAlign: 'center' }}>
             <div className="section-tag">Why This Approach</div>
-            <h2 className="section-title">Founder-led, platform-minded, and built around real support operations.</h2>
+            <h2 className="section-title">
+              Founder-led, platform-minded, and built around real support operations.
+            </h2>
             <p className="section-desc" style={{ margin: '12px auto 0' }}>
-              Kocre IT Services is being built as an actual support platform — not just a sales page —
-              with client access, admin workflows, documents, and AI-assisted support systems behind it.
+              Kocre IT Services is being built as an actual support platform — not just a sales page
+              — with client access, admin workflows, onboarding discipline, documents, and
+              AI-assisted support systems behind it.
             </p>
           </div>
 
@@ -654,15 +695,15 @@ export default function Home() {
 
               <p>
                 Kocre IT Services is a remote-only support business built to help small businesses
-                manage day-to-day technical issues, user support, and cloud tools without hiring
-                a full internal IT team.
+                manage day-to-day technical issues, user support, and cloud tools without hiring a
+                full internal IT team.
               </p>
 
               <p className="muted">
-                The approach is practical: clear monthly plans, honest service boundaries, AI-assisted
-                workflows where helpful, and human oversight throughout delivery. The goal is not to
-                sound bigger than reality — it is to provide structured, dependable support that businesses
-                can actually use.
+                The approach is practical: clear monthly plans, honest service boundaries,
+                AI-assisted workflows where helpful, and human oversight throughout delivery. The
+                goal is not to sound bigger than reality — it is to provide structured, dependable
+                support that businesses can actually use.
               </p>
 
               <div className="about-features">
@@ -699,8 +740,8 @@ export default function Home() {
                   lineHeight: 1.7,
                 }}
               >
-                Public metrics are intentionally conservative. Where performance data is not yet backed
-                by real client history, the site prioritizes process clarity over inflated claims.
+                Public claims are intentionally conservative. Where performance history is still
+                being built, the site prioritizes process clarity over inflated promises.
               </div>
             </div>
           </div>
@@ -730,7 +771,7 @@ export default function Home() {
 
       <section id="contact" className="cta-section">
         <div className="cta-card">
-          <h2>Ready to improve your remote support operations?</h2>
+          <h2>Ready to see whether Kocre IT is the right support fit?</h2>
           <p>
             Start with a free assessment. We’ll review your current support needs, tools, and
             operational pain points, then recommend the most sensible next step.
@@ -743,15 +784,18 @@ export default function Home() {
             >
               Start Free Assessment
             </button>
-            <a href="mailto:hello@techdeskpro.com" className="cta-btn-ghost">
-              Send an Email
-            </a>
+            <button
+              className="cta-btn-ghost"
+              onClick={() => window.location.assign('/pilot')}
+            >
+              Review Pilot Path
+            </button>
           </div>
 
           <div className="cta-info">
             <span>Remote-only, U.S. small businesses</span>
-            <span>hello@techdeskpro.com</span>
             <span>Mon–Fri, 9am–6pm ET</span>
+            <span>Onboarding required before activation</span>
           </div>
         </div>
       </section>
@@ -775,13 +819,10 @@ export default function Home() {
               </a>
             ))}
             <a href="/support-transparency">Support &amp; AI Transparency</a>
+            <a href="/pilot">Pilot Path</a>
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>
-            <a
-              href="/support-transparency"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/support-transparency" target="_blank" rel="noopener noreferrer">
               Support Scope
             </a>
             <a href="/login" style={{ color: 'var(--teal)' }}>
@@ -789,7 +830,9 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="footer-copy">© 2026 Kocre IT Services. Remote-only, based in Virginia.</div>
+          <div className="footer-copy">
+            © 2026 Kocre IT Services. Remote-only, based in Virginia.
+          </div>
         </div>
       </footer>
     </main>
