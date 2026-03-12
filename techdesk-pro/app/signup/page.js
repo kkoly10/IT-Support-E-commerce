@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -50,7 +50,17 @@ export default function SignupPage() {
     if (seedAssessment) setAssessmentId(seedAssessment)
   }, [])
 
-  const handleSignup = async (e) => {
+  const introTitle = useMemo(() => {
+    return assessmentId ? 'Continue from your assessment' : 'Create your account'
+  }, [assessmentId])
+
+  const introDesc = useMemo(() => {
+    return assessmentId
+      ? 'Reserve your onboarding workspace so Kocre IT can connect your assessment, signup, and onboarding flow.'
+      : 'Get started with Kocre IT remote support intake.'
+  }, [assessmentId])
+
+  async function handleSignup(e) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -120,27 +130,14 @@ export default function SignupPage() {
       return
     }
 
-
-    if (assessmentId) {
-      await fetch('/api/assessment/link-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId, organizationId: org.id }),
-      }).catch((err) => {
-        console.error('Failed to link assessment to organization:', err)
-      })
-    }
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: userId,
-        email,
-        full_name: trimmedFullName,
-        organization_id: org.id,
-        role: 'client',
-        is_primary_contact: true,
-      })
+    const { error: profileError } = await supabase.from('profiles').insert({
+      id: userId,
+      email,
+      full_name: trimmedFullName,
+      organization_id: org.id,
+      role: 'client',
+      is_primary_contact: true,
+    })
 
     if (profileError) {
       setError('Account created but profile setup failed: ' + profileError.message)
@@ -170,17 +167,40 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="auth-page">
-        <div className="auth-card">
+        <div className="auth-card" style={{ maxWidth: 560 }}>
           <div className="auth-header">
             <div className="auth-success-icon">✓</div>
             <h1>Check your email</h1>
             <p>
               We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
             </p>
-            <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem', marginTop: 12 }}>
-              Your account has been created in lead status for Kocre IT Services&apos;s remote support intake.
-              We&apos;ll use your information to guide onboarding and next steps.
-            </p>
+
+            <div
+              style={{
+                marginTop: 16,
+                padding: '14px 16px',
+                borderRadius: 12,
+                border: '1px solid var(--border)',
+                background: '#fafaf8',
+                textAlign: 'left',
+                fontSize: '0.9rem',
+                color: 'var(--ink-muted)',
+                lineHeight: 1.7,
+              }}
+            >
+              <div>
+                <strong style={{ color: 'var(--ink)' }}>What happens next</strong>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                Your workspace has been created in lead status so Kocre IT can connect your assessment,
+                onboarding checklist, and support-readiness review before activation.
+              </div>
+              {assessmentId ? (
+                <div style={{ marginTop: 8 }}>
+                  Assessment reference linked: <strong style={{ color: 'var(--ink)' }}>{assessmentId}</strong>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className="auth-footer">
@@ -193,7 +213,7 @@ export default function SignupPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card" style={{ maxWidth: step === 2 ? 520 : 440 }}>
+      <div className="auth-card" style={{ maxWidth: step === 2 ? 560 : 460 }}>
         <div className="auth-header">
           <a href="/" className="auth-logo">
             <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
@@ -202,12 +222,31 @@ export default function SignupPage() {
             <span>Kocre IT Services</span>
           </a>
 
-          <h1>{step === 1 ? 'Create your account' : 'Tell us about your support needs'}</h1>
+          <h1>{step === 1 ? introTitle : 'Tell us about your support needs'}</h1>
           <p>
             {step === 1
-              ? 'Get started with remote IT support intake'
-              : 'This helps us qualify your business for remote IT and cloud support'}
+              ? introDesc
+              : 'This helps us qualify the right onboarding and support path for your business.'}
           </p>
+
+          {assessmentId ? (
+            <div
+              style={{
+                marginTop: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: '#eef4ff',
+                color: '#1d4ed8',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+              }}
+            >
+              Assessment linked: {assessmentId}
+            </div>
+          ) : null}
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
             {[1, 2].map((s) => (
@@ -226,7 +265,14 @@ export default function SignupPage() {
         </div>
 
         <form
-          onSubmit={step === 1 ? (e) => { e.preventDefault(); setStep(2) } : handleSignup}
+          onSubmit={
+            step === 1
+              ? (e) => {
+                  e.preventDefault()
+                  setStep(2)
+                }
+              : handleSignup
+          }
           className="auth-form"
         >
           {error && <div className="auth-error">{error}</div>}
@@ -336,14 +382,30 @@ export default function SignupPage() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="painPoints">What&apos;s your biggest support challenge right now? (optional)</label>
+                <label htmlFor="painPoints">Biggest support challenge right now (optional)</label>
                 <textarea
                   id="painPoints"
                   value={painPoints}
                   onChange={(e) => setPainPoints(e.target.value)}
-                  placeholder="e.g. We need help handling remote IT issues, user account problems, Microsoft 365 or Google Workspace admin tasks, and routine technical support."
+                  placeholder="What is causing the most recurring support friction today?"
                   rows={3}
                 />
+              </div>
+
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  background: '#fafaf8',
+                  border: '1px solid var(--border)',
+                  fontSize: '0.84rem',
+                  color: 'var(--ink-muted)',
+                  lineHeight: 1.7,
+                  marginBottom: 6,
+                }}
+              >
+                This signup reserves your Kocre IT workspace. Final support scope, onboarding sequence,
+                and activation are confirmed through review — not by signup alone.
               </div>
 
               <div style={{ display: 'flex', gap: 12 }}>
@@ -370,11 +432,6 @@ export default function SignupPage() {
                   {loading ? 'Creating account...' : 'Create Account'}
                 </button>
               </div>
-
-              <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
-                This creates a Kocre IT Services portal account in lead status. Final support scope, onboarding,
-                and service terms are determined through review and onboarding — not by this signup form alone.
-              </p>
             </>
           )}
         </form>
@@ -383,7 +440,9 @@ export default function SignupPage() {
           <p>
             Already have an account? <Link href="/login">Sign in</Link>
           </p>
-          <a href="/" className="auth-back">← Back to website</a>
+          <a href="/" className="auth-back">
+            ← Back to website
+          </a>
         </div>
       </div>
     </div>
