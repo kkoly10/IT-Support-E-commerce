@@ -15,6 +15,7 @@ import {
 } from '../../../lib/onboarding'
 import { deriveContactMatrixSummary } from '../../../lib/contacts'
 import { deriveAccessSummary } from '../../../lib/access'
+import { deriveSupportReadiness } from '../../../lib/readiness'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -62,6 +63,7 @@ export default function AdminOnboardingPage() {
   const [tasks, setTasks] = useState([])
   const [contacts, setContacts] = useState([])
   const [accessRows, setAccessRows] = useState([])
+  const [documents, setDocuments] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
   const [search, setSearch] = useState('')
 
@@ -112,32 +114,40 @@ export default function AdminOnboardingPage() {
 
   async function loadTasks(orgId) {
     try {
-      const [{ data: taskRows }, { data: contactRows }, { data: accessData }] = await Promise.all([
-        supabase
-          .from('onboarding_tasks')
-          .select('*')
-          .eq('organization_id', orgId)
-          .order('sort_order', { ascending: true }),
-        supabase
-          .from('organization_contacts')
-          .select('*')
-          .eq('organization_id', orgId)
-          .order('created_at', { ascending: true }),
-        supabase
-          .from('organization_access_requests')
-          .select('*')
-          .eq('organization_id', orgId)
-          .order('created_at', { ascending: false }),
-      ])
+      const [{ data: taskRows }, { data: contactRows }, { data: accessData }, { data: docRows }] =
+        await Promise.all([
+          supabase
+            .from('onboarding_tasks')
+            .select('*')
+            .eq('organization_id', orgId)
+            .order('sort_order', { ascending: true }),
+          supabase
+            .from('organization_contacts')
+            .select('*')
+            .eq('organization_id', orgId)
+            .order('created_at', { ascending: true }),
+          supabase
+            .from('organization_access_requests')
+            .select('*')
+            .eq('organization_id', orgId)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('organization_documents')
+            .select('*')
+            .eq('organization_id', orgId)
+            .order('created_at', { ascending: false }),
+        ])
 
       setTasks(sortOnboardingTasks(taskRows || []))
       setContacts(contactRows || [])
       setAccessRows(accessData || [])
+      setDocuments(docRows || [])
     } catch (err) {
       console.error('Load tasks error:', err)
       setTasks([])
       setContacts([])
       setAccessRows([])
+      setDocuments([])
     }
   }
 
@@ -188,29 +198,49 @@ export default function AdminOnboardingPage() {
   }
 
   async function syncOrganizationFromTasks(orgId) {
-    const { data: currentTasks } = await supabase
-      .from('onboarding_tasks')
-      .select('*')
-      .eq('organization_id', orgId)
+    const selected = organizations.find((org) => org.id === orgId) || {}
+    const readiness = deriveSupportReadiness({
+      organization: selected,
+      tasks,
+      contacts,
+      accessRows,
+      documents,
+    })
 
-    const rows = currentTasks || []
-    const blocked = rows.filter((task) => task.status === 'blocked')
-    const done = rows.filter((task) => task.status === 'done').length
-    const total = rows.length
+    const blocked = tasks.filter((task) => task.status === 'blocked')
+    const done = tasks.filter((task) => task.status === 'done').length
+    const total = tasks.length
 
     let onboardingStatus = 'not_started'
     if (blocked.length > 0) onboardingStatus = 'blocked'
     else if (done === total && total > 0) onboardingStatus = 'completed'
-    else if (rows.some((task) => task.status === 'in_progress' || task.status === 'done'))
+    else if (tasks.some((task) => task.status === 'in_progress' || task.status === 'done')) {
       onboardingStatus = 'in_progress'
+    }
 
-    const blockers = blocked.map((task) => task.title)
+    const blockers = readiness.blockers
+
+    const primaryContactConfirmed = contacts.some((c) => c.is_primary_contact)
+    const approvedAccess = accessRows.filter((row) => row.status === 'approved').length
+    const reviewedDocs = documents.filter((doc) => doc.status === 'reviewed').length
+
+    let accessStatus = 'not_started'
+    if (accessRows.length > 0 && approvedAccess === 0) accessStatus = 'partially_received'
+    if (approvedAccess > 0) accessStatus = 'ready'
+
+    let documentationStatus = 'not_started'
+    if (documents.length > 0 && reviewedDocs === 0) documentationStatus = 'partially_received'
+    if (reviewedDocs > 0) documentationStatus = 'complete'
 
     await supabase
       .from('organizations')
       .update({
         onboarding_status: onboardingStatus,
         onboarding_blockers: blockers,
+        support_ready: readiness.ready,
+        primary_contact_confirmed: primaryContactConfirmed,
+        access_status: accessStatus,
+        documentation_status: documentationStatus,
       })
       .eq('id', orgId)
 
@@ -264,6 +294,17 @@ export default function AdminOnboardingPage() {
   const grouped = useMemo(() => groupOnboardingTasks(tasks), [tasks])
   const contactSummary = useMemo(() => deriveContactMatrixSummary(contacts), [contacts])
   const accessSummary = useMemo(() => deriveAccessSummary(accessRows), [accessRows])
+  const readiness = useMemo(
+    () =>
+      deriveSupportReadiness({
+        organization: selectedOrg || {},
+        tasks,
+        contacts,
+        accessRows,
+        documents,
+      }),
+    [selectedOrg, tasks, contacts, accessRows, documents]
+  )
 
   const filteredOrganizations = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -377,11 +418,11 @@ export default function AdminOnboardingPage() {
                       <span
                         className="admin-status-badge"
                         style={{
-                          background: org.discovery_completed ? '#eef4ff' : '#fffaeb',
-                          color: org.discovery_completed ? '#1d4ed8' : '#b54708',
+                          background: org.support_ready ? '#ecfdf3' : '#fffaeb',
+                          color: org.support_ready ? '#067647' : '#b54708',
                         }}
                       >
-                        Discovery: {org.discovery_completed ? org.discovery_review_status || 'pending_review' : 'missing'}
+                        {org.support_ready ? 'Support ready' : 'Not ready'}
                       </span>
                       <span
                         className="admin-status-badge"
@@ -453,11 +494,11 @@ export default function AdminOnboardingPage() {
                   <span
                     className="admin-status-badge"
                     style={{
-                      background: selectedOrg.support_ready ? '#ecfdf3' : '#fffaeb',
-                      color: selectedOrg.support_ready ? '#067647' : '#b54708',
+                      background: readiness.ready ? '#ecfdf3' : '#fffaeb',
+                      color: readiness.ready ? '#067647' : '#b54708',
                     }}
                   >
-                    Support ready: {selectedOrg.support_ready ? 'Yes' : 'No'}
+                    Readiness: {readiness.percent}%
                   </span>
                 </div>
 
@@ -473,10 +514,39 @@ export default function AdminOnboardingPage() {
                   <button
                     onClick={() => syncOrganizationFromTasks(selectedOrg.id)}
                     className="admin-btn-small"
-                    disabled={saving || !tasks.length}
+                    disabled={saving}
                   >
-                    Sync organization status
+                    Sync readiness + organization status
                   </button>
+                </div>
+              </div>
+
+              <div className="admin-card" style={{ marginBottom: 20 }}>
+                <div className="admin-card-header">
+                  <h3>Support-ready gate</h3>
+                </div>
+
+                <div style={{ marginBottom: 14 }}>
+                  <span
+                    className="admin-status-badge"
+                    style={{
+                      background: readiness.ready ? '#ecfdf3' : '#fffaeb',
+                      color: readiness.ready ? '#067647' : '#b54708',
+                    }}
+                  >
+                    {readiness.ready ? 'Ready for support' : 'Not ready for support'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {readiness.checks.map((check) => (
+                    <div key={check.key} className="admin-table-muted">
+                      <strong style={{ color: check.passed ? '#067647' : '#b42318' }}>
+                        {check.passed ? '✓' : '✗'}
+                      </strong>{' '}
+                      {check.label}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -511,19 +581,6 @@ export default function AdminOnboardingPage() {
                     Emergency: {contactSummary.emergencyCount}
                   </span>
                 </div>
-
-                {contacts.length === 0 ? (
-                  <div className="admin-empty-text">No contacts added yet.</div>
-                ) : (
-                  <div style={{ display: 'grid', gap: 10 }}>
-                    {contacts.map((contact) => (
-                      <div key={contact.id} className="admin-table-muted">
-                        <strong style={{ color: '#111827' }}>{contact.full_name}</strong> · {contact.email || '—'} ·{' '}
-                        {contact.role_type}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="admin-card" style={{ marginBottom: 20 }}>
@@ -551,18 +608,6 @@ export default function AdminOnboardingPage() {
                     Follow-up: {accessSummary.needsFollowup}
                   </span>
                 </div>
-
-                {accessRows.length === 0 ? (
-                  <div className="admin-empty-text">No access items added yet.</div>
-                ) : (
-                  <div style={{ display: 'grid', gap: 10 }}>
-                    {accessRows.map((row) => (
-                      <div key={row.id} className="admin-table-muted">
-                        <strong style={{ color: '#111827' }}>{row.platform_name}</strong> · {row.access_method} · {row.status}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="admin-card" style={{ marginBottom: 20 }}>
@@ -586,24 +631,6 @@ export default function AdminOnboardingPage() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-                  <span
-                    className="admin-status-badge"
-                    style={{
-                      background: selectedOrg.discovery_completed ? '#eef4ff' : '#fffaeb',
-                      color: selectedOrg.discovery_completed ? '#1d4ed8' : '#b54708',
-                    }}
-                  >
-                    {selectedOrg.discovery_completed ? 'Submitted' : 'Incomplete'}
-                  </span>
-                  <span className="admin-status-badge" style={{ background: '#f3f4f6', color: '#4b5563' }}>
-                    Review status: {selectedOrg.discovery_review_status || 'not_started'}
-                  </span>
-                  <span className="admin-status-badge" style={{ background: '#ecfdf3', color: '#067647' }}>
-                    Reviewed at: {fmtDate(selectedOrg.discovery_reviewed_at)}
-                  </span>
-                </div>
-
                 <div style={{ display: 'grid', gap: 8 }}>
                   <div className="admin-table-muted">
                     <strong style={{ color: '#111827' }}>Users:</strong> {discovery.user_count || '—'}
@@ -619,32 +646,6 @@ export default function AdminOnboardingPage() {
                   </div>
                   <div className="admin-table-muted">
                     <strong style={{ color: '#111827' }}>Identity provider:</strong> {discovery.identity_provider || '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Remote work model:</strong> {discovery.remote_work_model || '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Core apps:</strong>{' '}
-                    {Array.isArray(discovery.core_business_apps) ? discovery.core_business_apps.join(', ') : '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Key vendors:</strong>{' '}
-                    {Array.isArray(discovery.key_vendors) ? discovery.key_vendors.join(', ') : '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Backup status:</strong> {discovery.backup_status || '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Security requirements:</strong>{' '}
-                    {discovery.security_requirements || '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Compliance requirements:</strong>{' '}
-                    {discovery.compliance_requirements || '—'}
-                  </div>
-                  <div className="admin-table-muted">
-                    <strong style={{ color: '#111827' }}>Urgent systems:</strong>{' '}
-                    {Array.isArray(discovery.urgent_systems) ? discovery.urgent_systems.join(', ') : '—'}
                   </div>
                 </div>
 
