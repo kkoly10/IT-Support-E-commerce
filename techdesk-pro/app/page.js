@@ -9,74 +9,52 @@ const SERVICES = [
     num: '01',
     title: 'IT Helpdesk & User Support',
     desc:
-      'Remote-first support for the day-to-day issues that slow teams down — account access, email issues, software troubleshooting, device guidance, and routine user support.',
+      'Remote-first support for the issues that slow teams down — account access, email problems, software troubleshooting, device guidance, and routine user support.',
     features: [
       'Email and account support',
       'Routine software troubleshooting',
-      'Remote desktop guidance',
-      'User support workflows',
+      'Remote device guidance',
+      'Day-to-day user support',
     ],
-    price: 'Included',
-    priceNote: 'in monthly plans',
+    meta: 'Included in monthly support paths',
   },
   {
     num: '02',
     title: 'Cloud & SaaS Administration',
     desc:
-      'Support for the platforms your business already depends on — Microsoft 365, Google Workspace, Slack, Zoom, user permissions, and routine admin tasks.',
+      'Support for the platforms your business already depends on — Microsoft 365, Google Workspace, Slack, Zoom, shared permissions, and routine admin tasks.',
     features: [
       'Google Workspace & Microsoft 365',
       'User provisioning',
       'Permission management',
       'Routine admin support',
     ],
-    price: 'Included',
-    priceNote: 'in Growth+',
+    meta: 'Best fit for Growth and above',
   },
   {
     num: '03',
     title: 'Structured Remote Technical Support',
     desc:
-      'A support model for small teams that need reliable help without hiring a full internal IT person. Clear requests, clear boundaries, and a real onboarding process before activation.',
+      'A support model for small teams that need dependable help without hiring a full internal IT person, with clear scope, real onboarding, and controlled activation.',
     features: [
       'Business-hours support model',
+      'Portal-based support workflow',
       'Lifecycle-aware onboarding',
-      'Support request workflow',
       'Human-supervised AI assistance',
     ],
-    price: 'Included',
-    priceNote: 'in active support paths',
-  },
-]
-
-const HERO_POINTS = [
-  {
-    title: 'Business-hours support',
-    desc: 'Monday–Friday, 9:00 AM–6:00 PM ET',
-  },
-  {
-    title: 'Remote-only delivery',
-    desc: 'Built for small U.S. businesses that need practical support without full internal IT',
-  },
-  {
-    title: 'Fit-first onboarding',
-    desc: 'Assessment, signup, onboarding, and activation are intentionally separated',
-  },
-  {
-    title: 'Human-supervised AI',
-    desc: 'AI helps speed up workflows, but human oversight remains part of delivery',
+    meta: 'Activation follows onboarding review',
   },
 ]
 
 const FIT_GOOD = [
   '1–25 user businesses with recurring support needs',
-  'Microsoft 365, Google Workspace, Slack, Zoom, and common SaaS environments',
+  'Google Workspace, Microsoft 365, Slack, Zoom, and common SaaS environments',
   'Businesses that want a clear onboarding and support workflow',
-  'Teams that need dependable remote helpdesk and admin support',
+  'Teams that need practical remote support without a full internal IT hire',
 ]
 
-const FIT_NOT = [
-  'Large project implementation disguised as routine support',
+const FIT_BAD = [
+  'Large implementation work disguised as routine support',
   'Immediate activation before fit, access, contacts, and onboarding are reviewed',
   'On-site support as part of the standard monthly offer',
   'Unlimited project work inside a normal monthly support plan',
@@ -91,7 +69,7 @@ const PROCESS = [
   {
     n: '02',
     t: 'Get a Fit Recommendation',
-    d: 'We review whether your business fits a standard support path or needs a more guided review.',
+    d: 'We review whether your business fits a standard support path or needs a guided review first.',
   },
   {
     n: '03',
@@ -101,7 +79,7 @@ const PROCESS = [
   {
     n: '04',
     t: 'Complete Onboarding Before Activation',
-    d: 'Support goes live only after readiness, scope, and handoff are actually confirmed.',
+    d: 'Support goes live only after readiness, scope, handoff, and launch expectations are confirmed.',
   },
 ]
 
@@ -155,43 +133,29 @@ const PLANS = [
   },
 ]
 
-const FOUNDER_PROOF = [
+const PROOF_ITEMS = [
   {
     title: 'Founder-led support model',
     desc:
-      'This business is being built by a founder actively shaping the public site, client portal, onboarding, and admin workflows behind the service.',
+      'The business is being built by a founder actively shaping the public site, onboarding logic, client portal, admin workflows, and AI-assisted support systems behind the service.',
   },
   {
     title: 'Platform-minded operations',
     desc:
-      'The business is being structured around real systems — tickets, contacts, access, onboarding, launch discipline, and operational visibility — not just homepage copy.',
+      'Kocre IT is being structured around real systems — tickets, contacts, access, onboarding, launch discipline, and operational visibility — not just homepage copy.',
   },
   {
     title: 'Honest pilot-stage positioning',
     desc:
-      'Where long-term client history is still being built, the brand prioritizes clarity, boundaries, and process honesty over inflated claims.',
+      'Where long-term client history is still being built, the brand prioritizes clarity, scope control, and process honesty over inflated claims.',
   },
-]
-
-const ABOUT_FEATURES = [
-  { icon: '📍', text: 'Founder-led, based in Virginia' },
-  { icon: '💻', text: 'Remote-only support model' },
-  { icon: '🤖', text: 'AI-assisted, human-supervised workflows' },
-  { icon: '📋', text: 'Clear support boundaries and scoped work' },
-]
-
-const ABOUT_BARS = [
-  { label: 'Clarity of scope', val: 100 },
-  { label: 'Remote-only delivery', val: 100 },
-  { label: 'Human oversight', val: 100 },
-  { label: 'Pilot-stage honesty', val: 100 },
 ]
 
 const FAQS = [
   {
     q: 'Do I need a long-term contract?',
     a:
-      'No. Monthly support plans are meant to stay straightforward and flexible. Final billing, notice periods, and service terms are governed by your written agreement.',
+      'No. Monthly support paths are meant to stay straightforward and flexible. Final billing, notice periods, and service terms are governed by your written agreement.',
   },
   {
     q: 'What counts as a support ticket?',
@@ -215,7 +179,7 @@ const FAQS = [
   },
 ]
 
-const TOOLS = [
+const PLATFORMS = [
   'Google Workspace',
   'Microsoft 365',
   'Slack',
@@ -224,6 +188,13 @@ const TOOLS = [
   'Dropbox',
   'Notion',
   'Adobe',
+]
+
+const HERO_POINTS = [
+  'Business-hours support',
+  'Remote-only delivery',
+  'Fit-first onboarding',
+  'Human-supervised AI',
 ]
 
 export default function Home() {
@@ -247,15 +218,21 @@ export default function Home() {
           </a>
 
           <div className={styles.navLinks}>
-            {['services', 'pricing', 'about', 'faq'].map((id) => (
-              <button
-                key={id}
-                className={styles.navLink}
-                onClick={() => scrollTo(id)}
-              >
-                {id.charAt(0).toUpperCase() + id.slice(1)}
-              </button>
-            ))}
+            <button className={styles.navLink} onClick={() => scrollTo('services')}>
+              Services
+            </button>
+            <button className={styles.navLink} onClick={() => scrollTo('fit')}>
+              Fit
+            </button>
+            <button className={styles.navLink} onClick={() => scrollTo('pricing')}>
+              Pricing
+            </button>
+            <button className={styles.navLink} onClick={() => scrollTo('about')}>
+              About
+            </button>
+            <button className={styles.navLink} onClick={() => scrollTo('faq')}>
+              FAQ
+            </button>
           </div>
 
           <div className={styles.navActions}>
@@ -282,6 +259,9 @@ export default function Home() {
           <button className={styles.navLink} onClick={() => scrollTo('services')}>
             Services
           </button>
+          <button className={styles.navLink} onClick={() => scrollTo('fit')}>
+            Fit
+          </button>
           <button className={styles.navLink} onClick={() => scrollTo('pricing')}>
             Pricing
           </button>
@@ -291,7 +271,7 @@ export default function Home() {
           <button className={styles.navLink} onClick={() => scrollTo('faq')}>
             FAQ
           </button>
-          <a href="/login" className={styles.footerLink}>
+          <a href="/login" className={styles.mobileTextLink}>
             Client Portal
           </a>
           <a href="/free-assessment" className={styles.primaryBtn}>
@@ -305,10 +285,11 @@ export default function Home() {
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
               <div className={styles.eyebrow}>Remote-only IT support · U.S. small businesses</div>
+
               <h1 className={styles.heroTitle}>
-                Remote-first IT support and{' '}
-                <span className={styles.heroAccent}>cloud administration</span> for small businesses.
+                Remote-first IT support and <span className={styles.heroAccent}>cloud administration</span> for small businesses.
               </h1>
+
               <p className={styles.heroDesc}>
                 Kocre IT Services helps small businesses handle day-to-day technical support,
                 user issues, and cloud administration without hiring a full internal IT team —
@@ -330,33 +311,30 @@ export default function Home() {
               </div>
             </div>
 
-            <div className={styles.heroPanel}>
-              <div>
-                <div className={styles.panelTag}>How Kocre IT works</div>
-                <div className={styles.panelTitle}>
-                  Assessment first. Activation later.
-                </div>
-                <div className={styles.panelCopy}>
-                  The process is intentionally structured: fit review, signup, onboarding,
-                  readiness, then support activation. That protects both the client experience
-                  and delivery quality.
-                </div>
-              </div>
+            <div className={styles.heroAside}>
+              <div className={styles.asideLabel}>Operating posture</div>
+              <h2 className={styles.asideTitle}>
+                This is not instant-activation tech support.
+              </h2>
+              <p className={styles.asideText}>
+                The process is intentionally structured: fit review, signup, onboarding,
+                readiness, then support activation. That protects both delivery quality
+                and client expectations.
+              </p>
 
-              <div className={styles.proofGrid}>
+              <div className={styles.heroPointRow}>
                 {HERO_POINTS.map((item) => (
-                  <div key={item.title} className={styles.proofItem}>
-                    <div className={styles.proofTitle}>{item.title}</div>
-                    <div className={styles.proofDesc}>{item.desc}</div>
-                  </div>
+                  <span key={item} className={styles.heroPoint}>
+                    {item}
+                  </span>
                 ))}
               </div>
 
-              <div>
-                <div className={styles.stackLabel}>Supported platforms</div>
-                <div className={styles.chipRow}>
-                  {TOOLS.map((tool) => (
-                    <span key={tool} className={styles.chip}>
+              <div className={styles.platformBlock}>
+                <div className={styles.platformLabel}>Supported platforms</div>
+                <div className={styles.platformRow}>
+                  {PLATFORMS.map((tool) => (
+                    <span key={tool} className={styles.platformChip}>
                       {tool}
                     </span>
                   ))}
@@ -367,129 +345,82 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.strip}>
-        <div className={styles.shell}>
-          <div className={styles.stripGrid}>
-            <div className={styles.stripCard}>
-              <div className={styles.stripCardTitle}>Business-hours support</div>
-              <div className={styles.stripCardText}>Monday–Friday, 9 AM–6 PM ET</div>
-            </div>
-            <div className={styles.stripCard}>
-              <div className={styles.stripCardTitle}>Remote-only delivery</div>
-              <div className={styles.stripCardText}>No onsite work inside the standard offer</div>
-            </div>
-            <div className={styles.stripCard}>
-              <div className={styles.stripCardTitle}>Fit-first process</div>
-              <div className={styles.stripCardText}>Assessment → signup → onboarding → activation</div>
-            </div>
-            <div className={styles.stripCard}>
-              <div className={styles.stripCardTitle}>Human oversight</div>
-              <div className={styles.stripCardText}>AI assists workflows, but people still supervise delivery</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section id="services" className={styles.section}>
         <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionKicker}>Core services</div>
-              <h2 className={styles.sectionTitle}>
-                Remote support for the systems your business depends on.
-              </h2>
-              <p className={styles.sectionDesc}>
-                Kocre IT Services is focused on remote IT support, cloud administration, and
-                routine technical help for small businesses that need dependable support without
-                building a full in-house IT team.
-              </p>
-            </div>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionKicker}>Core services</div>
+            <h2 className={styles.sectionTitle}>
+              Remote support for the systems your business depends on.
+            </h2>
+            <p className={styles.sectionDesc}>
+              Kocre IT Services is focused on remote IT support, cloud administration, and routine
+              technical help for small businesses that need dependable support without building a
+              full in-house IT team.
+            </p>
+          </div>
 
-            <div className={styles.servicesGrid}>
-              {SERVICES.map((service) => (
-                <div key={service.title} className={styles.serviceCard}>
-                  <div className={styles.serviceNum}>{service.num}</div>
-                  <h3 className={styles.serviceTitle}>{service.title}</h3>
-                  <p className={styles.serviceDesc}>{service.desc}</p>
+          <div className={styles.servicesGrid}>
+            {SERVICES.map((service) => (
+              <div key={service.title} className={styles.serviceCard}>
+                <div className={styles.serviceNum}>{service.num}</div>
+                <h3 className={styles.serviceTitle}>{service.title}</h3>
+                <p className={styles.serviceDesc}>{service.desc}</p>
 
-                  <div className={styles.serviceMeta}>
-                    <div className={styles.badgeRow}>
-                      {service.features.map((feature) => (
-                        <span key={feature} className={styles.badge}>
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
+                <div className={styles.featurePills}>
+                  {service.features.map((feature) => (
+                    <span key={feature} className={styles.pill}>
+                      {feature}
+                    </span>
+                  ))}
+                </div>
 
-                    <div className={styles.servicePrice}>
-                      <div className={styles.servicePriceValue}>{service.price}</div>
-                      <div className={styles.servicePriceNote}>{service.priceNote}</div>
-                    </div>
+                <div className={styles.serviceMeta}>{service.meta}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="fit" className={styles.section}>
+        <div className={styles.shell}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionKicker}>Fit and process</div>
+            <h2 className={styles.sectionTitle}>
+              The right client flow matters as much as the offer itself.
+            </h2>
+            <p className={styles.sectionDesc}>
+              The goal is not to fit every possible lead. The goal is to qualify the right businesses
+              and move them into a clean onboarding workflow that protects delivery quality.
+            </p>
+          </div>
+
+          <div className={styles.fitGrid}>
+            <div className={styles.fitPanel}>
+              <h3 className={styles.fitTitle}>Best fit for Kocre IT</h3>
+              <div className={styles.fitList}>
+                {FIT_GOOD.map((item) => (
+                  <div key={item} className={styles.fitItem}>
+                    <span className={styles.fitGoodBullet}>✓</span>
+                    <span>{item}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionKicker}>Best fit</div>
-              <h2 className={styles.sectionTitle}>
-                This works best when the support path is clear.
-              </h2>
-              <p className={styles.sectionDesc}>
-                The goal is not to fit every possible lead. The goal is to qualify the right
-                businesses and move them into a clean onboarding workflow.
-              </p>
-            </div>
-
-            <div className={styles.fitGrid}>
-              <div className={`${styles.fitCard} ${styles.fitCardGood}`}>
-                <h3 className={styles.fitTitle}>Best fit for Kocre IT</h3>
-                <div className={styles.fitList}>
-                  {FIT_GOOD.map((item) => (
-                    <div key={item} className={styles.fitListItem}>
-                      <span className={styles.fitBulletGood}>✓</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
+            </div>
 
-              <div className={`${styles.fitCard} ${styles.fitCardBad}`}>
-                <h3 className={styles.fitTitle}>Not standard support scope</h3>
-                <div className={styles.fitList}>
-                  {FIT_NOT.map((item) => (
-                    <div key={item} className={styles.fitListItem}>
-                      <span className={styles.fitBulletBad}>•</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className={styles.fitPanel}>
+              <h3 className={styles.fitTitle}>Not standard support scope</h3>
+              <div className={styles.fitList}>
+                {FIT_BAD.map((item) => (
+                  <div key={item} className={styles.fitItem}>
+                    <span className={styles.fitBadBullet}>•</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className={styles.section}>
-        <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionKicker}>How it works</div>
-              <h2 className={styles.sectionTitle}>
-                A simple support path from assessment to activation.
-              </h2>
-              <p className={styles.sectionDesc}>
-                We keep the process straightforward: assess the environment, recommend the right
-                support path, reserve the client workspace, and complete onboarding before support goes live.
-              </p>
-            </div>
-
+          <div className={styles.processWrap}>
             <div className={styles.processGrid}>
               {PROCESS.map((step) => (
                 <div key={step.n} className={styles.processCard}>
@@ -505,148 +436,103 @@ export default function Home() {
 
       <section id="pricing" className={styles.section}>
         <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionKicker}>Pricing</div>
-              <h2 className={styles.sectionTitle}>
-                Simple monthly remote support for growing businesses.
-              </h2>
-              <p className={styles.sectionDesc}>
-                Choose the support path that best matches your team size and recurring support needs.
-                Final fit and activation are confirmed through review and onboarding — not by assumptions alone.
-              </p>
-            </div>
-
-            <div className={styles.pricingGrid}>
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`${styles.pricingCard} ${plan.featured ? styles.pricingFeatured : ''}`}
-                >
-                  <div className={styles.planTop}>
-                    <div>
-                      <h3 className={styles.planName}>{plan.name}</h3>
-                      <div className={styles.planDesc}>{plan.desc}</div>
-                    </div>
-                    {plan.featured ? <div className={styles.planTag}>Most practical fit</div> : null}
-                  </div>
-
-                  <div className={styles.planPriceBlock}>
-                    {plan.priceLabel ? <div className={styles.planStarting}>{plan.priceLabel}</div> : null}
-                    <div className={styles.planPrice}>
-                      <span className={styles.planDollar}>$</span>
-                      <span className={styles.planAmount}>{plan.price}</span>
-                      <span className={styles.planPeriod}>/mo</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.planList}>
-                    {plan.features.map((feature) => (
-                      <div key={feature} className={styles.planItem}>
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-
-                  <a
-                    href="/free-assessment"
-                    className={`${styles.planBtn} ${
-                      plan.featured ? styles.planBtnPrimary : styles.planBtnOutline
-                    }`}
-                  >
-                    {plan.cta}
-                  </a>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.pricingFootnote}>
-              Not sure which path fits? Start with a free assessment and we’ll recommend the most
-              sensible next step.
-            </div>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionKicker}>Pricing</div>
+            <h2 className={styles.sectionTitle}>
+              Simple monthly remote support for growing businesses.
+            </h2>
+            <p className={styles.sectionDesc}>
+              Choose the support path that best matches your team size and recurring support needs.
+              Final fit and activation are confirmed through review and onboarding — not by assumptions alone.
+            </p>
           </div>
-        </div>
-      </section>
 
-      <section className={styles.section}>
-        <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.sectionHeader}>
-              <div className={styles.sectionKicker}>Why this approach</div>
-              <h2 className={styles.sectionTitle}>
-                Founder-led, platform-minded, and built around real support operations.
-              </h2>
-              <p className={styles.sectionDesc}>
-                Kocre IT is being built as an actual support platform — not just a homepage —
-                with onboarding, documents, access, launch discipline, and client/admin workflows behind it.
-              </p>
-            </div>
-
-            <div className={styles.proofGridLong}>
-              {FOUNDER_PROOF.map((item) => (
-                <div key={item.title} className={styles.proofLongCard}>
-                  <h3 className={styles.proofLongTitle}>{item.title}</h3>
-                  <p className={styles.proofLongText}>{item.desc}</p>
+          <div className={styles.pricingGrid}>
+            {PLANS.map((plan) => (
+              <div
+                key={plan.name}
+                className={`${styles.pricingCard} ${plan.featured ? styles.pricingFeatured : ''}`}
+              >
+                <div className={styles.planTop}>
+                  <div>
+                    <h3 className={styles.planName}>{plan.name}</h3>
+                    <div className={styles.planDesc}>{plan.desc}</div>
+                  </div>
+                  {plan.featured ? <div className={styles.planTag}>Best fit</div> : null}
                 </div>
-              ))}
-            </div>
+
+                <div className={styles.planPriceBlock}>
+                  {plan.priceLabel ? <div className={styles.planStarting}>{plan.priceLabel}</div> : null}
+                  <div className={styles.planPrice}>
+                    <span className={styles.planDollar}>$</span>
+                    <span className={styles.planAmount}>{plan.price}</span>
+                    <span className={styles.planPeriod}>/mo</span>
+                  </div>
+                </div>
+
+                <div className={styles.planList}>
+                  {plan.features.map((feature) => (
+                    <div key={feature} className={styles.planItem}>
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+
+                <a
+                  href="/free-assessment"
+                  className={`${styles.planBtn} ${
+                    plan.featured ? styles.planBtnPrimary : styles.planBtnOutline
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.scopeCallout}>
+            Routine remote support is standard. Larger projects, migrations, planned remediation,
+            and implementation work are scoped separately.{' '}
+            <a href="/support-transparency">Review support scope</a>.
           </div>
         </div>
       </section>
 
       <section id="about" className={styles.section}>
         <div className={styles.shell}>
-          <div className={styles.sectionCard}>
-            <div className={styles.aboutGrid}>
-              <div className={styles.aboutCardMain}>
-                <div className={styles.sectionKicker}>About</div>
-                <h2 className={styles.sectionTitle}>
-                  Built for businesses that need clarity, not tech chaos.
-                </h2>
+          <div className={styles.aboutGrid}>
+            <div className={styles.aboutCopy}>
+              <div className={styles.sectionKicker}>About</div>
+              <h2 className={styles.sectionTitle}>
+                Built to feel controlled, clear, and operationally serious.
+              </h2>
 
-                <p className={styles.aboutText}>
-                  Kocre IT Services is a remote-only support business built to help small businesses
-                  manage day-to-day technical issues, user support, and cloud tools without hiring a
-                  full internal IT team.
-                </p>
+              <p className={styles.aboutText}>
+                Kocre IT Services is a remote-only support business built to help small businesses
+                manage day-to-day technical issues, user support, and cloud tools without hiring
+                a full internal IT team.
+              </p>
 
-                <p className={styles.aboutText}>
-                  The approach is practical: clear monthly paths, honest service boundaries,
-                  AI-assisted workflows where helpful, and human oversight throughout delivery.
-                  The goal is not to sound bigger than reality — it is to provide structured,
-                  dependable support that businesses can actually use.
-                </p>
+              <p className={styles.aboutText}>
+                The approach is practical: clear monthly paths, honest service boundaries,
+                AI-assisted workflows where helpful, and human oversight throughout delivery.
+                The goal is not to sound bigger than reality — it is to provide structured,
+                dependable support that businesses can actually use.
+              </p>
 
-                <div className={styles.featureGrid}>
-                  {ABOUT_FEATURES.map((item) => (
-                    <div key={item.text} className={styles.featureItem}>
-                      <span className={styles.featureIcon}>{item.icon}</span>
-                      <span>{item.text}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className={styles.aboutNote}>
+                Public claims are intentionally conservative. Where performance history is still
+                being built, the business prioritizes process clarity over inflated promises.
               </div>
+            </div>
 
-              <div className={styles.aboutCardSide}>
-                <div className={styles.metricLabel}>What we prioritize</div>
-
-                {ABOUT_BARS.map((item) => (
-                  <div key={item.label} className={styles.metricGroup}>
-                    <div className={styles.metricTop}>
-                      <span className={styles.metricName}>{item.label}</span>
-                      <span className={styles.metricVal}>{item.val}%</span>
-                    </div>
-                    <div className={styles.metricTrack}>
-                      <div className={styles.metricFill} style={{ width: `${item.val}%` }} />
-                    </div>
-                  </div>
-                ))}
-
-                <div className={styles.sideNote}>
-                  Public claims are intentionally conservative. Where performance history is still
-                  being built, the site prioritizes process clarity over inflated promises.
+            <div className={styles.proofColumn}>
+              {PROOF_ITEMS.map((item) => (
+                <div key={item.title} className={styles.proofCard}>
+                  <h3 className={styles.proofTitle}>{item.title}</h3>
+                  <p className={styles.proofText}>{item.desc}</p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -670,9 +556,7 @@ export default function Home() {
                       onClick={() => setOpenFaq(open ? null : index)}
                     >
                       <span>{faq.q}</span>
-                      <span
-                        className={`${styles.faqSymbol} ${open ? styles.faqSymbolOpen : ''}`}
-                      >
+                      <span className={`${styles.faqSymbol} ${open ? styles.faqSymbolOpen : ''}`}>
                         +
                       </span>
                     </button>
@@ -697,10 +581,10 @@ export default function Home() {
             </p>
 
             <div className={styles.ctaActions}>
-              <a href="/free-assessment" className={styles.primaryBtn}>
+              <a href="/free-assessment" className={styles.ctaWhiteBtn}>
                 Start Free Assessment
               </a>
-              <a href="/pilot" className={styles.ghostBtn + ' ' + styles.secondaryBtn}>
+              <a href="/pilot" className={styles.ctaGhostBtn}>
                 Review Pilot Path
               </a>
             </div>
@@ -727,6 +611,9 @@ export default function Home() {
             <div className={styles.footerLinks}>
               <button className={styles.footerLink} onClick={() => scrollTo('services')}>
                 Services
+              </button>
+              <button className={styles.footerLink} onClick={() => scrollTo('fit')}>
+                Fit
               </button>
               <button className={styles.footerLink} onClick={() => scrollTo('pricing')}>
                 Pricing
