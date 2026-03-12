@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { label: 'Onboarding', href: '/admin/onboarding', icon: '🧭' },
   { label: 'Contacts', href: '/admin/contacts', icon: '👥' },
   { label: 'Access', href: '/admin/access', icon: '🔐' },
+  { label: 'Launch Pack', href: '/admin/launch', icon: '🚀' },
   { label: 'Clients', href: '/admin/clients', icon: '👥' },
   { label: 'Reports & CSAT', href: '/admin/reports', icon: '📈' },
   { label: 'Compliance', href: '/admin/compliance', icon: '📋' },
