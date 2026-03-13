@@ -192,8 +192,8 @@ const PLATFORMS = [
 
 const HERO_POINTS = [
   'Business-hours support',
-  'Remote-only delivery',
-  'Fit-first onboarding',
+  'Structured onboarding',
+  'Scope-controlled delivery',
   'Human-supervised AI',
 ]
 
@@ -303,6 +303,14 @@ export default function Home() {
                 <a href="/pilot" className={styles.secondaryBtn}>
                   Review Pilot Path
                 </a>
+              </div>
+
+              <div className={styles.heroReassurance}>
+                <span>Best for 1–25 user teams</span>
+                <i>•</i>
+                <span>Remote-only support</span>
+                <i>•</i>
+                <span>Assessment first, activation later</span>
               </div>
 
               <div className={styles.helperText}>
