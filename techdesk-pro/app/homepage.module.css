@@ -221,6 +221,16 @@
   border-radius: 30px;
   padding: 44px;
   box-shadow: 0 24px 56px rgba(15, 23, 42, 0.05);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.heroCopy:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 68px rgba(15, 23, 42, 0.08);
+  border-color: rgba(13, 124, 102, 0.18);
 }
 
 .eyebrow {
@@ -320,6 +330,14 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 24px;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.heroAside:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 72px rgba(15, 23, 42, 0.16);
 }
 
 .asideLabel {
@@ -362,6 +380,16 @@
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.78rem;
   font-weight: 500;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.heroPoint:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .platformBlock {
@@ -391,6 +419,16 @@
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 0.78rem;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.platformChip:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .section {
@@ -439,6 +477,16 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.serviceCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 56px rgba(15, 23, 42, 0.08);
+  border-color: rgba(13, 124, 102, 0.18);
 }
 
 .serviceNum {
@@ -476,6 +524,16 @@
   padding: 6px 10px;
   font-size: 0.76rem;
   font-weight: 500;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(13, 124, 102, 0.22);
+  background: #fbfaf7;
 }
 
 .serviceMeta {
@@ -498,6 +556,16 @@
   border-radius: 22px;
   padding: 24px;
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.fitPanel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.07);
+  border-color: rgba(13, 124, 102, 0.16);
 }
 
 .fitTitle {
@@ -559,6 +627,16 @@
   border-radius: 20px;
   padding: 22px;
   min-height: 100%;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.processCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.06);
+  border-color: rgba(13, 124, 102, 0.16);
 }
 
 .processNum {
@@ -601,12 +679,21 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
 }
 
-.pricingFeatured {
-  border-color: rgba(13, 124, 102, 0.3);
-  background: linear-gradient(180deg, rgba(13, 124, 102, 0.08) 0%, rgba(255,255,255,0.96) 100%);
-  box-shadow: 0 24px 52px rgba(13, 124, 102, 0.08);
+.pricingCard:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 28px 62px rgba(15, 23, 42, 0.08);
+  border-color: rgba(13, 124, 102, 0.18);
+}
+
+.pricingHighlighted {
+  border-color: rgba(13, 124, 102, 0.22);
+  background: linear-gradient(180deg, rgba(13, 124, 102, 0.05) 0%, rgba(255,255,255,0.96) 100%);
 }
 
 .planTop {
@@ -619,18 +706,6 @@
 .planName {
   font-size: 1.34rem;
   line-height: 1.08;
-}
-
-.planTag {
-  background: var(--teal);
-  color: white;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
 }
 
 .planDesc {
@@ -741,6 +816,16 @@
   border-radius: 26px;
   padding: 30px;
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.aboutCopy:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.07);
+  border-color: rgba(13, 124, 102, 0.16);
 }
 
 .aboutText {
@@ -769,6 +854,16 @@
   border: 1px solid var(--border-light);
   border-radius: 22px;
   padding: 24px;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.proofCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.06);
+  border-color: rgba(13, 124, 102, 0.16);
 }
 
 .proofTitle {
@@ -788,6 +883,16 @@
   border-radius: 28px;
   padding: 30px;
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.faqWrap:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.06);
+  border-color: rgba(13, 124, 102, 0.14);
 }
 
 .faqList {
@@ -800,6 +905,16 @@
   border: 1px solid var(--border-light);
   border-radius: 16px;
   overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.faqItem:hover {
+  transform: translateY(-2px);
+  border-color: rgba(13, 124, 102, 0.16);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.04);
 }
 
 .faqButton {
@@ -864,6 +979,14 @@
     radial-gradient(circle at top right, rgba(13, 124, 102, 0.22), transparent 28%),
     #171717;
   color: white;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.ctaCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.16);
 }
 
 .ctaTitle {
