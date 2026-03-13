@@ -29,7 +29,7 @@ const SERVICES = [
       'Permission management',
       'Routine admin support',
     ],
-    meta: 'Best fit for Growth and above',
+    meta: 'Best fit for businesses with recurring admin needs',
   },
   {
     num: '03',
@@ -86,7 +86,7 @@ const PROCESS = [
 const PLANS = [
   {
     name: 'Starter',
-    desc: 'Best for 1–5 users',
+    desc: 'Often suitable for smaller teams with lighter support needs',
     price: '499',
     features: [
       'Up to 10 standard support tickets per month',
@@ -96,12 +96,12 @@ const PLANS = [
       'Client portal access',
       'First response within 1 business day',
     ],
-    featured: false,
+    highlight: false,
     cta: 'Start Free Assessment',
   },
   {
     name: 'Growth',
-    desc: 'Best for 5–15 users',
+    desc: 'Often suitable for teams with steadier support and admin needs',
     price: '999',
     features: [
       'Up to 30 standard support tickets per month',
@@ -112,12 +112,12 @@ const PLANS = [
       'Monthly review call',
       'First response within 4 business hours',
     ],
-    featured: true,
+    highlight: true,
     cta: 'Start Free Assessment',
   },
   {
     name: 'Scale',
-    desc: 'Best for 15+ users or more operational complexity',
+    desc: 'For larger teams or environments needing a more guided support path',
     price: '1,999',
     priceLabel: 'Starting at',
     features: [
@@ -128,7 +128,7 @@ const PLANS = [
       'Optional security-focused support path',
       'Strategic check-ins',
     ],
-    featured: false,
+    highlight: false,
     cta: 'Start Guided Review',
   },
 ]
@@ -459,14 +459,13 @@ export default function Home() {
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className={`${styles.pricingCard} ${plan.featured ? styles.pricingFeatured : ''}`}
+                className={`${styles.pricingCard} ${plan.highlight ? styles.pricingHighlighted : ''}`}
               >
                 <div className={styles.planTop}>
                   <div>
                     <h3 className={styles.planName}>{plan.name}</h3>
                     <div className={styles.planDesc}>{plan.desc}</div>
                   </div>
-                  {plan.featured ? <div className={styles.planTag}>Best fit</div> : null}
                 </div>
 
                 <div className={styles.planPriceBlock}>
@@ -489,7 +488,7 @@ export default function Home() {
                 <a
                   href="/free-assessment"
                   className={`${styles.planBtn} ${
-                    plan.featured ? styles.planBtnPrimary : styles.planBtnOutline
+                    plan.highlight ? styles.planBtnPrimary : styles.planBtnOutline
                   }`}
                 >
                   {plan.cta}
