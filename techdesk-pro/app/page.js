@@ -17,7 +17,7 @@ const SERVICES = [
       'Day-to-day user support',
     ],
     meta: 'Included in monthly support paths',
-    image: '/photos/office-laptop-portal.png',
+    image: '/photos/office-laptop-portal.webp',
     imageAlt: 'Support specialist handling a user request from a laptop',
   },
   {
@@ -32,7 +32,7 @@ const SERVICES = [
       'Routine admin support',
     ],
     meta: 'Best fit for businesses with recurring admin needs',
-    image: '/photos/dashboard-apex-overview.png',
+    image: '/photos/dashboard-apex-overview.webp',
     imageAlt: 'Cloud administration dashboard with user and tenant overview',
   },
   {
@@ -47,40 +47,40 @@ const SERVICES = [
       'Human-supervised AI assistance',
     ],
     meta: 'Activation follows onboarding review',
-    image: '/photos/tech-laptop-cables.png',
+    image: '/photos/tech-laptop-cables.webp',
     imageAlt: 'Engineer working on a structured remote support session at a network rack',
   },
 ]
 
 const ENVIRONMENTS = [
   {
-    src: '/photos/full-server-room.png',
+    src: '/photos/full-server-room.webp',
     alt: 'Production server room with multiple racks',
     label: 'Production infrastructure',
     span: 'wide',
   },
   {
-    src: '/photos/tech-tablet-cables.png',
+    src: '/photos/tech-tablet-cables.webp',
     alt: 'Engineer reviewing cabling from a tablet',
     label: 'Hands-on diagnostics',
   },
   {
-    src: '/photos/rack-closeup.png',
+    src: '/photos/rack-closeup.webp',
     alt: 'Firewall, switch, and patch panel stack',
     label: 'Network & firewall stack',
   },
   {
-    src: '/photos/tech-monitor-server.png',
+    src: '/photos/tech-monitor-server.webp',
     alt: 'Engineer at a monitor inspecting server output',
     label: 'On-rack troubleshooting',
   },
   {
-    src: '/photos/tech-laptop-rack.png',
+    src: '/photos/tech-laptop-rack.webp',
     alt: 'Engineer with laptop working at a server rack',
     label: 'Live admin work',
   },
   {
-    src: '/photos/wall-mounted-rack.png',
+    src: '/photos/wall-mounted-rack.webp',
     alt: 'Compact wall-mounted small business network rack',
     label: 'Small-office network rack',
   },
@@ -237,6 +237,29 @@ const HERO_POINTS = [
   'Human-supervised AI',
 ]
 
+const OPERATING_PRINCIPLES = [
+  {
+    label: 'Coverage',
+    title: 'Mon–Fri · 9 AM–6 PM ET',
+    desc: 'Business-hours remote IT support for U.S. small businesses.',
+  },
+  {
+    label: 'Onboarding',
+    title: 'Fit review before activation',
+    desc: 'Scope, access, and contacts confirmed before support goes live.',
+  },
+  {
+    label: 'Delivery',
+    title: 'Portal-tracked, not ad hoc',
+    desc: 'Every request runs through a ticketed workflow with audit trail.',
+  },
+  {
+    label: 'Approach',
+    title: 'AI-assisted, human-supervised',
+    desc: 'Automation where it speeds delivery; people where judgment matters.',
+  },
+]
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
@@ -362,7 +385,7 @@ export default function Home() {
             <div className={styles.heroAside}>
               <div className={styles.heroPhoto}>
                 <img
-                  src="/photos/hero-tech-tablet-rack.png"
+                  src="/photos/hero-tech-tablet-rack.webp"
                   alt="Kocre IT engineer reviewing a network rack from a tablet"
                   loading="eager"
                 />
@@ -403,6 +426,20 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.principlesSection}>
+        <div className={styles.shell}>
+          <div className={styles.principlesGrid}>
+            {OPERATING_PRINCIPLES.map((p) => (
+              <div key={p.title} className={styles.principleCard}>
+                <div className={styles.principleLabel}>{p.label}</div>
+                <div className={styles.principleTitle}>{p.title}</div>
+                <p className={styles.principleDesc}>{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -620,7 +657,7 @@ export default function Home() {
               <div className={styles.aboutImageRow}>
                 <figure className={styles.aboutImage}>
                   <img
-                    src="/photos/dashboard-security-ops.png"
+                    src="/photos/dashboard-security-ops.webp"
                     alt="Security operations dashboard being reviewed on a laptop"
                     loading="lazy"
                   />
@@ -628,7 +665,7 @@ export default function Home() {
                 </figure>
                 <figure className={styles.aboutImage}>
                   <img
-                    src="/photos/desk-laptop-notebook.png"
+                    src="/photos/desk-laptop-notebook.webp"
                     alt="Day-to-day support work at a desk with laptop and notes"
                     loading="lazy"
                   />
@@ -645,7 +682,7 @@ export default function Home() {
             <div className={styles.proofColumn}>
               <figure className={styles.proofImage}>
                 <img
-                  src="/photos/desk-clean-dashboard.png"
+                  src="/photos/desk-clean-dashboard.webp"
                   alt="Clean office desk with a monitoring dashboard on a laptop"
                   loading="lazy"
                 />
@@ -697,7 +734,7 @@ export default function Home() {
         <div className={styles.shell}>
           <div className={styles.ctaCard}>
             <img
-              src="/photos/monitor-system-protected.png"
+              src="/photos/monitor-system-protected.webp"
               alt=""
               aria-hidden="true"
               className={styles.ctaBgImage}
