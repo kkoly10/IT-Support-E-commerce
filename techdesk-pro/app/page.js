@@ -17,6 +17,8 @@ const SERVICES = [
       'Day-to-day user support',
     ],
     meta: 'Included in monthly support paths',
+    image: '/photos/office-laptop-portal.webp',
+    imageAlt: 'Support specialist handling a user request from a laptop',
   },
   {
     num: '02',
@@ -30,6 +32,8 @@ const SERVICES = [
       'Routine admin support',
     ],
     meta: 'Best fit for businesses with recurring admin needs',
+    image: '/photos/dashboard-apex-overview.webp',
+    imageAlt: 'Cloud administration dashboard with user and tenant overview',
   },
   {
     num: '03',
@@ -43,6 +47,42 @@ const SERVICES = [
       'Human-supervised AI assistance',
     ],
     meta: 'Activation follows onboarding review',
+    image: '/photos/tech-laptop-cables.webp',
+    imageAlt: 'Engineer working on a structured remote support session at a network rack',
+  },
+]
+
+const ENVIRONMENTS = [
+  {
+    src: '/photos/full-server-room.webp',
+    alt: 'Production server room with multiple racks',
+    label: 'Production infrastructure',
+    span: 'wide',
+  },
+  {
+    src: '/photos/tech-tablet-cables.webp',
+    alt: 'Engineer reviewing cabling from a tablet',
+    label: 'Hands-on diagnostics',
+  },
+  {
+    src: '/photos/rack-closeup.webp',
+    alt: 'Firewall, switch, and patch panel stack',
+    label: 'Network & firewall stack',
+  },
+  {
+    src: '/photos/tech-monitor-server.webp',
+    alt: 'Engineer at a monitor inspecting server output',
+    label: 'On-rack troubleshooting',
+  },
+  {
+    src: '/photos/tech-laptop-rack.webp',
+    alt: 'Engineer with laptop working at a server rack',
+    label: 'Live admin work',
+  },
+  {
+    src: '/photos/wall-mounted-rack.webp',
+    alt: 'Compact wall-mounted small business network rack',
+    label: 'Small-office network rack',
   },
 ]
 
@@ -197,6 +237,29 @@ const HERO_POINTS = [
   'Human-supervised AI',
 ]
 
+const OPERATING_PRINCIPLES = [
+  {
+    label: 'Coverage',
+    title: 'Mon–Fri · 9 AM–6 PM ET',
+    desc: 'Business-hours remote IT support for U.S. small businesses.',
+  },
+  {
+    label: 'Onboarding',
+    title: 'Fit review before activation',
+    desc: 'Scope, access, and contacts confirmed before support goes live.',
+  },
+  {
+    label: 'Delivery',
+    title: 'Portal-tracked, not ad hoc',
+    desc: 'Every request runs through a ticketed workflow with audit trail.',
+  },
+  {
+    label: 'Approach',
+    title: 'AI-assisted, human-supervised',
+    desc: 'Automation where it speeds delivery; people where judgment matters.',
+  },
+]
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
@@ -320,35 +383,63 @@ export default function Home() {
             </div>
 
             <div className={styles.heroAside}>
-              <div className={styles.asideLabel}>Operating posture</div>
-              <h2 className={styles.asideTitle}>
-                This is not instant-activation tech support.
-              </h2>
-              <p className={styles.asideText}>
-                The process is intentionally structured: fit review, signup, onboarding,
-                readiness, then support activation. That protects both delivery quality
-                and client expectations.
-              </p>
-
-              <div className={styles.heroPointRow}>
-                {HERO_POINTS.map((item) => (
-                  <span key={item} className={styles.heroPoint}>
-                    {item}
-                  </span>
-                ))}
+              <div className={styles.heroPhoto}>
+                <img
+                  src="/photos/hero-tech-tablet-rack.webp"
+                  alt="Kocre IT engineer reviewing a network rack from a tablet"
+                  loading="eager"
+                />
+                <div className={styles.heroPhotoCaption}>
+                  <span className={styles.heroPhotoDot} />
+                  Real systems · routine remote work
+                </div>
               </div>
 
-              <div className={styles.platformBlock}>
-                <div className={styles.platformLabel}>Supported platforms</div>
-                <div className={styles.platformRow}>
-                  {PLATFORMS.map((tool) => (
-                    <span key={tool} className={styles.platformChip}>
-                      {tool}
+              <div className={styles.heroAsideBody}>
+                <div className={styles.asideLabel}>Operating posture</div>
+                <h2 className={styles.asideTitle}>
+                  This is not instant-activation tech support.
+                </h2>
+                <p className={styles.asideText}>
+                  The process is intentionally structured: fit review, signup, onboarding,
+                  readiness, then support activation. That protects both delivery quality
+                  and client expectations.
+                </p>
+
+                <div className={styles.heroPointRow}>
+                  {HERO_POINTS.map((item) => (
+                    <span key={item} className={styles.heroPoint}>
+                      {item}
                     </span>
                   ))}
                 </div>
+
+                <div className={styles.platformBlock}>
+                  <div className={styles.platformLabel}>Supported platforms</div>
+                  <div className={styles.platformRow}>
+                    {PLATFORMS.map((tool) => (
+                      <span key={tool} className={styles.platformChip}>
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.principlesSection}>
+        <div className={styles.shell}>
+          <div className={styles.principlesGrid}>
+            {OPERATING_PRINCIPLES.map((p) => (
+              <div key={p.title} className={styles.principleCard}>
+                <div className={styles.principleLabel}>{p.label}</div>
+                <div className={styles.principleTitle}>{p.title}</div>
+                <p className={styles.principleDesc}>{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -370,7 +461,15 @@ export default function Home() {
           <div className={styles.servicesGrid}>
             {SERVICES.map((service) => (
               <div key={service.title} className={styles.serviceCard}>
-                <div className={styles.serviceNum}>{service.num}</div>
+                <div className={styles.serviceImageWrap}>
+                  <img
+                    src={service.image}
+                    alt={service.imageAlt}
+                    className={styles.serviceImage}
+                    loading="lazy"
+                  />
+                  <span className={styles.serviceNumBadge}>{service.num}</span>
+                </div>
                 <h3 className={styles.serviceTitle}>{service.title}</h3>
                 <p className={styles.serviceDesc}>{service.desc}</p>
 
@@ -384,6 +483,34 @@ export default function Home() {
 
                 <div className={styles.serviceMeta}>{service.meta}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="environments" className={styles.section}>
+        <div className={styles.shell}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionKicker}>The work behind the offer</div>
+            <h2 className={styles.sectionTitle}>
+              Real environments, real systems, routine remote support.
+            </h2>
+            <p className={styles.sectionDesc}>
+              These are the kinds of small business environments and tools we work with —
+              network closets, server racks, cloud admin consoles, and day-to-day user
+              support running across modern SaaS platforms.
+            </p>
+          </div>
+
+          <div className={styles.environmentsGrid}>
+            {ENVIRONMENTS.map((item) => (
+              <figure
+                key={item.src}
+                className={`${styles.envCard} ${item.span === 'wide' ? styles.envCardWide : ''}`}
+              >
+                <img src={item.src} alt={item.alt} loading="lazy" />
+                <figcaption className={styles.envCaption}>{item.label}</figcaption>
+              </figure>
             ))}
           </div>
         </div>
@@ -527,6 +654,25 @@ export default function Home() {
                 dependable support that businesses can actually use.
               </p>
 
+              <div className={styles.aboutImageRow}>
+                <figure className={styles.aboutImage}>
+                  <img
+                    src="/photos/dashboard-security-ops.webp"
+                    alt="Security operations dashboard being reviewed on a laptop"
+                    loading="lazy"
+                  />
+                  <figcaption>Security & systems oversight</figcaption>
+                </figure>
+                <figure className={styles.aboutImage}>
+                  <img
+                    src="/photos/desk-laptop-notebook.webp"
+                    alt="Day-to-day support work at a desk with laptop and notes"
+                    loading="lazy"
+                  />
+                  <figcaption>Day-to-day delivery</figcaption>
+                </figure>
+              </div>
+
               <div className={styles.aboutNote}>
                 Public claims are intentionally conservative. Where performance history is still
                 being built, the business prioritizes process clarity over inflated promises.
@@ -534,6 +680,14 @@ export default function Home() {
             </div>
 
             <div className={styles.proofColumn}>
+              <figure className={styles.proofImage}>
+                <img
+                  src="/photos/desk-clean-dashboard.webp"
+                  alt="Clean office desk with a monitoring dashboard on a laptop"
+                  loading="lazy"
+                />
+                <figcaption>Clean, low-noise operating environment</figcaption>
+              </figure>
               {PROOF_ITEMS.map((item) => (
                 <div key={item.title} className={styles.proofCard}>
                   <h3 className={styles.proofTitle}>{item.title}</h3>
@@ -579,6 +733,14 @@ export default function Home() {
       <section className={styles.ctaSection}>
         <div className={styles.shell}>
           <div className={styles.ctaCard}>
+            <img
+              src="/photos/monitor-system-protected.webp"
+              alt=""
+              aria-hidden="true"
+              className={styles.ctaBgImage}
+              loading="lazy"
+            />
+            <div className={styles.ctaCardInner}>
             <h2 className={styles.ctaTitle}>
               Ready to see whether Kocre IT is the right support fit?
             </h2>
@@ -600,6 +762,7 @@ export default function Home() {
               <span>Remote-only, U.S. small businesses</span>
               <span>Mon–Fri, 9 AM–6 PM ET</span>
               <span>Onboarding required before activation</span>
+            </div>
             </div>
           </div>
         </div>
