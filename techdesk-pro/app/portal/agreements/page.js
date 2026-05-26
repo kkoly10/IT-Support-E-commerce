@@ -104,6 +104,7 @@ export default function PortalAgreementsPage() {
   const activeDoc = activeKey ? AGREEMENT_DOCUMENTS[activeKey] : null
   const signedCount = REQUIRED_AGREEMENT_KEYS.filter((k) => signatureFor(k)).length
   const allSigned = signedCount === REQUIRED_AGREEMENT_KEYS.length
+  const canSign = !!profile?.is_primary_contact
 
   return (
     <div>
@@ -133,6 +134,18 @@ export default function PortalAgreementsPage() {
           onboarding before support goes live.
         </div>
       </div>
+
+      {!canSign ? (
+        <div
+          className="dashboard-section"
+          style={{ marginBottom: 20, background: '#f8fafc', border: '1px solid var(--border)' }}
+        >
+          <div style={{ color: 'var(--ink-muted)', fontSize: '0.88rem' }}>
+            You can review these agreements, but only your organization’s primary contact can sign
+            them on the company’s behalf.
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ display: 'grid', gap: 14 }}>
         {REQUIRED_AGREEMENT_KEYS.map((key) => {
@@ -264,7 +277,12 @@ export default function PortalAgreementsPage() {
             <div style={{ padding: '18px 24px', borderTop: '1px solid var(--border)', background: '#fafaf8' }}>
               {signatureFor(activeKey) ? (
                 <div style={{ color: '#067647', fontSize: '0.88rem', fontWeight: 500 }}>
-                  You signed this agreement on {formatWhen(signatureFor(activeKey).signed_at)}.
+                  Signed by {signatureFor(activeKey).signer_name} on{' '}
+                  {formatWhen(signatureFor(activeKey).signed_at)}.
+                </div>
+              ) : !canSign ? (
+                <div style={{ color: 'var(--ink-muted)', fontSize: '0.88rem' }}>
+                  Only your organization’s primary contact can sign this agreement.
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 12 }}>

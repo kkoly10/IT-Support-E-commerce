@@ -32,11 +32,17 @@ export async function POST(request) {
 
     const { data: profile } = await service
       .from('profiles')
-      .select('organization_id, email')
+      .select('organization_id, email, is_primary_contact')
       .eq('id', user.id)
       .single()
     if (!profile?.organization_id) {
       return Response.json({ error: 'No organization is linked to this account.' }, { status: 400 })
+    }
+    if (!profile.is_primary_contact) {
+      return Response.json(
+        { error: 'Only your organization’s primary contact can sign agreements.' },
+        { status: 403 }
+      )
     }
 
     // Server-captured, tamper-resistant audit fields.
