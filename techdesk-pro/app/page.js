@@ -11,6 +11,7 @@ export const metadata = {
     title: 'Small-Business IT Support in DC, MD & VA | Kocre IT Services',
     description:
       'Remote-first managed IT support for small businesses across the DMV and nationwide — helpdesk, cloud admin, and user support through a structured portal.',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Kocre IT Services — remote-first IT support for small businesses' }],
   },
 }
 

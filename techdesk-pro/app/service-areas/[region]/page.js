@@ -33,6 +33,7 @@ export async function generateMetadata({ params }) {
       url: `${SITE_URL}/service-areas/${region.slug}`,
       title,
       description: region.intro,
+      images: [{ url: '/og.png', width: 1200, height: 630, alt: `Kocre IT Services — IT support in ${region.name}` }],
     },
   }
 }
