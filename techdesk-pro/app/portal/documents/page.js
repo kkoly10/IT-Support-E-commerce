@@ -430,5 +430,5 @@ const inputStyle = {
   border: '1px solid var(--border)',
   borderRadius: 8,
   fontSize: '0.9rem',
-  fontFamily: 'Outfit, sans-serif',
+  fontFamily: 'Inter Tight, sans-serif',
 }

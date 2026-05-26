@@ -236,7 +236,7 @@ export default function CourseDetail() {
                   width: '100%', padding: '10px 12px', marginBottom: 4, borderRadius: 8,
                   border: isCurrent ? '2px solid var(--teal)' : '1px solid var(--border)',
                   background: isCurrent ? 'var(--teal-light)' : isComplete ? '#ecfdf5' : 'white',
-                  cursor: 'pointer', fontFamily: 'Outfit, sans-serif', textAlign: 'left',
+                  cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif', textAlign: 'left',
                   display: 'flex', alignItems: 'center', gap: 8,
                   fontSize: '0.82rem', color: 'var(--ink)',
                 }}
@@ -269,7 +269,7 @@ export default function CourseDetail() {
                 style={{
                   padding: '12px 24px', background: 'var(--teal)', color: 'white',
                   border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem',
-                  cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                  cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
                 }}
               >
                 {progress?.lessons_completed > 0 ? 'Continue Learning' : 'Start Course'}
@@ -316,8 +316,8 @@ export default function CourseDetail() {
                       </>
                     )}
                     {block.type === 'tip' && (
-                      <div style={{ padding: 14, borderRadius: 8, background: '#e8f5f0', border: '1px solid #c8e6d8' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#0D7C66' }}>💡 <strong>Tip:</strong> {block.body}</span>
+                      <div style={{ padding: 14, borderRadius: 8, background: 'var(--teal-light)', border: '1px solid #c8e6d8' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--teal)' }}>💡 <strong>Tip:</strong> {block.body}</span>
                       </div>
                     )}
                     {block.type === 'warning' && (
@@ -402,7 +402,7 @@ export default function CourseDetail() {
                         style={{
                           padding: '12px 24px', background: 'var(--teal)', color: 'white',
                           border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem',
-                          cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                          cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
                           opacity: Object.keys(quizAnswers).length < lessonContent.quiz.length ? 0.5 : 1,
                         }}
                       >
@@ -438,7 +438,7 @@ export default function CourseDetail() {
                       style={{
                         padding: '12px 24px', background: 'var(--teal)', color: 'white',
                         border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.9rem',
-                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                        cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
                       }}
                     >
                       {currentLesson < course.lesson_count ? 'Complete & Next Lesson →' : 'Complete Lesson'}

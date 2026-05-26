@@ -76,7 +76,7 @@ export default function AtlasAIPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, #0D7C66, #10a37f)',
+            background: 'linear-gradient(135deg, var(--teal), var(--teal-dark))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'white', fontWeight: 700, fontSize: '0.9rem'
           }}>A</div>
@@ -97,7 +97,7 @@ export default function AtlasAIPage() {
           <div style={{ textAlign: 'center', paddingTop: 60 }}>
             <div style={{
               width: 64, height: 64, borderRadius: 16,
-              background: 'linear-gradient(135deg, #0D7C66, #10a37f)',
+              background: 'linear-gradient(135deg, var(--teal), var(--teal-dark))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'white', fontWeight: 700, fontSize: '1.5rem',
               margin: '0 auto 16px'
@@ -118,7 +118,7 @@ export default function AtlasAIPage() {
                     padding: '8px 14px', borderRadius: 100,
                     border: '1px solid var(--border)', background: 'var(--bg)',
                     fontSize: '0.82rem', color: 'var(--ink-light)', cursor: 'pointer',
-                    fontFamily: 'Outfit, sans-serif', transition: 'all 0.15s'
+                    fontFamily: 'Inter Tight, sans-serif', transition: 'all 0.15s'
                   }}
                 >
                   {s}
@@ -186,7 +186,7 @@ export default function AtlasAIPage() {
           style={{
             flex: 1, padding: '12px 16px',
             border: '1px solid var(--border)', borderRadius: 10,
-            fontSize: '0.9rem', fontFamily: 'Outfit, sans-serif',
+            fontSize: '0.9rem', fontFamily: 'Inter Tight, sans-serif',
             outline: 'none', color: 'var(--ink)'
           }}
         />
@@ -196,7 +196,7 @@ export default function AtlasAIPage() {
           style={{
             padding: '12px 20px', background: 'var(--teal)', color: 'white',
             border: 'none', borderRadius: 10, fontWeight: 600,
-            fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+            fontSize: '0.88rem', cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
             opacity: sending || !input.trim() ? 0.5 : 1,
             whiteSpace: 'nowrap'
           }}

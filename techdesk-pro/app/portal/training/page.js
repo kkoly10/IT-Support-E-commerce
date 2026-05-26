@@ -11,8 +11,8 @@ const CATEGORY_LABELS = {
   cybersecurity: { label: 'Cybersecurity', color: '#e74c3c' },
   cloud: { label: 'Cloud & Productivity', color: '#4285F4' },
   tools: { label: 'Business Tools', color: '#f39c12' },
-  ecommerce: { label: 'SaaS Operations', color: '#0D7C66' },
-  it: { label: 'IT Basics', color: '#0D7C66' },
+  ecommerce: { label: 'SaaS Operations', color: 'var(--teal)' },
+  it: { label: 'IT Basics', color: 'var(--teal)' },
 }
 
 export default function TrainingCatalog() {
@@ -122,7 +122,7 @@ export default function TrainingCatalog() {
               background: filter === cat ? 'var(--teal-light)' : 'white',
               color: filter === cat ? 'var(--teal)' : 'var(--ink-light)',
               fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
-              fontFamily: 'Outfit, sans-serif', textTransform: 'capitalize',
+              fontFamily: 'Inter Tight, sans-serif', textTransform: 'capitalize',
             }}
           >
             {cat === 'all' ? 'All Courses' : (CATEGORY_LABELS[cat]?.label || cat)}

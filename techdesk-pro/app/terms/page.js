@@ -17,7 +17,7 @@ export default function TermsPage() {
               textTransform: 'uppercase',
               letterSpacing: '0.12em',
               marginBottom: 12,
-              fontFamily: 'Outfit, sans-serif',
+              fontFamily: 'Inter Tight, sans-serif',
             }}
           >
             Legal

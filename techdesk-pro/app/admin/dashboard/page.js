@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                 }}
               >
                 <div className="admin-stat-label">Lifecycle Pressure</div>
-                <div className="admin-stat-value" style={{ fontSize: '1.6rem', color: '#0D7C66' }}>
+                <div className="admin-stat-value" style={{ fontSize: '1.6rem', color: 'var(--teal)' }}>
                   {opsSignals.leadsNeedingReview + opsSignals.onboardingBlockers + opsSignals.freshAssessments}
                 </div>
                 <div className="admin-table-muted">

@@ -1,4 +1,4 @@
-export default function BrandMark({ className = '', stroke = '#0D7C66' }) {
+export default function BrandMark({ className = '', stroke = '#2F7A4D' }) {
   return (
     <svg
       viewBox="0 0 100 100"

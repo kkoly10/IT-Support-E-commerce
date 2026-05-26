@@ -203,8 +203,8 @@ export default function FreeAssessmentPage() {
               gap: 8,
               padding: '6px 12px',
               borderRadius: 999,
-              background: '#e8f5f0',
-              color: '#0D7C66',
+              background: 'var(--teal-light)',
+              color: 'var(--teal)',
               fontSize: '0.82rem',
               fontWeight: 700,
               marginBottom: 16,
@@ -279,7 +279,7 @@ export default function FreeAssessmentPage() {
                 'You move into signup and onboarding only if the fit makes sense.',
               ].map((text) => (
                 <div key={text} style={{ display: 'flex', gap: 10, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
-                  <span style={{ color: '#0D7C66', fontWeight: 700 }}>•</span>
+                  <span style={{ color: 'var(--teal)', fontWeight: 700 }}>•</span>
                   <span>{text}</span>
                 </div>
               ))}

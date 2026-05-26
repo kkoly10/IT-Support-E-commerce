@@ -156,7 +156,7 @@ export default function TrainingHub() {
             padding: '10px 20px', borderRadius: 8,
             background: 'var(--teal)', color: 'white', border: 'none',
             fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
-            fontFamily: 'Outfit, sans-serif', whiteSpace: 'nowrap',
+            fontFamily: 'Inter Tight, sans-serif', whiteSpace: 'nowrap',
             opacity: loading ? 0.5 : 1,
           }}
         >
@@ -174,7 +174,7 @@ export default function TrainingHub() {
                 style={{
                   width: '100%', padding: '14px 16px', border: 'none', background: 'transparent',
                   display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                  fontFamily: 'Outfit, sans-serif', textAlign: 'left',
+                  fontFamily: 'Inter Tight, sans-serif', textAlign: 'left',
                 }}
               >
                 <span style={{
@@ -204,7 +204,7 @@ export default function TrainingHub() {
                       style={{
                         width: '100%', padding: '10px 16px 10px 62px', border: 'none',
                         background: selectedTopic === topic.title ? '#f0f7ff' : 'transparent',
-                        cursor: 'pointer', fontFamily: 'Outfit, sans-serif', textAlign: 'left',
+                        cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif', textAlign: 'left',
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                         borderBottom: j < area.topics.length - 1 ? '1px solid #f8f8f6' : 'none',
                       }}
@@ -342,7 +342,7 @@ export default function TrainingHub() {
                       <h3 style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
                         Quick Reference Cheat Sheet
                       </h3>
-                      <div style={{ background: '#e8f5f0', borderRadius: 8, padding: 14 }}>
+                      <div style={{ background: 'var(--teal-light)', borderRadius: 8, padding: 14 }}>
                         {trainingContent.quick_reference.map((item, i) => (
                           <div key={i} style={{ fontSize: '0.85rem', color: 'var(--ink)', padding: '4px 0', display: 'flex', gap: 8 }}>
                             <span style={{ color: 'var(--teal)' }}>✓</span>

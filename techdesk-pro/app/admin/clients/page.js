@@ -308,7 +308,7 @@ export default function AdminClients() {
 
                           <span
                             className="admin-status-badge"
-                            style={{ background: '#0D7C6618', color: '#0D7C66' }}
+                            style={{ background: 'var(--teal-light)', color: 'var(--teal)' }}
                           >
                             {org.plan || 'starter'}
                           </span>
@@ -392,7 +392,7 @@ export default function AdminClients() {
                             fontSize: '0.78rem',
                             fontWeight: 600,
                             cursor: 'pointer',
-                            fontFamily: 'Outfit, sans-serif',
+                            fontFamily: 'Inter Tight, sans-serif',
                           }}
                         >
                           {isEditing ? 'Cancel' : 'Edit'}
@@ -433,7 +433,7 @@ export default function AdminClients() {
                           </span>
                           <span
                             className="admin-status-badge"
-                            style={{ background: '#e8f5f0', color: '#0D7C66' }}
+                            style={{ background: 'var(--teal-light)', color: 'var(--teal)' }}
                           >
                             Suggested onboarding: {review.recommended_onboarding_status}
                           </span>
@@ -559,7 +559,7 @@ function EditPanel({ org, saving, onSave }) {
     border: '1px solid var(--border)',
     borderRadius: 6,
     fontSize: '0.85rem',
-    fontFamily: 'Outfit, sans-serif',
+    fontFamily: 'Inter Tight, sans-serif',
   }
   const inputStyle = { ...selectStyle }
   const textareaStyle = {
@@ -770,7 +770,7 @@ function EditPanel({ org, saving, onSave }) {
             fontWeight: 600,
             fontSize: '0.85rem',
             cursor: 'pointer',
-            fontFamily: 'Outfit, sans-serif',
+            fontFamily: 'Inter Tight, sans-serif',
             opacity: saving ? 0.5 : 1,
           }}
         >

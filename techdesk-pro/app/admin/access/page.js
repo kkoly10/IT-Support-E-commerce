@@ -228,7 +228,7 @@ export default function AdminAccessPage() {
                         border: '1px solid var(--border)',
                         borderRadius: 8,
                         fontSize: '0.86rem',
-                        fontFamily: 'Outfit, sans-serif',
+                        fontFamily: 'Inter Tight, sans-serif',
                         resize: 'vertical',
                       }}
                     />
