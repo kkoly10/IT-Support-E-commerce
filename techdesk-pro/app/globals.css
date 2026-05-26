@@ -2540,6 +2540,19 @@ h1, h2, h3 {
   min-width: 0;
 }
 
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-task-row {
+  display: grid;
+  grid-template-columns: 1.3fr 160px 170px;
+  gap: 12px;
+  align-items: start;
+}
+
 /* Cards */
 .admin-card {
   background: white;
@@ -3084,6 +3097,10 @@ h1, h2, h3 {
     grid-template-columns: repeat(2, 1fr);
   }
   .admin-ticket-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-form-grid,
+  .admin-task-row {
     grid-template-columns: 1fr;
   }
 }

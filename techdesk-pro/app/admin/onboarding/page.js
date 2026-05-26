@@ -572,7 +572,7 @@ export default function AdminOnboardingPage() {
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="admin-form-grid">
                   <div>
                     <label style={labelStyle}>Kickoff scheduled for</label>
                     <input
@@ -866,14 +866,7 @@ export default function AdminOnboardingPage() {
                             padding: '14px 16px',
                           }}
                         >
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: '1.3fr 160px 170px',
-                              gap: 12,
-                              alignItems: 'start',
-                            }}
-                          >
+                          <div className="admin-task-row">
                             <div>
                               <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{task.title}</div>
                               <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
