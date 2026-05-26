@@ -143,7 +143,7 @@ export default function ComplianceDashboard() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="admin-stat-grid">
         <div className="admin-stat-card">
           <div className="admin-stat-label">Overall Compliance</div>
           <div className="admin-stat-value" style={{ color: complianceRate >= 80 ? '#27ae60' : complianceRate >= 50 ? '#f39c12' : '#e74c3c' }}>
@@ -169,7 +169,7 @@ export default function ComplianceDashboard() {
         <div className="admin-card" style={{ marginBottom: 24 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 16 }}>Assign Training</h3>
           <form onSubmit={handleAssign}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div className="admin-form-grid" style={{ marginBottom: 16 }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: 6, color: 'var(--ink-light)' }}>
                   Organization *
