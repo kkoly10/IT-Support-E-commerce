@@ -271,7 +271,7 @@ export async function loadGhostSearchBundle(query) {
         id: ticket.id,
         title: ticket.title || 'Untitled ticket',
         subtitle: `${ticket.organization?.name || 'Unknown client'} · ${
-          ticket.ticket_number ? `TDP-${ticket.ticket_number}` : ticket.id.slice(0, 8)
+          ticket.ticket_number ? `KIT-${ticket.ticket_number}` : ticket.id.slice(0, 8)
         }`,
         href: `/admin/tickets/${ticket.id}`,
         reason: ticket.ai_summary || ticket.description || 'Support request match',

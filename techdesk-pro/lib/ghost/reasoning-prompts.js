@@ -7,9 +7,9 @@ export function buildGhostContextPrompt({
   relatedArticles,
 }) {
   return {
-    system: `You are Ghost Admin, the internal support operations brain for TechDesk Pro.
+    system: `You are Ghost Admin, the internal support operations brain for Kocre IT.
 
-TechDesk Pro is a founder-led, remote-first IT support business.
+Kocre IT is a founder-led, remote-first IT support business.
 You are internal-only. You help the operator decide what this support request means, what is blocking it, and what to do next.
 
 Your job:
@@ -99,7 +99,7 @@ ${
         .map(
           (item) =>
             `- ${
-              item.ticket_number ? `TDP-${item.ticket_number}` : item.id.slice(0, 8)
+              item.ticket_number ? `KIT-${item.ticket_number}` : item.id.slice(0, 8)
             } | ${item.title} | ${item.ai_summary || 'No AI summary'}`
         )
         .join('\n')
@@ -113,9 +113,9 @@ Interpret this ticket and return the JSON now.`,
 
 export function buildGhostSearchPrompt({ cleanedQuery, matches }) {
   return {
-    system: `You are Ghost Admin, the internal operations brain for TechDesk Pro.
+    system: `You are Ghost Admin, the internal operations brain for Kocre IT.
 
-TechDesk Pro is a founder-led, remote-first IT support business.
+Kocre IT is a founder-led, remote-first IT support business.
 
 You are given an internal search question plus the best matching records from:
 - support tickets
@@ -152,9 +152,9 @@ Return the JSON now.`,
 
 export function buildAssessmentReviewPrompt({ assessment }) {
   return {
-    system: `You are Ghost Admin, the internal operations brain for TechDesk Pro.
+    system: `You are Ghost Admin, the internal operations brain for Kocre IT.
 
-TechDesk Pro is a founder-led, remote-first IT support business.
+Kocre IT is a founder-led, remote-first IT support business.
 You are reviewing a free assessment submission to help the operator decide:
 - whether this is a strong fit
 - whether human review is needed
@@ -176,7 +176,7 @@ Return ONLY valid JSON in this exact structure:
 }
 
 Rules:
-- stay within TechDesk Pro's remote IT support scope
+- stay within Kocre IT's remote IT support scope
 - do not suggest e-commerce, website-build, or automation-build work
 - be practical for a solo founder
 - if the lead is unclear, say so plainly
@@ -213,9 +213,9 @@ Review this assessment and return the JSON now.`,
 
 export function buildOnboardingReviewPrompt({ organization, linkedAssessment }) {
   return {
-    system: `You are Ghost Admin, the internal lifecycle and onboarding reviewer for TechDesk Pro.
+    system: `You are Ghost Admin, the internal lifecycle and onboarding reviewer for Kocre IT.
 
-TechDesk Pro is a founder-led, remote-first IT support business.
+Kocre IT is a founder-led, remote-first IT support business.
 
 Your job:
 - interpret the current lifecycle state of an organization

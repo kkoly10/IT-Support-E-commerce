@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Support Scope | TechDesk Pro',
-  description: 'TechDesk Pro support scope and boundaries for remote IT and cloud/SaaS support.',
+  title: 'Support Scope | Kocre IT',
+  description: 'Kocre IT support scope and boundaries for remote IT and cloud/SaaS support.',
 }
 
 export default function SupportScopePage() {
@@ -8,7 +8,7 @@ export default function SupportScopePage() {
     <main style={{ maxWidth: 860, margin: '0 auto', padding: '32px 16px 60px' }}>
       <h1 style={{ marginBottom: 8 }}>Support Scope</h1>
       <p style={{ color: 'var(--ink-muted)', marginBottom: 18 }}>
-        TechDesk Pro is focused on remote-first IT support, cloud administration, and SaaS operations support.
+        Kocre IT is focused on remote-first IT support, cloud administration, and SaaS operations support.
       </p>
       <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
         <h2 style={{ marginBottom: 10 }}>What we handle</h2>

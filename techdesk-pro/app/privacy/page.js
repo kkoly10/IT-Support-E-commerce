@@ -175,8 +175,8 @@ export default function PrivacyPage() {
           <p style={pStyle}>
             Depending on applicable law, you may have rights to request access, correction, deletion,
             or other control over your personal information. To make a request, contact us at{' '}
-            <a href="mailto:privacy@techdeskpro.com" style={linkStyle}>
-              privacy@techdeskpro.com
+            <a href="mailto:privacy@kocreit.com" style={linkStyle}>
+              privacy@kocreit.com
             </a>
             . We may need to verify your identity before processing a request.
           </p>
@@ -205,8 +205,8 @@ export default function PrivacyPage() {
             For privacy questions or requests, contact:
             <br />
             Email:{' '}
-            <a href="mailto:privacy@techdeskpro.com" style={linkStyle}>
-              privacy@techdeskpro.com
+            <a href="mailto:privacy@kocreit.com" style={linkStyle}>
+              privacy@kocreit.com
             </a>
             <br />
             Mailing Address: [Your Business Mailing Address]
