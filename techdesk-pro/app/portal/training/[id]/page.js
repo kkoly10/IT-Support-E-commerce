@@ -222,7 +222,7 @@ export default function CourseDetail() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 20 }}>
+      <div className="portal-course-layout">
         {/* Lesson nav */}
         <div>
           {Array.from({ length: course.lesson_count }, (_, i) => i + 1).map((num) => {

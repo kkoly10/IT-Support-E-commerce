@@ -1504,8 +1504,15 @@ h1, h2, h3 {
   gap: 16px;
 }
 
+.portal-course-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+}
+
 @media (max-width: 768px) {
-  .portal-form-row {
+  .portal-form-row,
+  .portal-course-layout {
     grid-template-columns: 1fr;
   }
 }
