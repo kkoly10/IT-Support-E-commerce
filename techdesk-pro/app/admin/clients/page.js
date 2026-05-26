@@ -201,14 +201,7 @@ export default function AdminClients() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: 12,
-          marginBottom: 24,
-        }}
-      >
+      <div className="admin-stats-row">
         {[
           { label: 'Active', val: activeCount, color: '#27ae60' },
           { label: 'Onboarding', val: onboardingCount, color: '#3498db' },

@@ -1494,7 +1494,27 @@ h1, h2, h3 {
 /* MAIN CONTENT */
 .portal-main {
   flex: 1;
+  min-width: 0;
   margin-left: 260px;
+}
+
+.portal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.portal-course-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .portal-form-row,
+  .portal-course-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 .portal-topbar {
@@ -2540,6 +2560,26 @@ h1, h2, h3 {
   min-width: 0;
 }
 
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-task-row {
+  display: grid;
+  grid-template-columns: 1.3fr 160px 170px;
+  gap: 12px;
+  align-items: start;
+}
+
 /* Cards */
 .admin-card {
   background: white;
@@ -3084,6 +3124,10 @@ h1, h2, h3 {
     grid-template-columns: repeat(2, 1fr);
   }
   .admin-ticket-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-form-grid,
+  .admin-task-row {
     grid-template-columns: 1fr;
   }
 }

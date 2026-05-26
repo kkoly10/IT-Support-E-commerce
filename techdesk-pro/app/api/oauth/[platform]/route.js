@@ -65,7 +65,12 @@ export async function GET(request, { params }) {
     timestamp: Date.now(),
   })).toString('base64url')
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || 'https://techdesk-pro.vercel.app'
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    request.headers.get('origin') ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3000')
   const redirectUri = `${baseUrl}/api/oauth/callback`
 
   const authUrl = config.getAuthUrl(shopDomain, clientId, redirectUri, state)

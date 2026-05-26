@@ -202,7 +202,7 @@ export default function AdminLaunchPage() {
                   <h3>Launch delivery</h3>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="admin-form-grid">
                   <div>
                     <label className="admin-card-section-title" style={{ display: 'block', marginBottom: 8 }}>
                       Launch pack status
