@@ -187,8 +187,8 @@ export default function TermsPage() {
             For questions about these Terms, contact:
             <br />
             Email:{' '}
-            <a href="mailto:legal@techdeskpro.com" style={linkStyle}>
-              legal@techdeskpro.com
+            <a href="mailto:legal@kocreit.com" style={linkStyle}>
+              legal@kocreit.com
             </a>
             <br />
             Mailing Address: [Your Business Mailing Address]

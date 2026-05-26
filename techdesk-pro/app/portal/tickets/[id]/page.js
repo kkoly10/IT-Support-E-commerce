@@ -168,7 +168,7 @@ export default function TicketDetailPage() {
       {/* Support Request Header */}
       <div className="ticket-detail-header">
         <div className="ticket-detail-title-row">
-          <span className="ticket-number">{ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}</span>
+          <span className="ticket-number">{ticket.ticket_number ? `KIT-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}</span>
           <h1>{ticket.title}</h1>
         </div>
         <div className="ticket-detail-meta">

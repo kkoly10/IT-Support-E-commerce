@@ -359,7 +359,7 @@ export default function DashboardPage() {
                     <div className="ticket-row-left" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                         <span className="ticket-number">
-                          {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                          {ticket.ticket_number ? `KIT-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                         </span>
                         <span className="ticket-title">{ticket.title}</span>
                       </div>

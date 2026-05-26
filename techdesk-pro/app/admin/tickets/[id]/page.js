@@ -617,7 +617,7 @@ export default function AdminTicketDetail() {
                   {toLabel(status, STATUS_LABELS)}
                 </span>
                 <span className="admin-table-muted">
-                  {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                  {ticket.ticket_number ? `KIT-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                 </span>
                 <span className="admin-table-muted">·</span>
                 <span className="admin-table-muted">{ticket.organization?.name || 'Unknown organization'}</span>
@@ -930,7 +930,7 @@ export default function AdminTicketDetail() {
                           {ghostContext.similar_tickets.map((item) => (
                             <div key={item.id} style={{ paddingBottom: 8, borderBottom: '1px solid #f0ede8' }}>
                               <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#111827' }}>
-                                {item.ticket_number ? `TDP-${item.ticket_number}` : item.id.slice(0, 8)} — {item.title}
+                                {item.ticket_number ? `KIT-${item.ticket_number}` : item.id.slice(0, 8)} — {item.title}
                               </div>
                               <div className="admin-table-muted" style={{ fontSize: '0.82rem', lineHeight: 1.6 }}>
                                 {item.summary || 'No summary available'}

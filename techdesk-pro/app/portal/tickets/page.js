@@ -152,7 +152,7 @@ export default function TicketsPage() {
       if (!q) return true
       return (
         ticket.title?.toLowerCase().includes(q) ||
-        `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q) ||
+        `kit-${ticket.ticket_number || ''}`.toLowerCase().includes(q) ||
         (ticket.ai_category || '').toLowerCase().includes(q) ||
         humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q)
       )
@@ -225,7 +225,7 @@ export default function TicketsPage() {
               <div className="ticket-row-left" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
                   <span className="ticket-number">
-                    {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                    {ticket.ticket_number ? `KIT-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                   </span>
                   <span className="ticket-title">{ticket.title}</span>
                 </div>

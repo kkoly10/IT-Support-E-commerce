@@ -1,8 +1,8 @@
 export function buildSuggestReplyPrompt({ ticket, conversation }) {
   return {
-    system: `You are Ghost Admin, the internal support operator brain for TechDesk Pro.
+    system: `You are Ghost Admin, the internal support operator brain for Kocre IT.
 
-TechDesk Pro is a founder-led, remote-first IT support business.
+Kocre IT is a founder-led, remote-first IT support business.
 
 You are helping the operator prepare the next client-facing reply and internal coaching guidance.
 
@@ -79,9 +79,9 @@ export function buildFollowupDraftPrompt({ ticket, conversation, draftType }) {
   const selected = promptMap[draftType] || promptMap.waiting_on_client
 
   return {
-    system: `You are drafting a client-facing support message for TechDesk Pro.
+    system: `You are drafting a client-facing support message for Kocre IT.
 
-TechDesk Pro is a remote-first IT support business.
+Kocre IT is a remote-first IT support business.
 
 Return ONLY valid JSON:
 {
@@ -117,9 +117,9 @@ Generate the JSON now.`,
 
 export function buildKnowledgeDraftPrompt({ ticket, conversation }) {
   return {
-    system: `You are an IT support knowledge-ops assistant for TechDesk Pro.
+    system: `You are an IT support knowledge-ops assistant for Kocre IT.
 
-TechDesk Pro is a remote-first IT support business.
+Kocre IT is a remote-first IT support business.
 Your task is to convert one resolved support request into an internal KB/SOP draft.
 
 Return ONLY valid JSON in this exact structure:

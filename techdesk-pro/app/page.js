@@ -232,15 +232,6 @@ function CoNav() {
   )
 }
 
-// Honest portal preview — illustrative interface, no invented metrics.
-const PREVIEW_TILES = [
-  ['Coverage', '9–6', 'ET', 'Mon–Fri business hours'],
-  ['Built for', '1–25', 'users', 'U.S. small businesses'],
-  ['Support paths', '3', '', 'Starter · Growth · Scale'],
-  ['Model', 'Remote', '', 'remote-only by design'],
-  ['Activation', 'Fit-first', '', 'onboarding before go-live'],
-]
-
 function CoHero() {
   return (
     <section className="co-section co-hero" style={{ background: CO.bg }}>
@@ -270,29 +261,17 @@ function CoHero() {
 
       <div style={{ maxWidth: 1120, margin: '64px auto 0', background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 4 }}>
         <div style={{ background: CO.bg, border: `1px solid ${CO.borderSoft}`, borderRadius: 18, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: `1px solid ${CO.borderSoft}`, flexWrap: 'wrap' }}>
-            <Dot color={CO.green} size={7} />
-            <span style={{ fontSize: 13, fontWeight: 500, color: CO.ink }}>Client portal</span>
-            <span style={{ fontSize: 12, color: CO.ink3 }}>· structured remote support</span>
-            <span style={{ marginLeft: 'auto', fontFamily: CO.mono, fontSize: 11, color: CO.ink3 }}>illustrative interface</span>
+          <div style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: `1px solid ${CO.borderSoft}` }}>
+            <span style={{ width: 11, height: 11, borderRadius: '50%', background: CO.border }} />
+            <span style={{ width: 11, height: 11, borderRadius: '50%', background: CO.border }} />
+            <span style={{ width: 11, height: 11, borderRadius: '50%', background: CO.border }} />
+            <span style={{ marginLeft: 'auto', fontFamily: CO.mono, fontSize: 11, color: CO.ink3 }}>Kocre IT · client portal</span>
           </div>
-          <div className="co-preview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', borderBottom: `1px solid ${CO.borderSoft}` }}>
-            {PREVIEW_TILES.map(([k, v, unit, sub], i) => (
-              <div key={k} className="co-preview-cell" style={{ padding: '24px 20px', borderRight: i < 4 ? `1px solid ${CO.borderSoft}` : 'none' }}>
-                <div style={{ fontSize: 12, color: CO.ink3, marginBottom: 8 }}>{k}</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontFamily: CO.serif, fontSize: 32, fontWeight: 500, color: CO.ink, letterSpacing: -1, lineHeight: 1 }}>{v}</span>
-                  {unit && <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 16, color: CO.ink3 }}>{unit}</span>}
-                </div>
-                <div style={{ fontSize: 11.5, color: CO.ink2, marginTop: 8 }}>{sub}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, fontSize: 13, color: CO.ink2, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11.5, color: CO.ink3, letterSpacing: 0.4, textTransform: 'uppercase', fontWeight: 500 }}>How it works</span>
-            <span style={{ fontFamily: CO.mono, color: CO.green, fontSize: 11 }}>OK</span>
-            <span>Every request runs through a ticketed workflow with an audit trail.</span>
-          </div>
+          <img
+            src="/portal-preview.png"
+            alt="The Kocre IT client portal dashboard — account lifecycle, support-request stats, and recent tickets"
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          />
         </div>
       </div>
 
@@ -868,8 +847,6 @@ const CALMOP_CSS = `
   #calmop .co-quote { font-size: 26px; }
   #calmop .co-cta-h { font-size: 42px; letter-spacing: -1.4px; }
   #calmop .co-h1 br, #calmop .co-cta-h br { display: none; }
-  #calmop .co-preview-grid { grid-template-columns: 1fr 1fr; }
-  #calmop .co-preview-cell { border-right: none !important; border-bottom: 1px solid ${CO.borderSoft}; }
   #calmop .co-principles-grid { grid-template-columns: 1fr 1fr; }
   #calmop .co-principles-grid > div { border-left: none !important; border-top: 1px solid ${CO.border}; }
   #calmop .co-process-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
@@ -885,7 +862,6 @@ const CALMOP_CSS = `
   #calmop .co-compare > div > div:nth-child(3) { padding: 0 0 18px !important; border-top: none !important; }
 }
 @media (max-width: 560px) {
-  #calmop .co-preview-grid { grid-template-columns: 1fr; }
   #calmop .co-principles-grid { grid-template-columns: 1fr; }
   #calmop .co-process-grid { grid-template-columns: 1fr; }
 }

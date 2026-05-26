@@ -34,7 +34,7 @@ export const PLATFORMS = {
     needsShopDomain: true,
     getAuthUrl: (shopDomain, clientId, redirectUri, state) => {
       const callbackUrl = encodeURIComponent(redirectUri)
-      return `https://${shopDomain}/wc-auth/v1/authorize?app_name=TechDesk+Pro&scope=read&user_id=${state}&return_url=${callbackUrl}&callback_url=${callbackUrl}`
+      return `https://${shopDomain}/wc-auth/v1/authorize?app_name=Kocre+IT&scope=read&user_id=${state}&return_url=${callbackUrl}&callback_url=${callbackUrl}`
     },
   },
 

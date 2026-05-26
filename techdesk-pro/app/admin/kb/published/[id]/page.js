@@ -179,7 +179,7 @@ export default function PublishedKnowledgeArticlePage() {
                 <div>
                   <div className="admin-table-title">{ticket.title}</div>
                   <div className="admin-table-sub">
-                    {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : ticket.id.slice(0, 8)}
+                    {ticket.ticket_number ? `KIT-${ticket.ticket_number}` : ticket.id.slice(0, 8)}
                   </div>
                 </div>
 

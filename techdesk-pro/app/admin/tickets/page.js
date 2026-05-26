@@ -155,7 +155,7 @@ function AdminTicketsContent() {
         (ticket.ai_category || '').toLowerCase().includes(q) ||
         humanize(ticket.ai_category, CATEGORY_LABELS).toLowerCase().includes(q) ||
         humanize(ticket.category, CATEGORY_LABELS).toLowerCase().includes(q) ||
-        `tdp-${ticket.ticket_number || ''}`.toLowerCase().includes(q)
+        `kit-${ticket.ticket_number || ''}`.toLowerCase().includes(q)
       )
     })
   }, [tickets, search])
@@ -333,7 +333,7 @@ function AdminTicketsContent() {
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="admin-table-title">
-                        {ticket.ticket_number ? `TDP-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
+                        {ticket.ticket_number ? `KIT-${ticket.ticket_number}` : `#${ticket.id.slice(0, 8)}`}
                       </div>
                       <div className="admin-table-sub">{ticket.title}</div>
                     </td>

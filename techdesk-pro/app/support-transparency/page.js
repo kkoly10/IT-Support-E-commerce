@@ -173,8 +173,8 @@ export default function SupportTransparencyPage() {
             Questions about support scope or service coverage:
             <br />
             Email:{' '}
-            <a href="mailto:hello@techdeskpro.com" style={linkStyle}>
-              hello@techdeskpro.com
+            <a href="mailto:hello@kocreit.com" style={linkStyle}>
+              hello@kocreit.com
             </a>
           </p>
         </section>

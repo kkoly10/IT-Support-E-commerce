@@ -360,7 +360,7 @@ export default function AdminKnowledgePage() {
                         <td>
                           <div className="admin-table-title">{draft.title || 'Untitled Draft'}</div>
                           <div className="admin-table-sub">
-                            {ticket?.ticket_number ? `TDP-${ticket.ticket_number}` : draft.ticket_id?.slice(0, 8) || '—'}
+                            {ticket?.ticket_number ? `KIT-${ticket.ticket_number}` : draft.ticket_id?.slice(0, 8) || '—'}
                             {' · '}
                             {ticket?.title || 'Unknown ticket'}
                           </div>
