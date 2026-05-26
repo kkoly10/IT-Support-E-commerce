@@ -246,15 +246,14 @@ function CoHero() {
           for the size of business you actually run.
         </h1>
         <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
-          Day-to-day helpdesk, cloud admin, and user support — delivered through a structured portal, with real onboarding
-          and human-supervised AI. Built for U.S. small businesses without an in-house IT team.
+          Your outsourced IT department — helpdesk, cloud admin, and user support, run through one structured portal.
         </p>
         <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href="/free-assessment" kind="accent">
             Start free assessment
           </CoBtn>
-          <CoBtn as="a" href="#how-it-works" kind="ghost">
-            See how it works
+          <CoBtn as="a" href="#pricing" kind="ghost">
+            See pricing
           </CoBtn>
         </div>
       </div>
