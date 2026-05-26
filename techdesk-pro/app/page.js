@@ -101,9 +101,9 @@ const ICON = {
 
 function Logo({ color = CO.ink }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-      <circle cx="11" cy="11" r="10" fill="none" stroke={color} strokeWidth="1.6" />
-      <circle cx="11" cy="11" r="4" fill={CO.green} />
+    <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="14" y="14" width="14" height="72" fill={color} />
+      <path d="M 30 50 L 80 14 L 58 50 L 80 86 L 30 50 Z" fill={CO.green} />
     </svg>
   )
 }

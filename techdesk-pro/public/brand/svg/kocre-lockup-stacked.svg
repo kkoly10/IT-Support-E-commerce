@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 140" width="200" height="140">
+  <g transform="translate(60, 0)">
+    <svg width="80" height="80" viewBox="0 0 100 100">
+      <rect x="14" y="14" width="14" height="72" fill="#0f100e"></rect>
+      <path d="M 30 50 L 80 14 L 58 50 L 80 86 L 30 50 Z" fill="#2f7a4d"></path>
+    </svg>
+  </g>
+  <text x="100" y="118" text-anchor="middle" font-family="Inter Tight, Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#0f100e" letter-spacing="-0.6">Kocre IT</text>
+</svg>

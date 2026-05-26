@@ -87,7 +87,7 @@ export default function AdminLayout({ children }) {
             }}
           >
             <div className="admin-logo-mark">
-              <BrandMark stroke="#ffffff" />
+              <BrandMark reversed />
             </div>
             <div>
               <div className="admin-logo-text">Kocre IT Services</div>
