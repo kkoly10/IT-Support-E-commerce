@@ -7,6 +7,7 @@ export const metadata = {
 export default function SupportTransparencyPage() {
   return (
     <main style={{ background: 'var(--bg)', minHeight: '100vh', padding: '120px 20px 80px' }}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" />
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
         <div style={{ marginBottom: 32 }}>
           <div

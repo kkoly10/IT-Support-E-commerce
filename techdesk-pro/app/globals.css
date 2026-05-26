@@ -2419,6 +2419,7 @@ h1, h2, h3 {
 /* Main content */
 .admin-main {
   flex: 1;
+  min-width: 0;
   margin-left: 260px;
   padding: 32px;
   min-height: 100vh;
@@ -2531,8 +2532,12 @@ h1, h2, h3 {
 /* Grid layouts */
 .admin-grid-2col {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 20px;
+}
+
+.admin-grid-2col > * {
+  min-width: 0;
 }
 
 /* Cards */
@@ -2541,12 +2546,15 @@ h1, h2, h3 {
   border-radius: 12px;
   border: 1px solid #e8e6e1;
   padding: 20px;
+  min-width: 0;
 }
 
 .admin-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
@@ -3048,10 +3056,10 @@ h1, h2, h3 {
     grid-template-columns: repeat(3, 1fr);
   }
   .admin-grid-2col {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .admin-ticket-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

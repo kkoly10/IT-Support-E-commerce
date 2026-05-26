@@ -241,20 +241,19 @@ function CoHero() {
           Onboarding U.S. small businesses · 1–25 users
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
-          Quietly capable IT support
+          Quietly capable IT support{' '}
           <br />
           for the size of business you actually run.
         </h1>
         <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
-          Day-to-day helpdesk, cloud admin, and user support — delivered through a structured portal, with real onboarding
-          and human-supervised AI. Built for U.S. small businesses without an in-house IT team.
+          Your outsourced IT department — helpdesk, cloud admin, and user support, run through one structured portal.
         </p>
         <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href="/free-assessment" kind="accent">
             Start free assessment
           </CoBtn>
-          <CoBtn as="a" href="#how-it-works" kind="ghost">
-            See how it works
+          <CoBtn as="a" href="#pricing" kind="ghost">
+            See pricing
           </CoBtn>
         </div>
       </div>
@@ -724,7 +723,7 @@ function CoCtaFooter() {
         <div style={{ maxWidth: 880, margin: '0 auto' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#a3d4b3', letterSpacing: 0.6, marginBottom: 20, textTransform: 'uppercase' }}>Next</div>
           <h2 className="co-cta-h" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -2.6, lineHeight: 1.02, margin: 0 }}>
-            See if Kocre fits.
+            See if Kocre fits.{' '}
             <br />
             <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400, color: '#a3d4b3' }}>Twelve minutes.</span> Free.
           </h2>
@@ -832,7 +831,7 @@ const CALMOP_CSS = `
 #calmop .co-dot-pulse { animation: coDotPulse 1.8s infinite; }
 
 @media (max-width: 1000px) {
-  #calmop .co-services-grid { grid-template-columns: 1fr; gap: 40px; }
+  #calmop .co-services-grid { grid-template-columns: 1fr !important; gap: 40px; }
   #calmop .co-services-aside { position: static; }
 }
 @media (max-width: 880px) {
@@ -847,22 +846,22 @@ const CALMOP_CSS = `
   #calmop .co-quote { font-size: 26px; }
   #calmop .co-cta-h { font-size: 42px; letter-spacing: -1.4px; }
   #calmop .co-h1 br, #calmop .co-cta-h br { display: none; }
-  #calmop .co-principles-grid { grid-template-columns: 1fr 1fr; }
+  #calmop .co-principles-grid { grid-template-columns: 1fr 1fr !important; }
   #calmop .co-principles-grid > div { border-left: none !important; border-top: 1px solid ${CO.border}; }
-  #calmop .co-process-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
+  #calmop .co-process-grid { grid-template-columns: 1fr 1fr !important; gap: 36px 24px; }
   #calmop .co-process-line { display: none; }
   #calmop .co-section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
-  #calmop .co-calc { grid-template-columns: 1fr; }
-  #calmop .co-tiers { grid-template-columns: 1fr; max-width: 440px; margin-left: auto; margin-right: auto; }
-  #calmop .co-proof-grid { grid-template-columns: 1fr; }
-  #calmop .co-compare { grid-template-columns: 1fr; }
+  #calmop .co-calc { grid-template-columns: 1fr !important; }
+  #calmop .co-tiers { grid-template-columns: 1fr !important; max-width: 440px; margin-left: auto; margin-right: auto; }
+  #calmop .co-proof-grid { grid-template-columns: 1fr !important; }
+  #calmop .co-compare { grid-template-columns: 1fr !important; }
   #calmop .co-compare-h { display: none; }
   #calmop .co-compare-cat { padding: 18px 0 4px !important; font-size: 12px !important; text-transform: uppercase; letter-spacing: 0.6px; color: ${CO.green} !important; border-top: 1px solid ${CO.border}; }
   #calmop .co-compare > div > div:nth-child(2) { padding: 4px 0 18px !important; border-top: none !important; }
   #calmop .co-compare > div > div:nth-child(3) { padding: 0 0 18px !important; border-top: none !important; }
 }
 @media (max-width: 560px) {
-  #calmop .co-principles-grid { grid-template-columns: 1fr; }
-  #calmop .co-process-grid { grid-template-columns: 1fr; }
+  #calmop .co-principles-grid { grid-template-columns: 1fr !important; }
+  #calmop .co-process-grid { grid-template-columns: 1fr !important; }
 }
 `
