@@ -1,4 +1,5 @@
 import './globals.css'
+import { OG_BASE } from '../lib/seo'
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -20,20 +21,10 @@ export const metadata = {
     'Google Workspace support',
   ],
   openGraph: {
+    ...OG_BASE,
     title: 'Kocre IT Services — Remote-First IT Support for Small Businesses',
     description:
       'Day-to-day helpdesk, cloud admin, and user support — delivered through a structured portal with real onboarding and human-supervised AI.',
-    siteName: 'Kocre IT Services',
-    type: 'website',
-    locale: 'en_US',
-    images: [
-      {
-        url: '/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'Kocre IT Services — remote-first IT support for small businesses',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
