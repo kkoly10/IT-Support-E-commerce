@@ -244,7 +244,7 @@ export default function TicketDetailPage() {
                 style={{
                   width: '100%', maxWidth: 400, padding: '10px 14px',
                   border: '1px solid var(--border)', borderRadius: 8,
-                  fontSize: '0.88rem', fontFamily: 'Outfit, sans-serif',
+                  fontSize: '0.88rem', fontFamily: 'Inter Tight, sans-serif',
                   resize: 'none', margin: '0 auto', display: 'block',
                 }}
               />
@@ -255,7 +255,7 @@ export default function TicketDetailPage() {
                   marginTop: 12, padding: '10px 24px', background: 'var(--teal)',
                   color: 'white', border: 'none', borderRadius: 8,
                   fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
-                  fontFamily: 'Outfit, sans-serif',
+                  fontFamily: 'Inter Tight, sans-serif',
                 }}
               >
                 {submittingRating ? 'Submitting...' : 'Submit Rating'}

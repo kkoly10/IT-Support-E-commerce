@@ -135,7 +135,7 @@ export default function ComplianceDashboard() {
             background: showAssignForm ? '#f0f2f5' : 'var(--teal)',
             color: showAssignForm ? 'var(--ink)' : 'white',
             border: 'none', fontWeight: 600, fontSize: '0.85rem',
-            cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+            cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
           }}
         >
           {showAssignForm ? 'Cancel' : '+ Assign Training'}
@@ -244,7 +244,7 @@ export default function ComplianceDashboard() {
               style={{
                 padding: '10px 24px', background: 'var(--teal)', color: 'white',
                 border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.88rem',
-                cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
                 opacity: assigning ? 0.5 : 1,
               }}
             >

@@ -117,7 +117,7 @@ export default function AdminLaunchPage() {
                   style={{
                     textAlign: 'left',
                     background: org.id === selectedOrgId ? '#f8fafc' : 'white',
-                    border: org.id === selectedOrgId ? '1px solid #0D7C66' : '1px solid var(--border)',
+                    border: org.id === selectedOrgId ? '1px solid var(--teal)' : '1px solid var(--border)',
                     borderRadius: 12,
                     padding: '14px 16px',
                     cursor: 'pointer',
@@ -355,5 +355,5 @@ const inputStyle = {
   border: '1px solid var(--border)',
   borderRadius: 8,
   fontSize: '0.86rem',
-  fontFamily: 'Outfit, sans-serif',
+  fontFamily: 'Inter Tight, sans-serif',
 }

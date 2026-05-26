@@ -6,17 +6,20 @@
    GLOBAL OVERRIDES
    ============================================ */
 :root {
-  --bg: #FAFAF8;
-  --bg-warm: #F5F3EF;
+  /* Calm Operator palette — kept in sync with the homepage (app/page.js CO tokens).
+     The --teal* names are retained to avoid churning ~100 usages; they now hold
+     the brand green. */
+  --bg: #FAF8F4;
+  --bg-warm: #F3F1E7;
   --surface: #FFFFFF;
-  --ink: #1A1A1A;
-  --ink-light: #4A4A4A;
-  --ink-muted: #8A8A8A;
-  --border: #E8E6E1;
-  --border-light: #F0EDE8;
-  --teal: #0D7C66;
-  --teal-light: #E8F5F0;
-  --teal-dark: #095C4B;
+  --ink: #0F100E;
+  --ink-light: #4A4944;
+  --ink-muted: #6F6A62;
+  --border: #ECEAD8;
+  --border-light: #F3F1E7;
+  --teal: #2F7A4D;
+  --teal-light: #E8F1EA;
+  --teal-dark: #245F3C;
 }
 
 * {
@@ -30,7 +33,7 @@ html {
 }
 
 body {
-  font-family: 'Outfit', -apple-system, sans-serif !important;
+  font-family: 'Inter Tight', -apple-system, sans-serif !important;
   background: var(--bg) !important;
   color: var(--ink) !important;
   line-height: 1.6;
@@ -39,7 +42,7 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: 'Source Serif 4', Georgia, serif !important;
+  font-family: 'Newsreader', Georgia, serif !important;
   line-height: 1.2;
 }
 
@@ -73,7 +76,7 @@ h1, h2, h3 {
 }
 
 .logo {
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter Tight', sans-serif !important;
   font-weight: 800;
   font-size: 1.2rem;
   color: var(--ink);
@@ -135,7 +138,7 @@ h1, h2, h3 {
   transition: all 0.2s;
   cursor: pointer;
   border: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .nav-cta:hover {
@@ -246,7 +249,7 @@ h1, h2, h3 {
   letter-spacing: 0.04em;
   margin-bottom: 24px;
   text-transform: uppercase;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter Tight', sans-serif !important;
 }
 
 .hero-tag::before {
@@ -302,7 +305,7 @@ h1, h2, h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .btn-primary:hover {
@@ -322,7 +325,7 @@ h1, h2, h3 {
   border: 1.5px solid var(--border);
   transition: all 0.25s;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .btn-secondary:hover {
@@ -356,7 +359,7 @@ h1, h2, h3 {
 }
 
 .stat-val {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 2.2rem;
   font-weight: 600;
   color: var(--teal);
@@ -427,7 +430,7 @@ h1, h2, h3 {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin-bottom: 12px;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter Tight', sans-serif !important;
 }
 
 .section-title {
@@ -473,7 +476,7 @@ h1, h2, h3 {
 }
 
 .service-num {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 3rem;
   font-weight: 600;
   color: var(--border);
@@ -481,7 +484,7 @@ h1, h2, h3 {
 }
 
 .service-title {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--ink);
@@ -517,7 +520,7 @@ h1, h2, h3 {
 }
 
 .service-price-val {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--teal);
@@ -557,7 +560,7 @@ h1, h2, h3 {
 }
 
 .step-title {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-weight: 600;
   font-size: 1.05rem;
   color: var(--ink);
@@ -618,7 +621,7 @@ h1, h2, h3 {
 }
 
 .plan-name {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--ink);
@@ -647,7 +650,7 @@ h1, h2, h3 {
 }
 
 .plan-amount {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 3.2rem;
   font-weight: 600;
   color: var(--ink);
@@ -695,7 +698,7 @@ h1, h2, h3 {
   text-decoration: none;
   border: none;
   display: block;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .plan-btn-primary {
@@ -852,7 +855,7 @@ h1, h2, h3 {
   font-size: 1rem;
   font-weight: 500;
   color: var(--ink);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .faq-q:hover {
@@ -917,7 +920,7 @@ h1, h2, h3 {
 }
 
 .cta-card h2 {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   color: white;
   font-size: clamp(1.8rem, 3vw, 2.4rem);
   margin-bottom: 16px;
@@ -953,7 +956,7 @@ h1, h2, h3 {
   transition: all 0.25s;
   border: none;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .cta-btn-white:hover {
@@ -972,7 +975,7 @@ h1, h2, h3 {
   border: 1.5px solid rgba(255, 255, 255, 0.2);
   transition: all 0.25s;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .cta-btn-ghost:hover {
@@ -1155,7 +1158,7 @@ h1, h2, h3 {
   font-weight: 800;
   font-size: 1.1rem;
   margin-bottom: 24px;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter Tight', sans-serif !important;
 }
 
 .auth-header h1 {
@@ -1194,7 +1197,7 @@ h1, h2, h3 {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.92rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: var(--bg);
   color: var(--ink);
   transition: border-color 0.2s;
@@ -1228,7 +1231,7 @@ h1, h2, h3 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .auth-submit:hover {
@@ -1358,7 +1361,7 @@ h1, h2, h3 {
   color: var(--ink);
   font-weight: 800;
   font-size: 1rem;
-  font-family: 'Outfit', sans-serif !important;
+  font-family: 'Inter Tight', sans-serif !important;
 }
 
 .sidebar-close {
@@ -1476,7 +1479,7 @@ h1, h2, h3 {
   color: var(--ink-muted);
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .sidebar-logout:hover {
@@ -1601,7 +1604,7 @@ h1, h2, h3 {
 }
 
 .stat-card-value {
-  font-family: 'Source Serif 4', serif !important;
+  font-family: 'Newsreader', serif !important;
   font-size: 2rem;
   font-weight: 600;
   line-height: 1;
@@ -1837,7 +1840,7 @@ h1, h2, h3 {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.88rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: var(--surface);
   outline: none;
 }
@@ -1851,7 +1854,7 @@ h1, h2, h3 {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.85rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: var(--surface);
   color: var(--ink);
   text-transform: capitalize;
@@ -2159,7 +2162,7 @@ h1, h2, h3 {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.9rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: var(--bg);
   resize: vertical;
   outline: none;
@@ -2180,7 +2183,7 @@ h1, h2, h3 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .message-form button:hover {
@@ -2405,7 +2408,7 @@ h1, h2, h3 {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 
 .admin-logout-btn:hover {
@@ -2479,7 +2482,7 @@ h1, h2, h3 {
 }
 
 .admin-page-title {
-  font-family: 'Source Serif 4', Georgia, serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-size: 1.6rem;
   font-weight: 600;
   color: #1a1a1a;
@@ -2514,7 +2517,7 @@ h1, h2, h3 {
 }
 
 .admin-stat-value {
-  font-family: 'Source Serif 4', serif;
+  font-family: 'Newsreader', serif;
   font-size: 2rem;
   font-weight: 600;
   color: #1a1a1a;
@@ -2548,7 +2551,7 @@ h1, h2, h3 {
 }
 
 .admin-card-header h3 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   color: #1a1a1a;
@@ -2566,7 +2569,7 @@ h1, h2, h3 {
 }
 
 .admin-card-section-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   color: #8a8a8a;
@@ -2664,7 +2667,7 @@ h1, h2, h3 {
   border: 1px solid #e8e6e1;
   border-radius: 8px;
   font-size: 0.88rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: white;
   color: #1a1a1a;
   outline: none;
@@ -2680,7 +2683,7 @@ h1, h2, h3 {
   border: 1px solid #e8e6e1;
   border-radius: 8px;
   font-size: 0.88rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: white;
   color: #1a1a1a;
   outline: none;
@@ -2802,7 +2805,7 @@ h1, h2, h3 {
 }
 
 .admin-ticket-title {
-  font-family: 'Source Serif 4', serif;
+  font-family: 'Newsreader', serif;
   font-size: 1.3rem;
   font-weight: 600;
   color: #1a1a1a;
@@ -2842,7 +2845,7 @@ h1, h2, h3 {
 }
 
 .admin-message.agent {
-  background: #e8f5f0;
+  background: var(--teal-light);
   border-color: #c8e6d8;
 }
 
@@ -2875,7 +2878,7 @@ h1, h2, h3 {
 }
 
 .admin-message-badge.client { background: #3498db18; color: #3498db; }
-.admin-message-badge.agent { background: #0D7C6618; color: #0D7C66; }
+.admin-message-badge.agent { background: var(--teal-light); color: var(--teal); }
 .admin-message-badge.system { background: #8a8a8a18; color: #8a8a8a; }
 .admin-message-badge.ai { background: #9b59b618; color: #9b59b6; }
 
@@ -2904,7 +2907,7 @@ h1, h2, h3 {
   border: 1px solid #e8e6e1;
   border-radius: 8px;
   font-size: 0.9rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   resize: vertical;
   min-height: 100px;
   outline: none;
@@ -2931,7 +2934,7 @@ h1, h2, h3 {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.15s;
 }
 
@@ -2953,7 +2956,7 @@ h1, h2, h3 {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.15s;
 }
 
@@ -2975,7 +2978,7 @@ h1, h2, h3 {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.15s;
 }
 
@@ -3018,7 +3021,7 @@ h1, h2, h3 {
   border: 1px solid #e8e6e1;
   border-radius: 6px;
   font-size: 0.82rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   background: white;
   color: #1a1a1a;
   cursor: pointer;

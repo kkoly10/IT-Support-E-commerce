@@ -421,7 +421,7 @@ export default function SignupPage() {
                     fontSize: '0.92rem',
                     fontWeight: 500,
                     cursor: 'pointer',
-                    fontFamily: 'Outfit, sans-serif',
+                    fontFamily: 'Inter Tight, sans-serif',
                     color: 'var(--ink-muted)',
                   }}
                 >

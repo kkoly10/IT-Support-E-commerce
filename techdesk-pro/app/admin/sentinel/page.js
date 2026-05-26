@@ -104,7 +104,7 @@ export default function SentinelDashboard() {
             padding: '10px 20px', borderRadius: 8,
             background: running ? '#f0f2f5' : 'var(--teal)', color: running ? '#8a8a8a' : 'white',
             border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
-            fontFamily: 'Outfit, sans-serif'
+            fontFamily: 'Inter Tight, sans-serif'
           }}
         >
           {running ? '⏳ Running...' : '▶ Run Check Now'}
@@ -190,7 +190,7 @@ export default function SentinelDashboard() {
                       {meta.auto_healed && (
                         <span style={{
                           padding: '2px 8px', borderRadius: 100, fontSize: '0.68rem', fontWeight: 700,
-                          background: '#0D7C6618', color: '#0D7C66'
+                          background: 'var(--teal-light)', color: 'var(--teal)'
                         }}>
                           AUTO-HEALED
                         </span>

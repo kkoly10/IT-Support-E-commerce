@@ -419,7 +419,7 @@ export default function AdminOnboardingPage() {
                     style={{
                       textAlign: 'left',
                       background: isSelected ? '#f8fafc' : 'white',
-                      border: isSelected ? '1px solid #0D7C66' : '1px solid var(--border)',
+                      border: isSelected ? '1px solid var(--teal)' : '1px solid var(--border)',
                       borderRadius: 12,
                       padding: '14px 16px',
                       cursor: 'pointer',
@@ -988,5 +988,5 @@ const inputStyle = {
   border: '1px solid var(--border)',
   borderRadius: 8,
   fontSize: '0.84rem',
-  fontFamily: 'Outfit, sans-serif',
+  fontFamily: 'Inter Tight, sans-serif',
 }

@@ -138,7 +138,7 @@ export default function AdminReports() {
                     background: generating === org.id ? '#f0f2f5' : 'var(--teal)',
                     color: generating === org.id ? '#8a8a8a' : 'white',
                     border: 'none', fontSize: '0.78rem', fontWeight: 600,
-                    cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                    cursor: 'pointer', fontFamily: 'Inter Tight, sans-serif',
                   }}
                 >
                   {generating === org.id ? 'Generating...' : 'Generate'}
@@ -181,7 +181,7 @@ export default function AdminReports() {
               </h4>
               {reportData.recommendations.map((rec, i) => (
                 <div key={i} style={{
-                  padding: '8px 12px', background: '#e8f5f0', borderRadius: 6,
+                  padding: '8px 12px', background: 'var(--teal-light)', borderRadius: 6,
                   marginBottom: 6, fontSize: '0.88rem', color: 'var(--ink-light)',
                   display: 'flex', gap: 8,
                 }}>
