@@ -118,7 +118,7 @@ const FOUNDER = {
   initials: 'KK',
   img: '/founder.jpg',
   note:
-    'I started Kocre IT to give small U.S. businesses the kind of dependable, day-to-day IT support usually reserved for companies big enough to hire in-house — without the overhead or the guesswork. I am building it deliberately: real onboarding, a structured client portal, clear scope, and AI assistance kept under human supervision. We are early, and I would rather earn trust through process and honesty than inflated claims. If we are a fit, you work directly with the person who built the system.',
+    'I started Kocre IT to give small businesses the kind of dependable, day-to-day IT support usually reserved for companies big enough to hire in-house — without the overhead or the guesswork. I am building it deliberately: real onboarding, a structured client portal, clear scope, and AI assistance kept under human supervision. We are early, and I would rather earn trust through process and honesty than inflated claims. If we are a fit, you work directly with the person who built the system.',
 }
 
 function FounderAvatar() {
@@ -239,7 +239,7 @@ function CoHero() {
       <div style={{ maxWidth: 1120, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '6px 14px', background: CO.greenSoft, borderRadius: 999, fontSize: 13, color: CO.green, marginBottom: 28, fontWeight: 500 }}>
           <Dot color={CO.green} size={6} />
-          Onboarding U.S. small businesses · 1–25 users
+          Onboarding small businesses · US, Canada, UK & Ireland
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
           Quietly capable IT support{' '}
@@ -374,7 +374,7 @@ function CoServices() {
 }
 
 const PRINCIPLES = [
-  ['Coverage', 'Mon–Fri · 9–6 ET', 'Business-hours remote support for U.S. small businesses.'],
+  ['Coverage', 'Mon–Fri · 9–6 ET', 'Business-hours remote support — US, Canada, and UK/Ireland afternoons.'],
   ['Onboarding', 'Fit review before activation', 'Scope, access, and contacts confirmed before support goes live.'],
   ['Delivery', 'Portal-tracked, not ad hoc', 'Every request runs through a ticketed workflow with an audit trail.'],
   ['Approach', 'AI-assisted, human-supervised', 'Automation where it speeds delivery; people where judgment matters.'],
@@ -739,7 +739,7 @@ function CoCtaFooter() {
             <div style={{ maxWidth: 470 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: CO.ink, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>Service areas</div>
               <p style={{ fontSize: 13.5, lineHeight: 1.6, color: CO.ink2, margin: 0 }}>
-                Serving the DMV — Washington, DC, Maryland, and Northern Virginia — plus small businesses across the U.S., fully remote.
+                Serving the DMV — Washington, DC, Maryland, and Northern Virginia — plus small businesses across the US, Canada, the UK & Ireland, fully remote.
               </p>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
                 {REGIONS.map((r) => (

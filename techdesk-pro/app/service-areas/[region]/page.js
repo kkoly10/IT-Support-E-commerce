@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { SITE_URL, BUSINESS, REGIONS } from '../../../lib/seo'
+import { SITE_URL, BUSINESS, REGIONS, OG_BASE } from '../../../lib/seo'
 
 const STATE_BY_SLUG = {
   'northern-virginia': 'Virginia',
@@ -30,6 +30,7 @@ export async function generateMetadata({ params }) {
     description: region.intro,
     alternates: { canonical: `/service-areas/${region.slug}` },
     openGraph: {
+      ...OG_BASE,
       url: `${SITE_URL}/service-areas/${region.slug}`,
       title,
       description: region.intro,

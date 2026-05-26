@@ -23,6 +23,22 @@ export const BUSINESS = {
 // States/districts served (for schema areaServed) + national reach.
 export const STATES_SERVED = ['Virginia', 'Maryland', 'District of Columbia']
 
+// Countries served remotely (English-speaking markets).
+export const COUNTRIES_SERVED = ['United States', 'Canada', 'United Kingdom', 'Ireland']
+
+// Shared Open Graph defaults. Next REPLACES (does not merge) openGraph when a
+// page sets its own, so every page that overrides og must spread this in to
+// keep siteName/type/locale/alternates/image.
+export const OG_BASE = {
+  siteName: 'Kocre IT Services',
+  type: 'website',
+  locale: 'en_US',
+  alternateLocale: ['en_CA', 'en_GB', 'en_IE'],
+  images: [
+    { url: '/og.png', width: 1200, height: 630, alt: 'Kocre IT Services — remote-first IT support for small businesses' },
+  ],
+}
+
 // Curated region landing pages (DMV). Each becomes /service-areas/<slug>.
 export const REGIONS = [
   {

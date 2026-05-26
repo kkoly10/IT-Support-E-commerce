@@ -1,17 +1,17 @@
 import HomeClient from './HomeClient'
-import { SITE_URL, BUSINESS, STATES_SERVED, SERVICE_CITIES, FAQS } from '../lib/seo'
+import { SITE_URL, BUSINESS, STATES_SERVED, SERVICE_CITIES, COUNTRIES_SERVED, FAQS, OG_BASE } from '../lib/seo'
 
 export const metadata = {
   title: 'Small-Business IT Support in DC, MD & VA | Kocre IT Services',
   description:
-    'Kocre IT Services is a remote-first MSP delivering helpdesk, cloud & SaaS administration, and user support to small businesses across the DC–Maryland–Virginia (DMV) area and nationwide — with real onboarding, clear scope, and human-supervised AI.',
+    'Kocre IT Services is a remote-first MSP delivering helpdesk, cloud & SaaS administration, and user support to small businesses across the DC–Maryland–Virginia (DMV) area, and remotely across the US, Canada, the UK & Ireland — with real onboarding, clear scope, and human-supervised AI.',
   alternates: { canonical: '/' },
   openGraph: {
+    ...OG_BASE,
     url: SITE_URL,
     title: 'Small-Business IT Support in DC, MD & VA | Kocre IT Services',
     description:
-      'Remote-first managed IT support for small businesses across the DMV and nationwide — helpdesk, cloud admin, and user support through a structured portal.',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Kocre IT Services — remote-first IT support for small businesses' }],
+      'Remote-first managed IT support for small businesses across the DMV and remotely across the US, Canada, the UK & Ireland — helpdesk, cloud admin, and user support through a structured portal.',
   },
 }
 
@@ -25,7 +25,7 @@ const SERVICE_LD = {
   logo: `${SITE_URL}/brand/png/mark-512.png`,
   image: `${SITE_URL}/og.png`,
   description:
-    'Remote-first IT helpdesk, cloud/SaaS administration, and structured user support for small businesses across the DC–Maryland–Virginia area and nationwide, delivered through a client portal with real onboarding and human-supervised AI.',
+    'Remote-first IT helpdesk, cloud/SaaS administration, and structured user support for small businesses across the DC–Maryland–Virginia area, and remotely across the US, Canada, the UK, and Ireland, delivered through a client portal with real onboarding and human-supervised AI.',
   serviceType: 'Managed IT support',
   telephone: BUSINESS.telephone,
   email: BUSINESS.email,
@@ -33,7 +33,7 @@ const SERVICE_LD = {
   sameAs: BUSINESS.sameAs,
   founder: { '@type': 'Person', name: 'Komlan Kouhiko' },
   areaServed: [
-    { '@type': 'Country', name: 'United States' },
+    ...COUNTRIES_SERVED.map((c) => ({ '@type': 'Country', name: c })),
     ...STATES_SERVED.map((s) => ({ '@type': 'AdministrativeArea', name: s })),
     ...SERVICE_CITIES.map((c) => ({ '@type': 'City', name: c })),
   ],
@@ -42,7 +42,7 @@ const SERVICE_LD = {
     telephone: BUSINESS.telephone,
     email: BUSINESS.email,
     contactType: 'customer support',
-    areaServed: 'US',
+    areaServed: ['US', 'CA', 'GB', 'IE'],
     availableLanguage: 'English',
   },
   makesOffer: [
