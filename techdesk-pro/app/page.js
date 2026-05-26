@@ -15,7 +15,7 @@ const CO = {
   bg3: '#0f100e',
   ink: '#0f100e',
   ink2: '#4a4944',
-  ink3: '#807c75',
+  ink3: '#6f6a62', // ~5.3:1 on white — passes WCAG AA for the small captions/labels it's used on
   border: '#ecead8',
   borderSoft: '#f3f1e7',
   green: '#2f7a4d',
@@ -108,6 +108,31 @@ function Logo({ color = CO.ink }) {
   )
 }
 
+// Founder details — update the name/title/copy as needed, and drop a real
+// photo at /public/founder.jpg (or change FOUNDER.img). Falls back to initials
+// if the image is missing, so nothing breaks before the file is committed.
+const FOUNDER = {
+  name: 'Komlan Kouhiko',
+  title: 'Founder · Kocre IT Services',
+  initials: 'KK',
+  img: '/founder.jpg',
+  note:
+    'I started Kocre IT to give small U.S. businesses the kind of dependable, day-to-day IT support usually reserved for companies big enough to hire in-house — without the overhead or the guesswork. I am building it deliberately: real onboarding, a structured client portal, clear scope, and AI assistance kept under human supervision. We are early, and I would rather earn trust through process and honesty than inflated claims. If we are a fit, you work directly with the person who built the system.',
+}
+
+function FounderAvatar() {
+  const [ok, setOk] = useState(true)
+  return (
+    <div style={{ width: 96, height: 96, borderRadius: 20, overflow: 'hidden', flexShrink: 0, background: CO.greenSoft, border: `1px solid ${CO.border}`, display: 'grid', placeItems: 'center' }}>
+      {ok ? (
+        <img src={FOUNDER.img} alt={FOUNDER.name} width={96} height={96} onError={() => setOk(false)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      ) : (
+        <span style={{ fontFamily: CO.sans, fontWeight: 600, fontSize: 28, color: CO.green, letterSpacing: -0.5 }}>{FOUNDER.initials}</span>
+      )}
+    </div>
+  )
+}
+
 function Dot({ color = CO.green, size = 7 }) {
   return (
     <span style={{ position: 'relative', display: 'inline-block', width: size, height: size }}>
@@ -180,6 +205,7 @@ function CoNav() {
       <button
         className="co-nav-toggle"
         aria-label="Toggle navigation"
+        aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', flexDirection: 'column', gap: 5, width: 26 }}
       >
@@ -646,11 +672,21 @@ function CoAbout() {
             Built to feel controlled, clear, and operationally serious — not to{' '}
             <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>sound bigger than reality.</span>
           </h2>
-          <p style={{ marginTop: 24, fontSize: 17, lineHeight: 1.6, color: CO.ink2, maxWidth: 680, marginLeft: 'auto', marginRight: 'auto' }}>
-            Kocre IT Services is a remote-only support business that helps small businesses manage day-to-day technical issues, user
-            support, and cloud tools without hiring a full internal IT team. Public claims are intentionally conservative.
+        </div>
+
+        <div className="co-founder" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 28, background: CO.bg, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 40, marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <FounderAvatar />
+            <div>
+              <div style={{ fontFamily: CO.sans, fontSize: 20, fontWeight: 600, letterSpacing: -0.4, color: CO.ink }}>{FOUNDER.name}</div>
+              <div style={{ fontFamily: CO.mono, fontSize: 12, color: CO.ink3, letterSpacing: 0.4, marginTop: 4, textTransform: 'uppercase' }}>{FOUNDER.title}</div>
+            </div>
+          </div>
+          <p style={{ fontFamily: CO.serif, fontSize: 22, lineHeight: 1.5, color: CO.ink, margin: 0, letterSpacing: -0.2 }}>
+            &ldquo;{FOUNDER.note}&rdquo;
           </p>
         </div>
+
         <div className="co-proof-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
           {PROOF.map(([title, desc]) => (
             <div key={title} style={{ background: CO.bg, border: `1px solid ${CO.border}`, borderRadius: 16, padding: '28px 28px' }}>
@@ -686,7 +722,7 @@ function CoFaq() {
         <div>
           {FAQS.map(([q, a], i) => (
             <div key={q} style={{ borderTop: `1px solid ${CO.border}` }}>
-              <button onClick={() => setOpen(open === i ? -1 : i)} className="co-faq-q" style={{ width: '100%', padding: '28px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <button aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)} className="co-faq-q" style={{ width: '100%', padding: '28px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                 <span style={{ fontFamily: CO.sans, fontSize: 22, fontWeight: 500, color: CO.ink, letterSpacing: -0.4 }}>{q}</span>
                 <span style={{ width: 32, height: 32, minWidth: 32, borderRadius: 16, background: open === i ? CO.ink : 'transparent', border: `1px solid ${open === i ? CO.ink : CO.border}`, color: open === i ? '#fff' : CO.ink2, display: 'grid', placeItems: 'center', fontSize: 18 }}>
                   {open === i ? '−' : '+'}
@@ -752,10 +788,27 @@ function CoCtaFooter() {
   )
 }
 
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'Kocre IT Services',
+  description:
+    'Remote-only IT helpdesk, cloud/SaaS administration, and structured user support for U.S. small businesses, delivered through a client portal with real onboarding and human-supervised AI.',
+  serviceType: 'Managed IT support',
+  areaServed: { '@type': 'Country', name: 'United States' },
+  founder: { '@type': 'Person', name: FOUNDER.name },
+  makesOffer: [
+    { '@type': 'Offer', name: 'Starter', price: '499', priceCurrency: 'USD', description: 'Up to 10 standard support tickets per month, business-hours remote helpdesk.' },
+    { '@type': 'Offer', name: 'Growth', price: '999', priceCurrency: 'USD', description: 'Up to 30 standard tickets per month, helpdesk plus cloud & SaaS administration.' },
+    { '@type': 'Offer', name: 'Scale', price: '1999', priceCurrency: 'USD', description: 'Custom support volume and priority remote support for larger teams.' },
+  ],
+}
+
 export default function Home() {
   return (
     <div id="calmop" style={{ background: CO.bg, color: CO.ink, fontFamily: CO.sans, width: '100%' }}>
       <style>{CALMOP_CSS}</style>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       <CoNav />
       <CoHero />
       <CoPlatforms />
@@ -793,6 +846,7 @@ const CALMOP_CSS = `
 #calmop input[type=range]::-moz-range-track { height: 4px; background: rgba(0,0,0,0.08); border-radius: 2px; }
 #calmop input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 9px; background: ${CO.green}; border: 2px solid #fff; cursor: pointer; }
 #calmop .co-faq-q:hover span:first-child { color: ${CO.green}; }
+#calmop a:focus-visible, #calmop button:focus-visible, #calmop input:focus-visible { outline: 2px solid ${CO.green}; outline-offset: 3px; border-radius: 6px; }
 #calmop .co-service-card { transition: border-color 0.2s, box-shadow 0.2s; }
 #calmop .co-service-card:hover { border-color: ${CO.green}; box-shadow: 0 8px 28px rgba(15,16,14,0.05); }
 @keyframes coDotPulse { 0% { transform: scale(1); opacity: 0.7 } 70% { transform: scale(2.6); opacity: 0 } 100% { transform: scale(2.6); opacity: 0 } }

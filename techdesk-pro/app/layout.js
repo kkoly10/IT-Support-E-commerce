@@ -4,6 +4,28 @@ export const metadata = {
   title: 'Kocre IT Services — Remote-First Tech Support & Operations for Small Businesses',
   description:
     'Remote-first IT support and cloud/SaaS administration for small businesses. AI-assisted, human-supervised service with clear support boundaries and business-hours coverage.',
+  keywords: [
+    'managed IT support',
+    'small business IT',
+    'remote IT helpdesk',
+    'cloud administration',
+    'Microsoft 365 support',
+    'Google Workspace support',
+  ],
+  openGraph: {
+    title: 'Kocre IT Services — Remote-First IT Support for Small Businesses',
+    description:
+      'Day-to-day helpdesk, cloud admin, and user support — delivered through a structured portal with real onboarding and human-supervised AI.',
+    siteName: 'Kocre IT Services',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kocre IT Services — Remote-First IT Support for Small Businesses',
+    description:
+      'Day-to-day helpdesk, cloud admin, and user support for U.S. small businesses, with real onboarding and human-supervised AI.',
+  },
 }
 
 export default function RootLayout({ children }) {
