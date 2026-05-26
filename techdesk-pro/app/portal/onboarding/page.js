@@ -284,6 +284,9 @@ export default function PortalOnboardingPage() {
         </div>
 
         <div className="dashboard-actions" style={{ marginTop: 16 }}>
+          <Link href="/portal/agreements" className="action-card">
+            <span className="action-icon">✍️</span>Review &amp; sign agreements
+          </Link>
           <Link href="/portal/contacts" className="action-card">
             <span className="action-icon">👥</span>Update contact matrix
           </Link>
@@ -295,6 +298,23 @@ export default function PortalOnboardingPage() {
           </Link>
         </div>
       </div>
+
+      {org?.agreement_status !== 'signed' && (
+        <div className="dashboard-section" style={{ marginBottom: 20 }}>
+          <div className="dashboard-section-header">
+            <h2>Agreements need signing</h2>
+          </div>
+          <div className="dashboard-empty" style={{ textAlign: 'left' }}>
+            <p>
+              Your Master Services Agreement and Data Processing Agreement are waiting for signature.{' '}
+              <Link href="/portal/agreements" style={{ color: 'var(--teal)', fontWeight: 600 }}>
+                Review &amp; sign them here
+              </Link>{' '}
+              — each signature is recorded with a timestamp.
+            </p>
+          </div>
+        </div>
+      )}
 
       {!contactSummary.hasPrimary && (
         <div className="dashboard-section" style={{ marginBottom: 20 }}>
