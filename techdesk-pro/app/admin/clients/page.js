@@ -510,6 +510,22 @@ function EditPanel({ org, saving, onSave }) {
   const [onboardingBlockers, setOnboardingBlockers] = useState(joinList(org.onboarding_blockers))
   const [supportReady, setSupportReady] = useState(org.support_ready || false)
 
+  const [signatures, setSignatures] = useState([])
+  useEffect(() => {
+    let active = true
+    supabase
+      .from('agreement_signatures')
+      .select('*')
+      .eq('organization_id', org.id)
+      .order('signed_at', { ascending: false })
+      .then(({ data }) => {
+        if (active) setSignatures(data || [])
+      })
+    return () => {
+      active = false
+    }
+  }, [org.id])
+
   function toggleService(svc) {
     setServiceTypes((prev) => (prev.includes(svc) ? prev.filter((s) => s !== svc) : [...prev, svc]))
   }
@@ -748,6 +764,45 @@ function EditPanel({ org, saving, onSave }) {
           <input type="checkbox" checked={needsReview} onChange={(e) => setNeedsReview(e.target.checked)} />
           Needs human review
         </label>
+      </div>
+
+      <div style={{ marginTop: 8, marginBottom: 14 }}>
+        <label style={labelStyle}>Signature history (portal e-signature audit trail)</label>
+        {signatures.length === 0 ? (
+          <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
+            No agreements signed in the portal yet.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {signatures.map((s) => (
+              <div
+                key={s.id}
+                style={{
+                  background: 'white',
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  padding: '10px 12px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <div style={{ fontWeight: 600, color: 'var(--ink)' }}>
+                  {s.document_title || (s.document_type || '').toUpperCase()}{' '}
+                  <span style={{ fontWeight: 400, color: 'var(--ink-muted)' }}>v{s.document_version}</span>
+                </div>
+                <div style={{ color: 'var(--ink-muted)', marginTop: 2 }}>
+                  Signed by {s.signer_name}
+                  {s.signer_email ? ` (${s.signer_email})` : ''} on{' '}
+                  {new Date(s.signed_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                </div>
+                <div style={{ color: 'var(--ink-muted)', marginTop: 2, wordBreak: 'break-all' }}>
+                  {s.ip_address ? `IP ${s.ip_address} · ` : ''}
+                  {s.signature_method || 'typed'}
+                  {s.document_hash ? ` · SHA-256 ${s.document_hash.slice(0, 16)}…` : ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 8 }}>
