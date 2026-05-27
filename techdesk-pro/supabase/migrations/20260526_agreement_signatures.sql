@@ -6,7 +6,7 @@
 create table if not exists public.agreement_signatures (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
-  user_id uuid not null references auth.users(id),
+  user_id uuid references auth.users(id) on delete set null,
   document_type text not null check (document_type in ('msa', 'dpa', 'terms')),
   document_version text not null,
   document_title text,

@@ -86,12 +86,14 @@ export async function POST(request) {
         .map((row) => row.document_type)
     )
     const allSigned = REQUIRED_AGREEMENT_KEYS.every((key) => signedKeys.has(key))
-    if (allSigned) {
-      await service
-        .from('organizations')
-        .update({ agreement_status: 'signed' })
-        .eq('id', profile.organization_id)
-    }
+    // Reflect signing progress: 'signed' once all required documents are signed
+    // at their current version, otherwise 'sent' (in progress). Note: a later
+    // document version bump will not downgrade an already-'signed' org until the
+    // next signing action re-runs this check.
+    await service
+      .from('organizations')
+      .update({ agreement_status: allSigned ? 'signed' : 'sent' })
+      .eq('id', profile.organization_id)
 
     return Response.json({
       success: true,
