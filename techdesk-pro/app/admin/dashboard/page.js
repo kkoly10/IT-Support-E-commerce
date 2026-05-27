@@ -39,6 +39,7 @@ export default function AdminDashboard() {
     clients: 0,
   })
   const [recentTickets, setRecentTickets] = useState([])
+  const [allTickets, setAllTickets] = useState([])
   const [recentClients, setRecentClients] = useState([])
   const [organizations, setOrganizations] = useState([])
   const [assessments, setAssessments] = useState([])
@@ -130,6 +131,7 @@ export default function AdminDashboard() {
         .slice(0, 8)
 
       setRecentTickets(recent)
+      setAllTickets(all)
       setRecentClients(clientsRes.data || [])
       setOrganizations(orgsRes.data || [])
       setAssessments(assessmentsRes.data || [])
@@ -144,17 +146,17 @@ export default function AdminDashboard() {
   const opsSignals = useMemo(() => {
     const kbTicketIds = new Set((kbDrafts || []).map((item) => item.ticket_id).filter(Boolean))
 
-    const waitingOver2d = recentTickets.filter((t) => {
+    const waitingOver2d = allTickets.filter((t) => {
       if (t.status !== 'waiting_on_client') return false
       return ageHours(t.updated_at || t.created_at) >= 48
     }).length
 
-    const openOver3d = recentTickets.filter((t) => {
+    const openOver3d = allTickets.filter((t) => {
       if (t.status !== 'open' && t.status !== 'in_progress') return false
       return ageHours(t.created_at) >= 72
     }).length
 
-    const urgentOpen = recentTickets.filter(
+    const urgentOpen = allTickets.filter(
       (t) =>
         (t.priority === 'urgent' || t.ai_escalation_needed === true) &&
         (t.status === 'open' || t.status === 'in_progress')
@@ -176,7 +178,7 @@ export default function AdminDashboard() {
       (item) => ['new', 'contacted', 'qualified'].includes(item.status || 'new')
     ).length
 
-    const kbOpportunities = recentTickets.filter((ticket) => {
+    const kbOpportunities = allTickets.filter((ticket) => {
       const resolvedLike = ticket.status === 'resolved' || ticket.status === 'closed'
       if (!resolvedLike) return false
       if (kbTicketIds.has(ticket.id)) return false
@@ -192,7 +194,7 @@ export default function AdminDashboard() {
       freshAssessments,
       kbOpportunities,
     }
-  }, [recentTickets, organizations, assessments, kbDrafts])
+  }, [allTickets, organizations, assessments, kbDrafts])
 
   if (loading) return <div className="admin-loading">Loading dashboard...</div>
 

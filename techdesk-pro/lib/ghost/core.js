@@ -271,12 +271,15 @@ export async function runGhostTicketAction(ticketId, action) {
     }
 
     if (action === 'resolve_and_publish') {
-      if (!['resolved', 'closed'].includes(ticket.status)) {
+      const alreadyTerminal = ['resolved', 'closed'].includes(ticket.status)
+      if (!alreadyTerminal) {
         await updateTicketStatus(ticketId, 'resolved')
       }
+      // A ticket that was already closed stays closed — don't misreport it as resolved.
+      const finalStatus = alreadyTerminal ? ticket.status : 'resolved'
 
       const prompt = buildKnowledgeDraftPrompt({
-        ticket: { ...ticket, status: 'resolved' },
+        ticket: { ...ticket, status: finalStatus },
         conversation,
       })
       const parsed = await askClaudeJson(prompt)
@@ -289,7 +292,7 @@ export async function runGhostTicketAction(ticketId, action) {
       const result = {
         success: true,
         action,
-        updatedStatus: 'resolved',
+        updatedStatus: finalStatus,
         draft,
         draftId,
         articleId,

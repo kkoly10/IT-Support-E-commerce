@@ -29,7 +29,7 @@ export function mapProviderDevicePayload(provider, raw = {}) {
       hostname: safeString(raw.name || raw.host),
       name: safeString(raw.name) || 'Managed Device',
       osFamily: safeString(raw.osdesc || raw.platform),
-      osVersion: safeString(raw.os_version || raw.agent_version),
+      osVersion: safeString(raw.os_version),
       serialNumber: safeString(raw.serial),
       assignedUser: safeString(raw.user),
       lastSeenAt: raw.lastconnect || raw.last_seen || null,

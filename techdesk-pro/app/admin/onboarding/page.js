@@ -154,16 +154,24 @@ export default function AdminOnboardingPage() {
             .order('created_at', { ascending: false }),
         ])
 
-      setTasks(sortOnboardingTasks(taskRows || []))
+      const sortedTasks = sortOnboardingTasks(taskRows || [])
+      setTasks(sortedTasks)
       setContacts(contactRows || [])
       setAccessRows(accessData || [])
       setDocuments(docRows || [])
+      return {
+        tasks: sortedTasks,
+        contacts: contactRows || [],
+        accessRows: accessData || [],
+        documents: docRows || [],
+      }
     } catch (err) {
       console.error('Load context error:', err)
       setTasks([])
       setContacts([])
       setAccessRows([])
       setDocuments([])
+      return { tasks: [], contacts: [], accessRows: [], documents: [] }
     }
   }
 
@@ -180,8 +188,8 @@ export default function AdminOnboardingPage() {
 
       if (error) throw error
 
-      await loadContext(selectedOrgId)
-      await syncOrganizationFromTasks(selectedOrgId)
+      const context = await loadContext(selectedOrgId)
+      await syncOrganizationFromTasks(selectedOrgId, context)
     } catch (err) {
       console.error('Initialize checklist error:', err)
       alert(err.message || 'Failed to initialize onboarding checklist')
@@ -196,8 +204,8 @@ export default function AdminOnboardingPage() {
       const { error } = await supabase.from('onboarding_tasks').update(updates).eq('id', taskId)
       if (error) throw error
 
-      await loadContext(selectedOrgId)
-      await syncOrganizationFromTasks(selectedOrgId)
+      const context = await loadContext(selectedOrgId)
+      await syncOrganizationFromTasks(selectedOrgId, context)
     } catch (err) {
       console.error('Update task error:', err)
       alert(err.message || 'Failed to update onboarding task')
@@ -220,37 +228,44 @@ export default function AdminOnboardingPage() {
     }
   }
 
-  async function syncOrganizationFromTasks(orgId) {
+  async function syncOrganizationFromTasks(orgId, context) {
+    // Prefer freshly-loaded rows passed in by the caller; component state lags
+    // a render behind the loadContext() that precedes a sync.
+    const currentTasks = context?.tasks ?? tasks
+    const currentContacts = context?.contacts ?? contacts
+    const currentAccessRows = context?.accessRows ?? accessRows
+    const currentDocuments = context?.documents ?? documents
+
     const selected = organizations.find((org) => org.id === orgId) || {}
     const readiness = deriveSupportReadiness({
       organization: selected,
-      tasks,
-      contacts,
-      accessRows,
-      documents,
+      tasks: currentTasks,
+      contacts: currentContacts,
+      accessRows: currentAccessRows,
+      documents: currentDocuments,
     })
 
-    const blocked = tasks.filter((task) => task.status === 'blocked')
-    const done = tasks.filter((task) => task.status === 'done').length
-    const total = tasks.length
+    const blocked = currentTasks.filter((task) => task.status === 'blocked')
+    const done = currentTasks.filter((task) => task.status === 'done').length
+    const total = currentTasks.length
 
     let onboardingStatus = 'not_started'
     if (blocked.length > 0) onboardingStatus = 'blocked'
     else if (done === total && total > 0) onboardingStatus = 'completed'
-    else if (tasks.some((task) => task.status === 'in_progress' || task.status === 'done')) {
+    else if (currentTasks.some((task) => task.status === 'in_progress' || task.status === 'done')) {
       onboardingStatus = 'in_progress'
     }
 
-    const primaryContactConfirmed = contacts.some((c) => c.is_primary_contact)
-    const approvedAccess = accessRows.filter((row) => row.status === 'approved').length
-    const reviewedDocs = documents.filter((doc) => doc.status === 'reviewed').length
+    const primaryContactConfirmed = currentContacts.some((c) => c.is_primary_contact)
+    const approvedAccess = currentAccessRows.filter((row) => row.status === 'approved').length
+    const reviewedDocs = currentDocuments.filter((doc) => doc.status === 'reviewed').length
 
     let accessStatus = 'not_started'
-    if (accessRows.length > 0 && approvedAccess === 0) accessStatus = 'partially_received'
+    if (currentAccessRows.length > 0 && approvedAccess === 0) accessStatus = 'partially_received'
     if (approvedAccess > 0) accessStatus = 'ready'
 
     let documentationStatus = 'not_started'
-    if (documents.length > 0 && reviewedDocs === 0) documentationStatus = 'partially_received'
+    if (currentDocuments.length > 0 && reviewedDocs === 0) documentationStatus = 'partially_received'
     if (reviewedDocs > 0) documentationStatus = 'complete'
 
     await supabase
