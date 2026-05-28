@@ -8,6 +8,11 @@ import { createClient } from '../../../lib/supabase/client'
 // still seeded with starter/growth/scale renders honestly with the original
 // terms they signed up under.
 const PLAN_CATALOG = {
+  pending: {
+    label: 'Plan to be confirmed',
+    pricing: { type: 'pending' },
+    note: 'Plan and pricing are confirmed during the fit review before activation.',
+  },
   founding: {
     label: 'Founding Managed Support',
     pricing: { type: 'flat', monthly: 399 },
@@ -61,7 +66,7 @@ const PLAN_CATALOG = {
 }
 
 function getPlan(key) {
-  return PLAN_CATALOG[String(key || '').toLowerCase()] || PLAN_CATALOG.remote
+  return PLAN_CATALOG[String(key || '').toLowerCase()] || PLAN_CATALOG.pending
 }
 
 function computeMonthlyCost(plan, userCount) {
@@ -80,6 +85,9 @@ function priceLine(plan, userCount) {
   if (plan.pricing.type === 'per_user') {
     const cost = computeMonthlyCost(plan, userCount)
     return `$${cost.toLocaleString()} / month · $${plan.pricing.perUser}/user × ${userCount || 1}, $${plan.pricing.monthlyMin} minimum`
+  }
+  if (plan.pricing.type === 'pending') {
+    return 'Set during fit review'
   }
   return 'Quoted by review'
 }
@@ -142,6 +150,7 @@ export default function BillingPage() {
   const plan = getPlan(org?.plan)
   const paymentStatus = org?.payment_status || 'unknown'
   const isQuote = plan.pricing.type === 'quote'
+  const isPending = plan.pricing.type === 'pending'
 
   // For legacy plans the "/ Y" denominator still has meaning. For new plans
   // we measure usage but don't pretend a hard ticket cap exists.
@@ -203,9 +212,11 @@ export default function BillingPage() {
                 : 'Within your legacy plan’s monthly allotment.'
               : isQuote
                 ? 'Fair-use volume is defined in your signed quote.'
-                : overFairUse
-                  ? 'Above this plan’s typical fair-use range — we may flag this for review.'
-                  : 'Per-user plans use fair-use volumes rather than a hard ticket cap.'}
+                : isPending
+                  ? 'Tracked from day one — fair-use limits are set when your plan is confirmed.'
+                  : overFairUse
+                    ? 'Above this plan’s typical fair-use range — we may flag this for review.'
+                    : 'Per-user plans use fair-use volumes rather than a hard ticket cap.'}
           </div>
         </div>
 

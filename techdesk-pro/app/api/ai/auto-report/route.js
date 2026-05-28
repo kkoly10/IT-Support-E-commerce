@@ -51,8 +51,14 @@ export async function POST(request) {
 
     // Calculate avg response time and SLA compliance from ticket_messages.
     // First response = earliest non-internal agent/AI reply. Elapsed time is
-    // measured in business hours, ET Mon–Fri 9–18. Tickets without a response
-    // yet contribute to the denominator but cannot be compliant.
+    // measured in business hours, ET Mon–Fri 9–18.
+    //
+    // slaCompliance is "of tickets we responded to this month, % that hit
+    // the plan's first-response target." Un-responded tickets are excluded
+    // from both numerator and denominator — the metric is null when there
+    // are no responses to measure, rather than pretending 100% on no data.
+    // When the plan has no agreed target (pending fit review), compliance
+    // is null regardless.
     const targetHours = getResponseTargetHours(org.plan)
     const ticketResponseHours = []
     let slaCompliantCount = 0
@@ -71,7 +77,7 @@ export async function POST(request) {
       withResponseCount += 1
       const hours = businessHoursBetween(ticket.created_at, firstReplyAt)
       ticketResponseHours.push(hours)
-      if (hours <= targetHours) slaCompliantCount += 1
+      if (targetHours !== null && hours <= targetHours) slaCompliantCount += 1
     }
 
     const avgResponseHours = ticketResponseHours.length > 0
@@ -119,9 +125,11 @@ export async function POST(request) {
     // SLA compliance: % of responded tickets that hit the plan's first-response
     // target (business hours). null when there's no response data — better than
     // pretending 100% on an empty month.
-    const slaCompliance = withResponseCount > 0
-      ? Math.round((slaCompliantCount / withResponseCount) * 100)
-      : null
+    const slaCompliance = targetHours === null
+      ? null
+      : withResponseCount > 0
+        ? Math.round((slaCompliantCount / withResponseCount) * 100)
+        : null
 
     // Generate AI recommendations
     const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -139,7 +147,7 @@ export async function POST(request) {
           role: 'user',
           content: `Write recommendations for ${org.name} based on their monthly IT report:
 - Total tickets: ${totalTickets} (${resolved} resolved, ${open} still open)
-- First-response target for this plan: ${getResponseTargetHours(org.plan)} business hours
+- First-response target for this plan: ${targetHours !== null ? `${targetHours} business hours` : 'not yet agreed (pending fit review)'}
 - Tickets with a recorded first response this month: ${withResponseCount}
 - Avg first response: ${avgResponseHours !== null ? avgResponseHours + ' business hours' : 'N/A (no responses recorded)'}
 - Avg resolution time: ${avgResolutionHours || 'N/A'} hours

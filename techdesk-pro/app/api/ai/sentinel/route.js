@@ -159,6 +159,10 @@ async function checkSLABreaches(orgId, plan) {
   if (!tickets?.length) return null
 
   const targetHours = getResponseTargetHours(plan)
+  // No target agreed yet (pending fit review, or unknown plan) — don't
+  // raise breach alerts against a plan the client hasn't signed for.
+  if (targetHours === null) return null
+
   const now = new Date().toISOString()
   const breached = []
 

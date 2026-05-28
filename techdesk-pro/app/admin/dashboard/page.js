@@ -421,7 +421,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="admin-client-name">{client.name}</div>
                       <div className="admin-client-meta">
-                        {client.plan || 'starter'} · {client.client_status || 'lead'} · Joined{' '}
+                        {client.plan || 'pending'} · {client.client_status || 'lead'} · Joined{' '}
                         {new Date(client.created_at).toLocaleDateString()}
                       </div>
                     </div>
