@@ -28,16 +28,20 @@ export const RMM_CONFIG = {
 }
 
 export function assertRmmConfig() {
+  const missing = []
+
   if (RMM_CONFIG.provider === 'tactical') {
-    const missing = []
     if (!RMM_CONFIG.tacticalBaseUrl) missing.push('TACTICAL_BASE_URL')
     if (!RMM_CONFIG.tacticalApiUrl) missing.push('TACTICAL_API_URL')
     if (!RMM_CONFIG.tacticalApiKey) missing.push('TACTICAL_API_KEY')
+  } else if (RMM_CONFIG.provider === 'mesh') {
     if (!RMM_CONFIG.meshBaseUrl) missing.push('MESH_BASE_URL')
+    if (!RMM_CONFIG.meshAdminUser) missing.push('MESH_ADMIN_USER')
+    if (!RMM_CONFIG.meshAdminPassword) missing.push('MESH_ADMIN_PASSWORD')
+  }
 
-    if (missing.length) {
-      throw new Error(`Missing RMM env values: ${missing.join(', ')}`)
-    }
+  if (missing.length) {
+    throw new Error(`Missing RMM env values: ${missing.join(', ')}`)
   }
 
   return RMM_CONFIG
