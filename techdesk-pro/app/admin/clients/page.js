@@ -602,10 +602,19 @@ function EditPanel({ org, saving, onSave }) {
         <div style={fieldStyle}>
           <label style={labelStyle}>Plan</label>
           <select value={plan} onChange={(e) => setPlan(e.target.value)} style={selectStyle}>
-            <option value="starter">Starter</option>
-            <option value="growth">Growth</option>
-            <option value="scale">Scale</option>
-            <option value="custom">Custom</option>
+            <optgroup label="Current plans">
+              <option value="pending">Pending — fit review in progress</option>
+              <option value="founding">Founding Managed Support</option>
+              <option value="remote">Remote Desk</option>
+              <option value="managed">Managed Desk</option>
+              <option value="secure">Secure Desk</option>
+              <option value="custom">Custom Review</option>
+            </optgroup>
+            <optgroup label="Legacy (grandfathered)">
+              <option value="starter">Starter (legacy)</option>
+              <option value="growth">Growth (legacy)</option>
+              <option value="scale">Scale (legacy)</option>
+            </optgroup>
           </select>
         </div>
 

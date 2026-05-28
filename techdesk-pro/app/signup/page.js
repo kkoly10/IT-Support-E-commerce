@@ -99,10 +99,14 @@ export default function SignupPage() {
       .insert({
         name: trimmedCompanyName,
         slug: slug + '-' + Date.now().toString(36),
-        plan: 'starter',
-        monthly_ticket_limit: 10,
+        // Plan is intentionally 'pending' at signup — the real plan
+        // (founding / remote / managed / secure / custom) is set by an
+        // admin after the fit review. monthly_ticket_limit is left null
+        // for the same reason: legacy plans have hard caps, the new
+        // per-user plans use fair-use volumes set per agreement.
+        plan: 'pending',
         client_status: 'lead',
-        lead_interest: leadInterest || 'it',
+        lead_interest: leadInterest || 'it_general',
         primary_service: leadConfig.primary_service,
         service_types: leadConfig.service_types,
         team_size: teamSize ? parseInt(teamSize, 10) : null,
@@ -345,9 +349,10 @@ export default function SignupPage() {
                   required
                 >
                   <option value="">Select one</option>
-                  <option value="it">Remote IT helpdesk & support</option>
-                  <option value="it">Cloud & SaaS administration</option>
-                  <option value="it">General technical support</option>
+                  <option value="it_helpdesk">Remote IT helpdesk & support</option>
+                  <option value="it_cloud_admin">Cloud & SaaS administration</option>
+                  <option value="it_managed_devices">Managed Windows device support</option>
+                  <option value="it_general">General technical support</option>
                   <option value="not_sure">Not sure — I need guidance</option>
                 </select>
               </div>

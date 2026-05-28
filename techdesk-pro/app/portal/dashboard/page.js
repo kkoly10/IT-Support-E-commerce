@@ -251,7 +251,11 @@ export default function DashboardPage() {
           <h1>{org?.name || 'Your Portal Dashboard'}</h1>
           <p>
             Lifecycle: <strong>{toLabel(lifecycle, CLIENT_STATUS_LABELS)}</strong> · Plan:{' '}
-            <strong>{(org?.plan || 'starter').toUpperCase()}</strong>
+            <strong>{
+              org?.plan === 'pending' || !org?.plan
+                ? 'Pending fit review'
+                : org.plan.toUpperCase()
+            }</strong>
             {' '}· Tickets this month:{' '}
             <strong style={{ color: metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
               {metrics.monthlyUsed}
