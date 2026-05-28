@@ -1,20 +1,27 @@
 // File: app/api/ai/sentinel/route.js (new — mkdir -p app/api/ai/sentinel)
 
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth, isCronRequest } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
+import {
+  businessHoursBetween,
+  getFirstAgentReplyAt,
+  getResponseTargetHours,
+} from '../../../../lib/sla'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// Vercel Cron calls this every hour. Admins can also trigger a manual run
-// from the Sentinel console. Reject anything else — the previous check
-// silently allowed unauthenticated access when CRON_SECRET wasn't set.
+// Vercel Cron calls this every hour, and admins can trigger it from the UI.
 export async function GET(request) {
-  if (!isCronRequest(request)) {
-    const auth = await requireAuth({ adminOnly: true })
-    if (auth.response) return auth.response
+  const cronSecret = process.env.CRON_SECRET
+  const authHeader = request.headers.get('authorization') || ''
+  const isCron = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`
+
+  if (!isCron) {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
@@ -23,7 +30,7 @@ export async function GET(request) {
     // Get all organizations with monitored URLs
     const { data: orgs } = await supabase
       .from('organizations')
-      .select('id, name, store_url, website_url, platform')
+      .select('id, name, store_url, website_url, platform, plan')
 
     for (const org of (orgs || [])) {
       const checks = []
@@ -41,7 +48,7 @@ export async function GET(request) {
       }
 
       // Check for SLA breaches
-      const slaCheck = await checkSLABreaches(org.id)
+      const slaCheck = await checkSLABreaches(org.id, org.plan)
       if (slaCheck) checks.push(slaCheck)
 
       // Check ticket volume anomalies
@@ -141,30 +148,47 @@ async function checkUrl(url, type) {
   }
 }
 
-async function checkSLABreaches(orgId) {
+async function checkSLABreaches(orgId, plan) {
+  // Open tickets that may have missed their first-response target.
   const { data: tickets } = await supabase
     .from('tickets')
-    .select('id, title, created_at, sla_response_hours, first_response_at')
+    .select('id, title, created_at')
     .eq('organization_id', orgId)
-    .eq('status', 'open')
-    .is('first_response_at', null)
+    .in('status', ['open', 'in_progress'])
 
-  const breached = (tickets || []).filter(t => {
-    if (!t.sla_response_hours) return false
-    const hoursOpen = (Date.now() - new Date(t.created_at).getTime()) / (1000 * 60 * 60)
-    return hoursOpen > t.sla_response_hours
-  })
+  if (!tickets?.length) return null
 
-  if (breached.length > 0) {
-    return {
-      type: 'sla',
-      action: 'sla_breach_detected',
-      status: 'warning',
-      severity: 'warning',
-      message: `${breached.length} ticket${breached.length > 1 ? 's' : ''} breaching SLA: ${breached.map(t => `"${t.title}"`).join(', ')}`,
-    }
+  const targetHours = getResponseTargetHours(plan)
+  // No target agreed yet (pending fit review, or unknown plan) — don't
+  // raise breach alerts against a plan the client hasn't signed for.
+  if (targetHours === null) return null
+
+  const now = new Date().toISOString()
+  const breached = []
+
+  for (const ticket of tickets) {
+    const { data: msgs } = await supabase
+      .from('ticket_messages')
+      .select('sender_type, is_internal_note, created_at')
+      .eq('ticket_id', ticket.id)
+      .order('created_at', { ascending: true })
+
+    const firstReplyAt = getFirstAgentReplyAt(msgs)
+    if (firstReplyAt) continue // already responded; not a first-response breach
+
+    const elapsedBusinessHours = businessHoursBetween(ticket.created_at, now)
+    if (elapsedBusinessHours > targetHours) breached.push(ticket)
   }
-  return null
+
+  if (breached.length === 0) return null
+
+  return {
+    type: 'sla',
+    action: 'sla_breach_detected',
+    status: 'warning',
+    severity: 'warning',
+    message: `${breached.length} ticket${breached.length > 1 ? 's' : ''} past first-response target (${targetHours} business hr${targetHours > 1 ? 's' : ''}): ${breached.map(t => `"${t.title}"`).join(', ')}`,
+  }
 }
 
 async function checkTicketVolume(orgId, orgName) {

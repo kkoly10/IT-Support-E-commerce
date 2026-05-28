@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '../../../../lib/supabase/server'
+import { requireUser } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,15 +8,8 @@ const supabase = createClient(
 
 export async function POST(request) {
   try {
-    // Identify the caller from their authenticated session — never trust a
-    // client-supplied user id, or anyone could read another org's data.
-    const auth = await createServerClient()
-    const {
-      data: { user },
-    } = await auth.auth.getUser()
-    if (!user) {
-      return Response.json({ error: 'You must be signed in.' }, { status: 401 })
-    }
+    const auth = await requireUser()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
 
     const { message, conversationHistory } = await request.json()
 
@@ -27,7 +20,7 @@ export async function POST(request) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('*, organization:organizations(*)')
-      .eq('id', user.id)
+      .eq('id', auth.user.id)
       .single()
 
     if (!profile) {
@@ -53,6 +46,15 @@ export async function POST(request) {
 
     const resolvedCount =
       allTickets?.filter((t) => t.status === 'resolved' || t.status === 'closed').length || 0
+
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    monthStart.setUTCHours(0, 0, 0, 0)
+    const { count: monthlyTicketCount } = await supabase
+      .from('tickets')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', org.id)
+      .gte('created_at', monthStart.toISOString())
 
     const ticketContext =
       (recentTickets || []).length > 0
@@ -89,7 +91,7 @@ Known account context:
 - Open tickets: ${openCount}
 - Resolved tickets: ${resolvedCount}
 - Monthly ticket limit: ${org.monthly_ticket_limit || 10}
-- Tickets used this month: ${org.tickets_used_this_month || 0}
+- Tickets used this month: ${monthlyTicketCount || 0}
 
 ${ticketContext}
 

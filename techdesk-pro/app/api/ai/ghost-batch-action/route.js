@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -93,10 +93,10 @@ async function publishDraftForTicket(ticketId) {
 }
 
 export async function POST(request) {
-  const auth = await requireAuth({ adminOnly: true })
-  if (auth.response) return auth.response
-
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { action, ticketIds } = await request.json()
 
     if (!action) {
@@ -108,38 +108,34 @@ export async function POST(request) {
     }
 
     if (action === 'mark_waiting_on_client') {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('tickets')
         .update({ status: 'waiting_on_client' })
         .in('id', ticketIds)
-        .select('id')
 
       if (error) throw error
 
-      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount,
-        message: `${updatedCount} ticket(s) moved to waiting on client.`,
+        updatedCount: ticketIds.length,
+        message: `${ticketIds.length} ticket(s) moved to waiting on client.`,
       })
     }
 
     if (action === 'mark_resolved') {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('tickets')
         .update({ status: 'resolved' })
         .in('id', ticketIds)
-        .select('id')
 
       if (error) throw error
 
-      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount,
-        message: `${updatedCount} ticket(s) marked resolved.`,
+        updatedCount: ticketIds.length,
+        message: `${ticketIds.length} ticket(s) marked resolved.`,
       })
     }
 

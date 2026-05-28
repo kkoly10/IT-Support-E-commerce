@@ -38,9 +38,9 @@ export default function SupportTransparencyPage() {
           </h1>
 
           <p style={{ color: 'var(--ink-muted)', fontSize: '0.95rem' }}>
-            Effective Date: [Month Day, Year]
+            Effective Date: May 28, 2026
             <br />
-            Last Updated: [Month Day, Year]
+            Last Updated: May 28, 2026
           </p>
         </div>
 
@@ -93,7 +93,11 @@ export default function SupportTransparencyPage() {
             <li>Compliance documentation projects</li>
             <li>Full platform implementation</li>
             <li>Procurement</li>
-            <li>Onsite work</li>
+            <li>On-site visits and on-site work</li>
+            <li>Cabling and network installation</li>
+            <li>Hardware repair</li>
+            <li>Server work</li>
+            <li>Full cybersecurity incident response</li>
             <li>Structured project work</li>
             <li>Planned after-hours work</li>
           </ul>
@@ -123,7 +127,35 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>5. Response Time</h2>
+          <h2 style={h2Style}>5. Managed Devices and the Support Agent</h2>
+          <p style={pStyle}>
+            For plans that include managed device support (Founding Managed Support, Managed Desk,
+            and Secure Desk), approved Windows computers can be connected to Kocre IT&rsquo;s secure
+            support system through a small support agent installed only on those approved devices.
+          </p>
+          <p style={pStyle}>The agent helps Kocre IT:</p>
+          <ul style={ulStyle}>
+            <li>Provide remote troubleshooting sessions</li>
+            <li>Maintain a device inventory</li>
+            <li>Surface update visibility and basic health checks</li>
+            <li>See system information needed for support</li>
+            <li>Run faster, more accurate support sessions</li>
+          </ul>
+          <p style={pStyle}>The agent does not mean:</p>
+          <ul style={ulStyle}>
+            <li>We install the agent without approval</li>
+            <li>We support personal devices unless approved</li>
+            <li>We provide 24/7 monitoring by default</li>
+            <li>We make major changes without authorization</li>
+          </ul>
+          <p style={pStyle}>
+            The agent is removed from managed devices during offboarding or cancellation as part of
+            the standard offboarding process.
+          </p>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>6. Response Time</h2>
           <p style={pStyle}>
             Response time means the time to acknowledge, review, classify, and begin triage of a
             request. It does not guarantee full resolution within that same time window.
@@ -131,7 +163,7 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>6. Support Hours</h2>
+          <h2 style={h2Style}>7. Support Hours</h2>
           <p style={pStyle}>
             Unless otherwise stated in a written agreement, standard support is provided during
             published business hours.
@@ -142,7 +174,7 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>7. AI Output Limitations</h2>
+          <h2 style={h2Style}>8. AI Output Limitations</h2>
           <p style={pStyle}>
             AI-assisted outputs may be incomplete, inaccurate, or require human review. Clients
             should not rely solely on AI-generated content for legal, tax, financial, regulatory,
@@ -151,7 +183,7 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>8. Data Handling and Confidentiality</h2>
+          <h2 style={h2Style}>9. Data Handling and Confidentiality</h2>
           <p style={pStyle}>
             We treat client information as confidential in accordance with applicable agreements and
             internal safeguards. We do not use client confidential information to train public AI
@@ -160,7 +192,7 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>9. Fair Use</h2>
+          <h2 style={h2Style}>10. Fair Use</h2>
           <p style={pStyle}>
             Any “unlimited” or high-volume support offering applies to standard support requests and
             is subject to fair use, business-hours coverage, and exclusions for project work, major
@@ -169,7 +201,7 @@ export default function SupportTransparencyPage() {
         </section>
 
         <section style={sectionStyle}>
-          <h2 style={h2Style}>10. Contact</h2>
+          <h2 style={h2Style}>11. Contact</h2>
           <p style={pStyle}>
             Questions about support scope or service coverage:
             <br />

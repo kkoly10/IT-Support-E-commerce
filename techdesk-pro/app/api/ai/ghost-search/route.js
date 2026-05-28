@@ -1,11 +1,11 @@
 import { runGhostSearch } from '../../../../lib/ghost/core'
-import { requireAuth } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 export async function POST(request) {
-  const auth = await requireAuth({ adminOnly: true })
-  if (auth.response) return auth.response
-
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { query } = await request.json()
 
     if (!query || !String(query).trim()) {

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth } from '../../../../lib/auth/require'
+import { requireUser, assertResourceOrg } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -7,14 +7,10 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
-  // Called from portal/tickets/new immediately after a ticket is created.
-  // Require a session and verify the ticket belongs to the caller's org or
-  // that they're an admin — otherwise anyone could kick off AI work on any
-  // ticket id they guessed.
-  const auth = await requireAuth()
-  if (auth.response) return auth.response
-
   try {
+    const auth = await requireUser()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { ticketId } = await request.json()
 
     if (!ticketId) {
@@ -31,20 +27,26 @@ export async function POST(request) {
       return Response.json({ error: 'Ticket not found' }, { status: 404 })
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, organization_id')
-      .eq('id', auth.user.id)
-      .single()
+    const denied = assertResourceOrg(ticket.organization_id, auth.profile)
+    if (denied) return Response.json({ error: denied.error }, { status: denied.status })
 
-    if (!profile || (profile.role !== 'admin' && profile.organization_id !== ticket.organization_id)) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    const internalKey = process.env.INTERNAL_API_KEY
+    if (!internalKey) {
+      // Graceful degradation when INTERNAL_API_KEY isn't configured:
+      // skip downstream AI workflow instead of leaving the endpoints unauthenticated.
+      await supabase.from('ticket_messages').insert({
+        ticket_id: ticketId,
+        sender_type: 'system',
+        body: '⚠️ Post-create AI workflow skipped (INTERNAL_API_KEY not configured).',
+        is_internal_note: true,
+      })
+      return Response.json({ success: true, skipped: true })
     }
 
     const origin = new URL(request.url).origin
     const internalHeaders = {
       'Content-Type': 'application/json',
-      'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
+      Authorization: `Bearer ${internalKey}`,
     }
 
     const triageResponse = await fetch(`${origin}/api/ai/triage-ticket`, {

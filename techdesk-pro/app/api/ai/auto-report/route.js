@@ -1,7 +1,12 @@
 // File: app/api/ai/auto-report/route.js (new — mkdir -p app/api/ai/auto-report)
 
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth, isCronRequest } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
+import {
+  businessHoursBetween,
+  getFirstAgentReplyAt,
+  getResponseTargetHours,
+} from '../../../../lib/sla'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,14 +14,10 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
-  // Either an admin generating a report from the console or a cron job
-  // running the monthly batch — both are legitimate; everything else isn't.
-  if (!isCronRequest(request)) {
-    const auth = await requireAuth({ adminOnly: true })
-    if (auth.response) return auth.response
-  }
-
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { organizationId, month } = await request.json()
 
     if (!organizationId) {
@@ -48,15 +49,40 @@ export async function POST(request) {
     const resolved = tickets?.filter(t => t.status === 'resolved' || t.status === 'closed').length || 0
     const open = tickets?.filter(t => t.status === 'open' || t.status === 'in_progress').length || 0
 
-    // Calculate avg response time
-    const withResponse = tickets?.filter(t => t.first_response_at && t.created_at) || []
-    let avgResponseHours = null
-    if (withResponse.length > 0) {
-      const totalHours = withResponse.reduce((sum, t) => {
-        return sum + (new Date(t.first_response_at) - new Date(t.created_at)) / (1000 * 60 * 60)
-      }, 0)
-      avgResponseHours = (totalHours / withResponse.length).toFixed(1)
+    // Calculate avg response time and SLA compliance from ticket_messages.
+    // First response = earliest non-internal agent/AI reply. Elapsed time is
+    // measured in business hours, ET Mon–Fri 9–18.
+    //
+    // slaCompliance is "of tickets we responded to this month, % that hit
+    // the plan's first-response target." Un-responded tickets are excluded
+    // from both numerator and denominator — the metric is null when there
+    // are no responses to measure, rather than pretending 100% on no data.
+    // When the plan has no agreed target (pending fit review), compliance
+    // is null regardless.
+    const targetHours = getResponseTargetHours(org.plan)
+    const ticketResponseHours = []
+    let slaCompliantCount = 0
+    let withResponseCount = 0
+
+    for (const ticket of tickets || []) {
+      const { data: msgs } = await supabase
+        .from('ticket_messages')
+        .select('sender_type, is_internal_note, created_at')
+        .eq('ticket_id', ticket.id)
+        .order('created_at', { ascending: true })
+
+      const firstReplyAt = getFirstAgentReplyAt(msgs)
+      if (!firstReplyAt) continue
+
+      withResponseCount += 1
+      const hours = businessHoursBetween(ticket.created_at, firstReplyAt)
+      ticketResponseHours.push(hours)
+      if (targetHours !== null && hours <= targetHours) slaCompliantCount += 1
     }
+
+    const avgResponseHours = ticketResponseHours.length > 0
+      ? (ticketResponseHours.reduce((s, h) => s + h, 0) / ticketResponseHours.length).toFixed(1)
+      : null
 
     // Calculate avg resolution time
     const withResolution = tickets?.filter(t => t.resolved_at && t.created_at) || []
@@ -96,9 +122,14 @@ export async function POST(request) {
     const trainingComplete = trainingStatuses?.filter(s => s.status === 'completed').length || 0
     const trainingRate = trainingTotal > 0 ? Math.round((trainingComplete / trainingTotal) * 100) : null
 
-    // SLA compliance
-    const slaBreached = tickets?.filter(t => t.sla_breached).length || 0
-    const slaCompliance = totalTickets > 0 ? Math.round(((totalTickets - slaBreached) / totalTickets) * 100) : 100
+    // SLA compliance: % of responded tickets that hit the plan's first-response
+    // target (business hours). null when there's no response data — better than
+    // pretending 100% on an empty month.
+    const slaCompliance = targetHours === null
+      ? null
+      : withResponseCount > 0
+        ? Math.round((slaCompliantCount / withResponseCount) * 100)
+        : null
 
     // Generate AI recommendations
     const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -116,9 +147,11 @@ export async function POST(request) {
           role: 'user',
           content: `Write recommendations for ${org.name} based on their monthly IT report:
 - Total tickets: ${totalTickets} (${resolved} resolved, ${open} still open)
-- Avg response time: ${avgResponseHours || 'N/A'} hours
+- First-response target for this plan: ${targetHours !== null ? `${targetHours} business hours` : 'not yet agreed (pending fit review)'}
+- Tickets with a recorded first response this month: ${withResponseCount}
+- Avg first response: ${avgResponseHours !== null ? avgResponseHours + ' business hours' : 'N/A (no responses recorded)'}
 - Avg resolution time: ${avgResolutionHours || 'N/A'} hours
-- SLA compliance: ${slaCompliance}%
+- First-response compliance: ${slaCompliance !== null ? slaCompliance + '%' : 'N/A (no responses recorded)'}
 - Category breakdown: ${JSON.stringify(categories)}
 - Satisfaction rating: ${avgRating || 'N/A'}/5
 - Training compliance: ${trainingRate !== null ? trainingRate + '%' : 'N/A'}

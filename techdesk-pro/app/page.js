@@ -2,16 +2,16 @@ import HomeClient from './HomeClient'
 import { SITE_URL, BUSINESS, STATES_SERVED, SERVICE_CITIES, COUNTRIES_SERVED, FAQS, OG_BASE } from '../lib/seo'
 
 export const metadata = {
-  title: 'Small-Business IT Support in DC, MD & VA | Kocre IT Services',
+  title: 'Remote IT Support for Small Businesses | Kocre IT',
   description:
-    'Kocre IT Services is a remote-first MSP delivering helpdesk, cloud & SaaS administration, and user support to small businesses across the DC–Maryland–Virginia (DMV) area, and remotely across the US, Canada, the UK & Ireland — with real onboarding, clear scope, and human-supervised AI.',
+    'Kocre IT provides founder-led remote helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support for small businesses.',
   alternates: { canonical: '/' },
   openGraph: {
     ...OG_BASE,
     url: SITE_URL,
-    title: 'Small-Business IT Support in DC, MD & VA | Kocre IT Services',
+    title: 'Remote IT Support for Small Businesses | Kocre IT',
     description:
-      'Remote-first managed IT support for small businesses across the DMV and remotely across the US, Canada, the UK & Ireland — helpdesk, cloud admin, and user support through a structured portal.',
+      'Founder-led remote helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support for small businesses.',
   },
 }
 
@@ -25,7 +25,7 @@ const SERVICE_LD = {
   logo: `${SITE_URL}/brand/png/mark-512.png`,
   image: `${SITE_URL}/og.png`,
   description:
-    'Remote-first IT helpdesk, cloud/SaaS administration, and structured user support for small businesses across the DC–Maryland–Virginia area, and remotely across the US, Canada, the UK, and Ireland, delivered through a client portal with real onboarding and human-supervised AI.',
+    'Founder-led remote IT support for small businesses — helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support. DMV-based, remote-first across the U.S.',
   serviceType: 'Managed IT support',
   telephone: BUSINESS.telephone,
   email: BUSINESS.email,
@@ -46,9 +46,10 @@ const SERVICE_LD = {
     availableLanguage: 'English',
   },
   makesOffer: [
-    { '@type': 'Offer', name: 'Starter', price: '499', priceCurrency: 'USD', description: 'Up to 10 standard support tickets per month, business-hours remote helpdesk.' },
-    { '@type': 'Offer', name: 'Growth', price: '999', priceCurrency: 'USD', description: 'Up to 30 standard tickets per month, helpdesk plus cloud & SaaS administration.' },
-    { '@type': 'Offer', name: 'Scale', price: '1999', priceCurrency: 'USD', description: 'Custom support volume and priority remote support for larger teams.' },
+    { '@type': 'Offer', name: 'Founding Managed Support', price: '399', priceCurrency: 'USD', description: 'Up to 5 users / 5 Windows devices · 90-day pilot · $199 setup. Helpdesk, M365/Google Workspace basic support, and managed Windows device support.' },
+    { '@type': 'Offer', name: 'Remote Desk', price: '49', priceCurrency: 'USD', description: '$49/user/month · $299/month minimum · $199 setup. Helpdesk and cloud account support; managed devices not included.' },
+    { '@type': 'Offer', name: 'Managed Desk', price: '89', priceCurrency: 'USD', description: '$89/user/month · $499/month minimum · $499 setup. Helpdesk plus one managed Windows device per user, plus onboarding/offboarding.' },
+    { '@type': 'Offer', name: 'Secure Desk', price: '129', priceCurrency: 'USD', description: '$129/user/month · $899/month minimum · $799+ setup. Managed support plus basic security hygiene reviews.' },
   ],
 }
 

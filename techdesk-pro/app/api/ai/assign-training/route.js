@@ -1,7 +1,7 @@
 // File: app/api/ai/assign-training/route.js (new — mkdir -p app/api/ai/assign-training)
 
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,11 +9,12 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
-  const auth = await requireAuth({ adminOnly: true })
-  if (auth.response) return auth.response
-
   try {
-    const { organizationId, courseId, dueDate, isRecurring, recurrenceMonths, isMandatory, title, message, assignedBy } = await request.json()
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
+    const { organizationId, courseId, dueDate, isRecurring, recurrenceMonths, isMandatory, title, message } = await request.json()
+    const assignedBy = auth.user.id
 
     if (!organizationId || !courseId || !dueDate) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
@@ -45,7 +46,6 @@ export async function POST(request) {
       .eq('organization_id', organizationId)
 
     // Create status records for each member
-    let membersAssigned = 0
     if (members && members.length > 0) {
       const statusRecords = members.map(member => ({
         assignment_id: assignment.id,
@@ -54,12 +54,9 @@ export async function POST(request) {
         status: 'pending',
       }))
 
-      const { error: statusErr } = await supabase
+      await supabase
         .from('training_assignment_status')
         .insert(statusRecords)
-
-      if (statusErr) throw statusErr
-      membersAssigned = members.length
     }
 
     // Log the assignment
@@ -72,7 +69,7 @@ export async function POST(request) {
       metadata: {
         course_id: courseId,
         due_date: dueDate,
-        member_count: membersAssigned,
+        member_count: members?.length || 0,
         is_mandatory: isMandatory,
       },
     })
@@ -80,7 +77,7 @@ export async function POST(request) {
     return Response.json({
       success: true,
       assignment,
-      members_assigned: membersAssigned,
+      members_assigned: members?.length || 0,
     })
 
   } catch (err) {

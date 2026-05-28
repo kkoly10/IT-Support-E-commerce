@@ -311,8 +311,9 @@ export default function SignupPage() {
                 >
                   <option value="">Select one</option>
                   <option value="it_helpdesk">Remote IT helpdesk & support</option>
-                  <option value="cloud_admin">Cloud & SaaS administration</option>
-                  <option value="general_tech">General technical support</option>
+                  <option value="it_cloud_admin">Cloud & SaaS administration</option>
+                  <option value="it_managed_devices">Managed Windows device support</option>
+                  <option value="it_general">General technical support</option>
                   <option value="not_sure">Not sure — I need guidance</option>
                 </select>
               </div>

@@ -191,8 +191,6 @@ export default function TermsPage() {
             <a href="mailto:legal@kocreit.com" style={linkStyle}>
               legal@kocreit.com
             </a>
-            <br />
-            Mailing Address: [Your Business Mailing Address]
           </p>
         </section>
       </div>

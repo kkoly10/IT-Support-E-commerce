@@ -18,7 +18,7 @@ Client are each a "Party."
 ## 1. Definitions
 - **Services** — the remote managed IT support and related services described in an Order Form or Statement of Work ("**SOW**").
 - **Order Form / SOW** — a document signed (including electronically) by both Parties describing the Services, plan tier, fees, and any project scope. Each Order Form incorporates this Agreement.
-- **Plan** — the recurring support tier selected (e.g., Starter, Growth, Scale).
+- **Plan** — the recurring support tier selected (e.g., Founding Managed Support, Remote Desk, Managed Desk, Secure Desk, or a Custom Review scope).
 - **Client Data** — data and information Client or its users provide to, or that we access through, the Services.
 - **Support Boundaries** — the published scope, ticket definitions, exclusions, and coverage hours referenced in Section 4 and at the Kocre IT "Support & AI Transparency" page.
 

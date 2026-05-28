@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth, isInternalRequest } from '../../../../lib/auth/require'
+import { requireAdmin, isInternalCall } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -22,14 +22,12 @@ function safeToAutoResolve(ticket) {
 }
 
 export async function POST(request) {
-  // Invoked server-to-server by /api/ai/post-create-ticket and manually by
-  // admins. Reject anything else.
-  if (!isInternalRequest(request)) {
-    const auth = await requireAuth({ adminOnly: true })
-    if (auth.response) return auth.response
-  }
-
   try {
+    if (!isInternalCall(request)) {
+      const auth = await requireAdmin()
+      if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+    }
+
     const { ticketId } = await request.json()
 
     if (!ticketId) {
@@ -140,36 +138,34 @@ Write the final reply and internal summary now.`,
       })
     }
 
-    await supabase.from('ticket_messages').insert({
-      ticket_id: ticketId,
-      sender_type: 'ai',
-      body: parsed.auto_reply,
-      ai_generated: true,
-    })
-
+    // Human-supervised: post the AI reply as an INTERNAL draft for review,
+    // never directly to the client, and never auto-resolve the ticket.
     await supabase.from('ticket_messages').insert({
       ticket_id: ticketId,
       sender_type: 'system',
-      body: `🤖 AutoResolve handled this ticket safely.
-Confidence: ${Math.round((parsed.confidence || 0) * 100)}%
-Difficulty: ${parsed.difficulty || 'easy'}
-Estimated time saved: ${parsed.estimated_time || 'unknown'}
+      body: `🤖 AI-suggested reply — DRAFT for review. Do not forward without checking.
+
+${parsed.auto_reply}
+
+— Confidence: ${Math.round((parsed.confidence || 0) * 100)}% · Difficulty: ${parsed.difficulty || 'easy'}
 Summary: ${parsed.admin_note || 'No note provided'}`,
       is_internal_note: true,
+      ai_generated: true,
     })
 
     await supabase
       .from('tickets')
       .update({
-        status: 'resolved',
         ai_summary: parsed.admin_note || ticket.ai_summary || null,
       })
       .eq('id', ticketId)
 
     return Response.json({
-      resolved: true,
+      resolved: false,
+      suggested: true,
       confidence: parsed.confidence,
-      message: 'Ticket auto-resolved by AI',
+      suggested_reply: parsed.auto_reply,
+      message: 'AI generated a draft reply for review. It has not been sent to the client.',
     })
   } catch (err) {
     console.error('AutoResolve error:', err)

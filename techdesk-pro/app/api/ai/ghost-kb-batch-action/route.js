@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth } from '../../../../lib/auth/require'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -104,10 +104,10 @@ async function publishDraft(draftId) {
 }
 
 export async function POST(request) {
-  const auth = await requireAuth({ adminOnly: true })
-  if (auth.response) return auth.response
-
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { action, draftIds } = await request.json()
 
     if (!action) {
@@ -119,38 +119,34 @@ export async function POST(request) {
     }
 
     if (action === 'mark_review_needed') {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('kb_sop_drafts')
         .update({ status: 'review_needed' })
         .in('id', draftIds)
-        .select('id')
 
       if (error) throw error
 
-      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount,
-        message: `${updatedCount} draft(s) marked review needed.`,
+        updatedCount: draftIds.length,
+        message: `${draftIds.length} draft(s) marked review needed.`,
       })
     }
 
     if (action === 'mark_ready_to_publish') {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('kb_sop_drafts')
         .update({ status: 'ready_to_publish' })
         .in('id', draftIds)
-        .select('id')
 
       if (error) throw error
 
-      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount,
-        message: `${updatedCount} draft(s) marked ready to publish.`,
+        updatedCount: draftIds.length,
+        message: `${draftIds.length} draft(s) marked ready to publish.`,
       })
     }
 

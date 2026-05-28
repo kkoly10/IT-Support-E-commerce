@@ -65,10 +65,14 @@ export async function POST(request) {
       .insert({
         name: trimmedCompany,
         slug,
-        plan: 'starter',
-        monthly_ticket_limit: 10,
+        // Plan is intentionally 'pending' at signup — the real plan
+        // (founding / remote / managed / secure / custom) is set by an
+        // admin after the fit review. monthly_ticket_limit stays null
+        // because new per-user plans use fair-use volumes set per
+        // agreement, not a hard cap.
+        plan: 'pending',
         client_status: 'lead',
-        lead_interest: leadInterest || 'it',
+        lead_interest: leadInterest || 'it_general',
         primary_service: 'it',
         service_types: ['it'],
         team_size: parsedTeamSize,

@@ -82,9 +82,10 @@ export default function FreeAssessmentPage() {
 
           <h1 style={{ margin: 0, fontSize: '2rem', lineHeight: 1.15 }}>You’re in the right place.</h1>
           <p style={{ color: 'var(--ink-muted)', marginTop: 10, maxWidth: 700, lineHeight: 1.75 }}>
-            We received your support assessment and created a reference for manual review. The next step is
-            to reserve your portal workspace so Kocre IT can connect your assessment, onboarding checklist,
-            and support-readiness review in one place.
+            We received your support assessment and created a reference for manual review.
+            We typically send a fit recommendation within about two business days. The next step
+            is to reserve your portal workspace so Kocre IT can connect your assessment, onboarding
+            checklist, and support-readiness review in one place.
           </p>
 
           <div

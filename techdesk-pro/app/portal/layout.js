@@ -14,7 +14,7 @@ const supabase = createClient()
 const ACTIVE_NAV = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
   { label: 'Support Requests', href: '/portal/tickets', icon: '🎫' },
-  { label: 'System Health', href: '/portal/health', icon: '🛡️' },
+  { label: 'Website Monitoring', href: '/portal/health', icon: '🛡️' },
   { label: 'Atlas Assistant', href: '/portal/atlas', icon: '🧠' },
   { label: 'Training', href: '/portal/training', icon: '🎓' },
   { label: 'Documents', href: '/portal/documents', icon: '📄' },
@@ -31,7 +31,7 @@ const BREADCRUMB_LABELS = {
   tickets: 'Support Requests',
   dashboard: 'Dashboard',
   onboarding: 'Onboarding',
-  health: 'System Health',
+  health: 'Website Monitoring',
   atlas: 'Atlas Assistant',
   training: 'Training',
   documents: 'Documents',
