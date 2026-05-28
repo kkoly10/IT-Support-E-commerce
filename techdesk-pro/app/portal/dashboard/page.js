@@ -97,6 +97,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState(null)
   const [org, setOrg] = useState(null)
   const [tickets, setTickets] = useState([])
+  const [monthlyTicketCount, setMonthlyTicketCount] = useState(0)
   const [contacts, setContacts] = useState([])
   const [accessRows, setAccessRows] = useState([])
   const [documents, setDocuments] = useState([])
@@ -135,7 +136,11 @@ export default function DashboardPage() {
     setProfile(profileData)
     setOrg(profileData.organizations)
 
-    const [ticketRes, contactRes, accessRes, docRes, taskRes] = await Promise.all([
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    monthStart.setUTCHours(0, 0, 0, 0)
+
+    const [ticketRes, monthlyCountRes, contactRes, accessRes, docRes, taskRes] = await Promise.all([
       supabase
         .from('tickets')
         .select(`
@@ -161,6 +166,12 @@ export default function DashboardPage() {
         .limit(50),
 
       supabase
+        .from('tickets')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', profileData.organization_id)
+        .gte('created_at', monthStart.toISOString()),
+
+      supabase
         .from('organization_contacts')
         .select('*')
         .eq('organization_id', profileData.organization_id),
@@ -182,6 +193,7 @@ export default function DashboardPage() {
     ])
 
     setTickets(ticketRes.data || [])
+    setMonthlyTicketCount(monthlyCountRes.count || 0)
     setContacts(contactRes.data || [])
     setAccessRows(accessRes.data || [])
     setDocuments(docRes.data || [])
@@ -218,10 +230,10 @@ export default function DashboardPage() {
       resolvedCount,
       escalatedCount,
       autoResolveEligible,
-      monthlyUsed: org?.tickets_used_this_month || 0,
+      monthlyUsed: monthlyTicketCount,
       monthlyLimit: org?.monthly_ticket_limit || 10,
     }
-  }, [tickets, org])
+  }, [tickets, org, monthlyTicketCount])
 
   const recentTickets = useMemo(() => tickets.slice(0, 6), [tickets])
 
@@ -235,6 +247,15 @@ export default function DashboardPage() {
           <p>
             Lifecycle: <strong>{toLabel(lifecycle, CLIENT_STATUS_LABELS)}</strong> · Plan:{' '}
             <strong>{(org?.plan || 'starter').toUpperCase()}</strong>
+            {' '}· Tickets this month:{' '}
+            <strong style={{ color: metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
+              {metrics.monthlyUsed} / {metrics.monthlyLimit}
+            </strong>
+            {metrics.monthlyUsed >= metrics.monthlyLimit && (
+              <span style={{ color: '#b45309', fontSize: '0.85em', marginLeft: 6 }}>
+                (at your monthly allotment — overage will be reviewed in billing)
+              </span>
+            )}
           </p>
         </div>
         {lifecycle === 'active' ? (

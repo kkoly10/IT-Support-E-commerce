@@ -47,6 +47,15 @@ export async function POST(request) {
     const resolvedCount =
       allTickets?.filter((t) => t.status === 'resolved' || t.status === 'closed').length || 0
 
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    monthStart.setUTCHours(0, 0, 0, 0)
+    const { count: monthlyTicketCount } = await supabase
+      .from('tickets')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', org.id)
+      .gte('created_at', monthStart.toISOString())
+
     const ticketContext =
       (recentTickets || []).length > 0
         ? `Recent support requests:\n${recentTickets
@@ -82,7 +91,7 @@ Known account context:
 - Open tickets: ${openCount}
 - Resolved tickets: ${resolvedCount}
 - Monthly ticket limit: ${org.monthly_ticket_limit || 10}
-- Tickets used this month: ${org.tickets_used_this_month || 0}
+- Tickets used this month: ${monthlyTicketCount || 0}
 
 ${ticketContext}
 
