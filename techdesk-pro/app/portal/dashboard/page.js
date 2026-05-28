@@ -223,6 +223,10 @@ export default function DashboardPage() {
     const escalatedCount = tickets.filter((t) => t.ai_escalation_needed === true).length
     const autoResolveEligible = tickets.filter((t) => t.ai_can_auto_resolve === true).length
 
+    const planKey = String(org?.plan || '').toLowerCase()
+    const isLegacyPlan = planKey === 'starter' || planKey === 'growth' || planKey === 'scale'
+    const monthlyLimit = isLegacyPlan ? (org?.monthly_ticket_limit || 10) : null
+
     return {
       openCount,
       inProgressCount,
@@ -231,7 +235,8 @@ export default function DashboardPage() {
       escalatedCount,
       autoResolveEligible,
       monthlyUsed: monthlyTicketCount,
-      monthlyLimit: org?.monthly_ticket_limit || 10,
+      monthlyLimit,
+      isLegacyPlan,
     }
   }, [tickets, org, monthlyTicketCount])
 
@@ -248,12 +253,13 @@ export default function DashboardPage() {
             Lifecycle: <strong>{toLabel(lifecycle, CLIENT_STATUS_LABELS)}</strong> · Plan:{' '}
             <strong>{(org?.plan || 'starter').toUpperCase()}</strong>
             {' '}· Tickets this month:{' '}
-            <strong style={{ color: metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
-              {metrics.monthlyUsed} / {metrics.monthlyLimit}
+            <strong style={{ color: metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
+              {metrics.monthlyUsed}
+              {metrics.monthlyLimit !== null && ` / ${metrics.monthlyLimit}`}
             </strong>
-            {metrics.monthlyUsed >= metrics.monthlyLimit && (
+            {metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit && (
               <span style={{ color: '#b45309', fontSize: '0.85em', marginLeft: 6 }}>
-                (at your monthly allotment — overage will be reviewed in billing)
+                (at your legacy plan’s allotment — overage will be reviewed in billing)
               </span>
             )}
           </p>
