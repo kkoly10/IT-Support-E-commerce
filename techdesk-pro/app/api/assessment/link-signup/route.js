@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth, isInternalRequest } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -6,6 +7,13 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
+  // Called server-to-server by /api/signup/complete (so anonymous, post-signUp
+  // before any session exists), or by admins via the assessments console.
+  if (!isInternalRequest(request)) {
+    const auth = await requireAuth({ adminOnly: true })
+    if (auth.response) return auth.response
+  }
+
   try {
     const { assessmentId, organizationId } = await request.json()
 

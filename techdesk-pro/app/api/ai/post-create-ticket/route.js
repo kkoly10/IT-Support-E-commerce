@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -6,6 +7,13 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
+  // Called from portal/tickets/new immediately after a ticket is created.
+  // Require a session and verify the ticket belongs to the caller's org or
+  // that they're an admin — otherwise anyone could kick off AI work on any
+  // ticket id they guessed.
+  const auth = await requireAuth()
+  if (auth.response) return auth.response
+
   try {
     const { ticketId } = await request.json()
 
@@ -15,7 +23,7 @@ export async function POST(request) {
 
     const { data: ticket } = await supabase
       .from('tickets')
-      .select('id')
+      .select('id, organization_id')
       .eq('id', ticketId)
       .single()
 
@@ -23,11 +31,25 @@ export async function POST(request) {
       return Response.json({ error: 'Ticket not found' }, { status: 404 })
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, organization_id')
+      .eq('id', auth.user.id)
+      .single()
+
+    if (!profile || (profile.role !== 'admin' && profile.organization_id !== ticket.organization_id)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const origin = new URL(request.url).origin
+    const internalHeaders = {
+      'Content-Type': 'application/json',
+      'x-internal-secret': process.env.INTERNAL_API_SECRET || '',
+    }
 
     const triageResponse = await fetch(`${origin}/api/ai/triage-ticket`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: internalHeaders,
       body: JSON.stringify({ ticketId }),
     })
 
@@ -53,7 +75,7 @@ export async function POST(request) {
 
     const autoResolveResponse = await fetch(`${origin}/api/ai/auto-resolve`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: internalHeaders,
       body: JSON.stringify({ ticketId }),
     })
 

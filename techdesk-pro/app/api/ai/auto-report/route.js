@@ -1,6 +1,7 @@
 // File: app/api/ai/auto-report/route.js (new — mkdir -p app/api/ai/auto-report)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth, isCronRequest } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,6 +9,13 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
+  // Either an admin generating a report from the console or a cron job
+  // running the monthly batch — both are legitimate; everything else isn't.
+  if (!isCronRequest(request)) {
+    const auth = await requireAuth({ adminOnly: true })
+    if (auth.response) return auth.response
+  }
+
   try {
     const { organizationId, month } = await request.json()
 

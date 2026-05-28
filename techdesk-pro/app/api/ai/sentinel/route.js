@@ -1,18 +1,20 @@
 // File: app/api/ai/sentinel/route.js (new — mkdir -p app/api/ai/sentinel)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth, isCronRequest } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// Vercel Cron calls this every hour
+// Vercel Cron calls this every hour. Admins can also trigger a manual run
+// from the Sentinel console. Reject anything else — the previous check
+// silently allowed unauthenticated access when CRON_SECRET wasn't set.
 export async function GET(request) {
-  // Verify cron secret (optional but recommended)
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!isCronRequest(request)) {
+    const auth = await requireAuth({ adminOnly: true })
+    if (auth.response) return auth.response
   }
 
   try {

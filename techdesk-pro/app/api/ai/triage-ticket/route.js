@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { normalizeRequestCategory } from '../../../../lib/support-ui'
+import { requireAuth, isInternalRequest } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -33,6 +34,13 @@ const normalizeAiCategory = (value) => {
 }
 
 export async function POST(request) {
+  // Triage is invoked server-to-server by /api/ai/post-create-ticket and
+  // manually by admins. Reject anything else.
+  if (!isInternalRequest(request)) {
+    const auth = await requireAuth({ adminOnly: true })
+    if (auth.response) return auth.response
+  }
+
   try {
     const { ticketId } = await request.json()
 

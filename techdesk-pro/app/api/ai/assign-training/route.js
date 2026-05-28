@@ -1,6 +1,7 @@
 // File: app/api/ai/assign-training/route.js (new — mkdir -p app/api/ai/assign-training)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -8,6 +9,9 @@ const supabase = createClient(
 )
 
 export async function POST(request) {
+  const auth = await requireAuth({ adminOnly: true })
+  if (auth.response) return auth.response
+
   try {
     const { organizationId, courseId, dueDate, isRecurring, recurrenceMonths, isMandatory, title, message, assignedBy } = await request.json()
 

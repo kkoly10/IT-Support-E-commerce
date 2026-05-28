@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '../../../../lib/auth/require'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -103,6 +104,9 @@ async function publishDraft(draftId) {
 }
 
 export async function POST(request) {
+  const auth = await requireAuth({ adminOnly: true })
+  if (auth.response) return auth.response
+
   try {
     const { action, draftIds } = await request.json()
 

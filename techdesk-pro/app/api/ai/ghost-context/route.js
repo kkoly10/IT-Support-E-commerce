@@ -1,6 +1,10 @@
 import { getGhostTicketContext } from '../../../../lib/ghost/core'
+import { requireAuth } from '../../../../lib/auth/require'
 
 export async function POST(request) {
+  const auth = await requireAuth({ adminOnly: true })
+  if (auth.response) return auth.response
+
   try {
     const { ticketId } = await request.json()
 
