@@ -43,7 +43,7 @@ export default function NewTicketPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!title || !description || !category) return
+    if (!title.trim() || !description.trim() || !category) return
     if (!userId || !orgId) {
       setError('Please wait a moment while your account context loads, then retry.')
       return

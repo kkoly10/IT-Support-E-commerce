@@ -224,6 +224,7 @@ export default function AdminLaunchPage() {
                       Next QBR
                     </label>
                     <input
+                      key={selectedOrg.id}
                       type="datetime-local"
                       defaultValue={toLaunchInputValue(selectedOrg.next_qbr_scheduled_for)}
                       onBlur={(e) =>
@@ -260,6 +261,7 @@ export default function AdminLaunchPage() {
                     Launch pack notes
                   </label>
                   <textarea
+                    key={selectedOrg.id}
                     defaultValue={selectedOrg.launch_pack_notes || ''}
                     onBlur={(e) => updateOrganization({ launch_pack_notes: e.target.value.trim() || null })}
                     rows={4}
@@ -333,6 +335,7 @@ export default function AdminLaunchPage() {
                     Offboarding notes
                   </label>
                   <textarea
+                    key={selectedOrg.id}
                     defaultValue={selectedOrg.offboarding_notes || ''}
                     onBlur={(e) => updateOrganization({ offboarding_notes: e.target.value.trim() || null })}
                     rows={4}

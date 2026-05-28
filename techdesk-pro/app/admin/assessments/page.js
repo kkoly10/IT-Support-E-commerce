@@ -345,7 +345,7 @@ export default function AdminAssessmentsPage() {
                         className="admin-status-badge"
                         style={{ background: fitStyle.bg, color: fitStyle.color }}
                       >
-                        {fitStyle.label} · {review.fit_score}/100
+                        {fitStyle.label} · {review.fit_score ?? '—'}/100
                       </span>
 
                       <span

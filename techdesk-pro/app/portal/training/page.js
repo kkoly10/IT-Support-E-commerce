@@ -29,7 +29,10 @@ export default function TrainingCatalog() {
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -137,7 +140,7 @@ export default function TrainingCatalog() {
           const locked = isLocked(course)
           const completed = prog?.completed_at
           const started = prog && !completed
-          const progressPct = prog ? Math.round((prog.lessons_completed / course.lesson_count) * 100) : 0
+          const progressPct = prog ? Math.round((prog.lessons_completed / (course.lesson_count || 1)) * 100) : 0
 
           return (
             <div
