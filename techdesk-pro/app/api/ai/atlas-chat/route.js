@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '../../../../lib/supabase/server'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -7,16 +8,26 @@ const supabase = createClient(
 
 export async function POST(request) {
   try {
-    const { message, conversationHistory, userId } = await request.json()
+    // Identify the caller from their authenticated session — never trust a
+    // client-supplied user id, or anyone could read another org's data.
+    const auth = await createServerClient()
+    const {
+      data: { user },
+    } = await auth.auth.getUser()
+    if (!user) {
+      return Response.json({ error: 'You must be signed in.' }, { status: 401 })
+    }
 
-    if (!message || !userId) {
-      return Response.json({ error: 'Missing message or userId' }, { status: 400 })
+    const { message, conversationHistory } = await request.json()
+
+    if (!message) {
+      return Response.json({ error: 'Missing message' }, { status: 400 })
     }
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('*, organization:organizations(*)')
-      .eq('id', userId)
+      .eq('id', user.id)
       .single()
 
     if (!profile) {

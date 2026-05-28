@@ -122,7 +122,7 @@ export default function AdminContactsPage() {
           <div className="admin-empty-text">No contacts found.</div>
         </div>
       ) : (
-        grouped.map((group) => {
+        grouped.map((group, groupIndex) => {
           const summary = deriveContactMatrixSummary(group.contacts)
           const visibleContacts = group.contacts.filter((contact) => {
             if (roleFilter !== 'all' && contact.role_type !== roleFilter) return false
@@ -144,7 +144,7 @@ export default function AdminContactsPage() {
           if (visibleContacts.length === 0) return null
 
           return (
-            <div key={group.organization?.id || Math.random()} className="admin-card" style={{ marginBottom: 20 }}>
+            <div key={group.organization?.id || `unknown-${groupIndex}`} className="admin-card" style={{ marginBottom: 20 }}>
               <div className="admin-card-header">
                 <h3>{group.organization?.name || 'Unknown organization'}</h3>
                 <a href="/admin/onboarding" className="admin-btn-small">
