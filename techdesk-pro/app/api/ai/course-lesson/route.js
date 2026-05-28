@@ -1,7 +1,12 @@
 // File: app/api/ai/course-lesson/route.js (new — mkdir -p app/api/ai/course-lesson)
 
+import { requireUser } from '../../../../lib/supabase/route-auth'
+
 export async function POST(request) {
   try {
+    const auth = await requireUser()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { courseTitle, lessonNumber, totalLessons, category } = await request.json()
     if (!courseTitle || !lessonNumber) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })

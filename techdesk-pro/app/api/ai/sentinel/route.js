@@ -1,18 +1,22 @@
 // File: app/api/ai/sentinel/route.js (new — mkdir -p app/api/ai/sentinel)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// Vercel Cron calls this every hour
+// Vercel Cron calls this every hour, and admins can trigger it from the UI.
 export async function GET(request) {
-  // Verify cron secret (optional but recommended)
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const cronSecret = process.env.CRON_SECRET
+  const authHeader = request.headers.get('authorization') || ''
+  const isCron = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`
+
+  if (!isCron) {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
   }
 
   try {

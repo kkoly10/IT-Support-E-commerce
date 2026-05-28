@@ -1,7 +1,11 @@
 import { reviewOnboardingState } from '../../../../lib/ghost/core'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 export async function POST(request) {
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { organizationId } = await request.json()
 
     if (!organizationId) {

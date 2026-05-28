@@ -1,6 +1,7 @@
 // File: app/api/process-document/route.js (new — create folder: mkdir -p app/api/process-document)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -39,6 +40,9 @@ Return as JSON with:
 
 export async function POST(request) {
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { jobId } = await request.json()
     if (!jobId) {
       return Response.json({ error: 'Missing jobId' }, { status: 400 })

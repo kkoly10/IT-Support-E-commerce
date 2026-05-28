@@ -1,6 +1,7 @@
 // File: app/api/ai/auto-report/route.js (new — mkdir -p app/api/ai/auto-report)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,6 +10,9 @@ const supabase = createClient(
 
 export async function POST(request) {
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { organizationId, month } = await request.json()
 
     if (!organizationId) {

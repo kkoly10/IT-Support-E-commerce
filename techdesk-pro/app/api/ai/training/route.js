@@ -1,7 +1,12 @@
 // File: app/api/ai/training/route.js (new — mkdir -p app/api/ai/training)
 
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
+
 export async function POST(request) {
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { topic, difficulty, serviceArea } = await request.json()
     if (!topic) {
       return Response.json({ error: 'Missing topic' }, { status: 400 })

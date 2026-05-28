@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireUser } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -7,16 +8,19 @@ const supabase = createClient(
 
 export async function POST(request) {
   try {
-    const { message, conversationHistory, userId } = await request.json()
+    const auth = await requireUser()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
 
-    if (!message || !userId) {
-      return Response.json({ error: 'Missing message or userId' }, { status: 400 })
+    const { message, conversationHistory } = await request.json()
+
+    if (!message) {
+      return Response.json({ error: 'Missing message' }, { status: 400 })
     }
 
     const { data: profile } = await supabase
       .from('profiles')
       .select('*, organization:organizations(*)')
-      .eq('id', userId)
+      .eq('id', auth.user.id)
       .single()
 
     if (!profile) {
