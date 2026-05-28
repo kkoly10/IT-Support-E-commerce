@@ -37,8 +37,9 @@ export default function PilotPage() {
         </h1>
 
         <p style={{ color: 'var(--ink-muted)', marginTop: 14, lineHeight: 1.8, maxWidth: 780 }}>
-          Kocre IT is built for small businesses that need dependable remote IT support, cloud/SaaS
-          administration, and a structured onboarding process before support goes live.
+          Kocre IT is built for small businesses that need dependable remote IT support, Microsoft
+          365 and Google Workspace administration, employee onboarding/offboarding, and managed
+          Windows device support — with a structured fit review before support goes live.
         </p>
 
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 22 }}>
@@ -90,9 +91,9 @@ export default function PilotPage() {
         >
           <h2 style={{ marginTop: 0 }}>Best fit</h2>
           <div style={{ display: 'grid', gap: 10, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
-            <div>• 1–25 user businesses that need routine remote support</div>
+            <div>• 1–20 user small businesses, mostly Windows devices</div>
             <div>• Microsoft 365, Google Workspace, Slack, Zoom, shared SaaS tools</div>
-            <div>• Teams without full internal IT or with limited internal IT bandwidth</div>
+            <div>• Teams without an internal IT hire who want managed Windows device support</div>
             <div>• Businesses that want a real onboarding and accountability layer</div>
           </div>
         </div>
@@ -113,6 +114,112 @@ export default function PilotPage() {
             <div>• Activation before fit, access, contacts, and readiness are actually reviewed</div>
           </div>
         </div>
+      </section>
+
+      <section
+        style={{
+          marginTop: 24,
+          background: 'white',
+          border: '1px solid var(--border)',
+          borderRadius: 18,
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'var(--teal-light)',
+            color: 'var(--teal)',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            marginBottom: 12,
+          }}
+        >
+          90-day pilot · limited spots
+        </div>
+        <h2 style={{ marginTop: 0 }}>Founding Managed Support</h2>
+        <p style={{ color: 'var(--ink-muted)', marginTop: 8, lineHeight: 1.8, maxWidth: 780 }}>
+          A 90-day pilot priced for small businesses trying structured remote IT support before
+          moving into a standard monthly plan. Built for teams with up to 5 users on Windows
+          devices.
+        </p>
+        <div
+          style={{
+            marginTop: 16,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              background: '#fafaf8',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: 14,
+            }}
+          >
+            <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Monthly
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: 4 }}>$399 / month</div>
+          </div>
+          <div
+            style={{
+              background: '#fafaf8',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: 14,
+            }}
+          >
+            <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Setup
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: 4 }}>$199 one-time</div>
+          </div>
+          <div
+            style={{
+              background: '#fafaf8',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: 14,
+            }}
+          >
+            <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Capacity
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: 4 }}>Up to 5 users / 5 devices</div>
+          </div>
+          <div
+            style={{
+              background: '#fafaf8',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              padding: 14,
+            }}
+          >
+            <div style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              First response
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: 4 }}>1 business day</div>
+          </div>
+        </div>
+        <div style={{ marginTop: 18, display: 'grid', gap: 8, color: 'var(--ink-muted)', lineHeight: 1.7 }}>
+          <div>• Remote helpdesk and account support</div>
+          <div>• Microsoft 365 or Google Workspace basic admin</div>
+          <div>• Managed Windows device support (approved devices)</div>
+          <div>• Device health visibility and remote troubleshooting</div>
+          <div>• Onboarding into the portal before support goes live</div>
+        </div>
+        <p style={{ color: 'var(--ink-muted)', marginTop: 14, fontSize: '0.88rem', lineHeight: 1.7 }}>
+          After the 90 days we either continue under a standard monthly plan (Remote Desk,
+          Managed Desk, or Secure Desk) or part ways without obligation. Either outcome is
+          honest.
+        </p>
       </section>
 
       <section
