@@ -162,7 +162,7 @@ export function sortOnboardingTasks(tasks = []) {
       phaseOrder.indexOf(a.phase || 'discovery') - phaseOrder.indexOf(b.phase || 'discovery')
 
     if (phaseDelta !== 0) return phaseDelta
-    return (a.sort_order || 100) - (b.sort_order || 100)
+    return (a.sort_order ?? 100) - (b.sort_order ?? 100)
   })
 }
 

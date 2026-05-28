@@ -121,21 +121,24 @@ export default function AdminClients() {
 
   useEffect(() => {
     loadOrgs()
-  }, [statusFilter])
+  }, [])
+
+  // Filter client-side so the stat counters above always reflect the full
+  // dataset; previously they read from a server-filtered `orgs` and showed
+  // 0 leads / 0 onboarding whenever a non-"all" filter was active.
+  const visibleOrgs = useMemo(
+    () => (statusFilter === 'all' ? orgs : orgs.filter((o) => o.client_status === statusFilter)),
+    [orgs, statusFilter]
+  )
 
   async function loadOrgs() {
     setLoading(true)
 
-    let query = supabase
+    const { data } = await supabase
       .from('organizations')
       .select('*, profiles(id, full_name, email, role, is_primary_contact)')
       .order('created_at', { ascending: false })
 
-    if (statusFilter !== 'all') {
-      query = query.eq('client_status', statusFilter)
-    }
-
-    const { data } = await query
     setOrgs(data || [])
     setLoading(false)
   }
@@ -238,13 +241,13 @@ export default function AdminClients() {
           <div className="admin-loading" style={{ padding: 40 }}>
             Loading clients...
           </div>
-        ) : orgs.length === 0 ? (
+        ) : visibleOrgs.length === 0 ? (
           <div className="admin-empty-text" style={{ padding: 40 }}>
             No organizations found
           </div>
         ) : (
           <div>
-            {orgs.map((org, i) => {
+            {visibleOrgs.map((org, i) => {
               const isEditing = editingOrg === org.id
               const memberCount = org.profiles?.length || 0
               const review = reviewByOrgId[org.id]
@@ -257,7 +260,7 @@ export default function AdminClients() {
                   <div
                     style={{
                       padding: '16px 20px',
-                      borderBottom: i < orgs.length - 1 ? '1px solid #f0ede8' : 'none',
+                      borderBottom: i < visibleOrgs.length - 1 ? '1px solid #f0ede8' : 'none',
                       background: org.needs_human_review ? '#fffdf5' : 'transparent',
                     }}
                   >
@@ -406,7 +409,7 @@ export default function AdminClients() {
                     <div
                       style={{
                         padding: '16px 20px',
-                        borderBottom: i < orgs.length - 1 ? '1px solid #f0ede8' : 'none',
+                        borderBottom: i < visibleOrgs.length - 1 ? '1px solid #f0ede8' : 'none',
                         background: '#fafaf8',
                       }}
                     >

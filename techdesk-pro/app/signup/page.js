@@ -87,45 +87,6 @@ export default function SignupPage() {
       return
     }
 
-    const slug = trimmedCompanyName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-
-    const leadConfig = getLeadConfig(teamSize, leadInterest)
-
-    const { data: org, error: orgError } = await supabase
-      .from('organizations')
-      .insert({
-        name: trimmedCompanyName,
-        slug: slug + '-' + Date.now().toString(36),
-        // Plan is intentionally 'pending' at signup — the real plan
-        // (founding / remote / managed / secure / custom) is set by an
-        // admin after the fit review. monthly_ticket_limit is left null
-        // for the same reason: legacy plans have hard caps, the new
-        // per-user plans use fair-use volumes set per agreement.
-        plan: 'pending',
-        client_status: 'lead',
-        lead_interest: leadInterest || 'it_general',
-        primary_service: leadConfig.primary_service,
-        service_types: leadConfig.service_types,
-        team_size: teamSize ? parseInt(teamSize, 10) : null,
-        industry: trimmedIndustry || null,
-        needs_human_review: leadConfig.needs_human_review,
-        agreement_status: 'none',
-        payment_status: 'none',
-        onboarding_status: 'not_started',
-        notes: trimmedPainPoints || null,
-      })
-      .select()
-      .single()
-
-    if (orgError) {
-      setError('Account created but organization setup failed: ' + orgError.message)
-      setLoading(false)
-      return
-    }
-
     const userId = authData?.user?.id
 
     if (!userId) {
@@ -134,29 +95,29 @@ export default function SignupPage() {
       return
     }
 
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: userId,
-      email,
-      full_name: trimmedFullName,
-      organization_id: org.id,
-      role: 'client',
-      is_primary_contact: true,
+    // Org + profile creation runs server-side so `role` is hardcoded by the
+    // service-role client and the browser can't elevate to 'admin'.
+    const completeRes = await fetch('/api/signup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        email,
+        fullName: trimmedFullName,
+        companyName: trimmedCompanyName,
+        teamSize,
+        industry: trimmedIndustry,
+        leadInterest,
+        painPoints: trimmedPainPoints,
+        assessmentId: assessmentId || null,
+      }),
     })
 
-    if (profileError) {
-      setError('Account created but profile setup failed: ' + profileError.message)
+    const completeData = await completeRes.json().catch(() => ({}))
+    if (!completeRes.ok) {
+      setError(completeData?.error || 'Account created but workspace setup failed.')
       setLoading(false)
       return
-    }
-
-    if (assessmentId) {
-      await fetch('/api/assessment/link-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId, organizationId: org.id }),
-      }).catch((err) => {
-        console.error('Failed to link assessment to organization:', err)
-      })
     }
 
     setSuccess(true)

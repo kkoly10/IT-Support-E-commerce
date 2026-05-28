@@ -18,7 +18,9 @@ export function parseClaudeJson(aiResult) {
     .trim()
 
   const direct = safeJsonParse(raw)
-  if (direct) return direct
+  // Only accept structured results — a bare string/number/false would
+  // otherwise be returned and treated as an object by callers.
+  if (direct && typeof direct === 'object') return direct
 
   const firstBrace = raw.indexOf('{')
   const lastBrace = raw.lastIndexOf('}')

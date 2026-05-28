@@ -124,7 +124,8 @@ export default function CourseDetail() {
   }
 
   async function handleSubmitQuiz() {
-    if (!lessonContent?.quiz) return
+    // Empty quiz array passes the truthiness guard and would divide by zero.
+    if (!lessonContent?.quiz?.length) return
 
     const total = lessonContent.quiz.length
     let correct = 0
@@ -137,14 +138,16 @@ export default function CourseDetail() {
     setQuizScore(score)
     setQuizSubmitted(true)
 
-    // Update progress
+    // Update progress — only mark every lesson complete when the quiz passes;
+    // a failed first attempt previously wrote lessons_completed = total and
+    // distorted the progress bar / completed stats.
     const updateData = {
       quiz_score: score,
       quiz_passed: passed,
-      lessons_completed: course.lesson_count,
     }
 
     if (passed) {
+      updateData.lessons_completed = course.lesson_count
       updateData.completed_at = new Date().toISOString()
       updateData.certificate_issued = true
     }
@@ -215,7 +218,7 @@ export default function CourseDetail() {
           <div style={{ height: 6, background: 'var(--border-light)', borderRadius: 100, overflow: 'hidden' }}>
             <div style={{
               height: '100%', background: 'var(--teal)', borderRadius: 100,
-              width: `${((progress?.lessons_completed || 0) / course.lesson_count) * 100}%`,
+              width: `${((progress?.lessons_completed || 0) / (course.lesson_count || 1)) * 100}%`,
               transition: 'width 0.5s',
             }} />
           </div>

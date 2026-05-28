@@ -68,14 +68,6 @@ export default function PortalContactsPage() {
     }
   }
 
-  async function resetPrimaryIfNeeded() {
-    if (!orgId || !isPrimaryContact) return
-    await supabase
-      .from('organization_contacts')
-      .update({ is_primary_contact: false })
-      .eq('organization_id', orgId)
-  }
-
   async function handleAddContact(e) {
     e.preventDefault()
     if (!orgId || !fullName.trim()) return
@@ -85,9 +77,10 @@ export default function PortalContactsPage() {
     setMessage(null)
 
     try {
-      await resetPrimaryIfNeeded()
-
-      const { error: insertError } = await supabase
+      // Insert first; only demote the previous primary after we know the new
+      // primary actually exists, otherwise a failed insert leaves the org
+      // with no primary contact at all.
+      const { data: inserted, error: insertError } = await supabase
         .from('organization_contacts')
         .insert({
           organization_id: orgId,
@@ -102,8 +95,18 @@ export default function PortalContactsPage() {
           receives_emergency_notices: receivesEmergencyNotices,
           notes: notes.trim() || null,
         })
+        .select('id')
+        .single()
 
       if (insertError) throw insertError
+
+      if (isPrimaryContact && inserted?.id) {
+        await supabase
+          .from('organization_contacts')
+          .update({ is_primary_contact: false })
+          .eq('organization_id', orgId)
+          .neq('id', inserted.id)
+      }
 
       setFullName('')
       setEmail('')

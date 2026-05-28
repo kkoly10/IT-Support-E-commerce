@@ -6,6 +6,11 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 import BrandMark from '../components/BrandMark'
 
+// Module-scoped so the supabase reference is stable across renders. When it
+// was instantiated in the component body and listed as a useEffect dep, the
+// effect re-ran every render and re-fetched the profile in a loop.
+const supabase = createClient()
+
 const ACTIVE_NAV = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
   { label: 'Support Requests', href: '/portal/tickets', icon: '🎫' },
@@ -102,7 +107,6 @@ export default function PortalLayout({ children }) {
 
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
 
   useEffect(() => {
     async function loadProfile() {
@@ -130,7 +134,7 @@ export default function PortalLayout({ children }) {
     }
 
     loadProfile()
-  }, [router, supabase])
+  }, [router])
 
   const navItems = useMemo(() => buildNav(org), [org])
 

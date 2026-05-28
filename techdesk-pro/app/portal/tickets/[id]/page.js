@@ -46,15 +46,30 @@ export default function TicketDetailPage() {
       .eq('id', user.id)
       .single()
 
-    if (profile) setOrgId(profile.organization_id)
+    if (!profile?.organization_id) {
+      setTicket(null)
+      setLoading(false)
+      return
+    }
+    setOrgId(profile.organization_id)
 
+    // Scope by org so a guessed/known ticket id from another tenant can't be
+    // opened by this account — the URL id is untrusted.
     const { data: ticket } = await supabase
       .from('tickets')
       .select('*')
       .eq('id', id)
+      .eq('organization_id', profile.organization_id)
       .single()
 
     setTicket(ticket)
+
+    if (!ticket) {
+      setMessages([])
+      setAttachments([])
+      setLoading(false)
+      return
+    }
 
     const { data: msgs } = await supabase
       .from('ticket_messages')
@@ -111,7 +126,9 @@ export default function TicketDetailPage() {
 
   async function handleSendMessage(e) {
     e.preventDefault()
-    if (!newMessage.trim() || !userId) return
+    // Require a loaded ticket — loadTicket scoped that fetch by org, so a
+    // missing ticket here means this user isn't authorized to post on it.
+    if (!newMessage.trim() || !userId || !ticket) return
     setSending(true)
 
     await supabase.from('ticket_messages').insert({
@@ -127,7 +144,7 @@ export default function TicketDetailPage() {
   }
 
   async function handleSubmitRating() {
-    if (!selectedRating || !userId || !orgId) return
+    if (!selectedRating || !userId || !orgId || !ticket) return
     setSubmittingRating(true)
 
     try {

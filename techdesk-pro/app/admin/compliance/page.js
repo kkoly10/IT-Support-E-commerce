@@ -182,7 +182,6 @@ export default function ComplianceDashboard() {
                   style={{ width: '100%' }}
                 >
                   <option value="">Select organization</option>
-                  <option value="all">All Organizations</option>
                   {orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
                 </select>
               </div>

@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -19,35 +19,43 @@ export default function SentinelDashboard() {
 
   useEffect(() => {
     loadEvents()
-  }, [filter])
+  }, [])
+
+  // Filter client-side so the stat counters above always reflect the latest
+  // run across all severities — previously a non-"all" filter narrowed the
+  // query and zeroed out two of the three counters.
+  const filteredEvents = useMemo(
+    () =>
+      filter === 'all'
+        ? events
+        : events.filter((e) => e.metadata?.severity === filter),
+    [events, filter]
+  )
 
   async function loadEvents() {
     setLoading(true)
     try {
-      let query = supabase
+      const { data } = await supabase
         .from('activity_log')
         .select('*, organization:organizations(name)')
         .eq('resource_type', 'sentinel_check')
         .order('created_at', { ascending: false })
         .limit(100)
 
-      if (filter !== 'all') {
-        query = query.eq('metadata->>severity', filter)
-      }
-
-      const { data } = await query
       const items = data || []
       setEvents(items)
 
-      // Calculate stats from latest checks only (last run)
-      const latestRun = items.length > 0 ? items[0].created_at : null
-      if (latestRun) {
+      // Stats are derived from the latest run window across the full dataset.
+      if (items.length === 0) {
+        setStats({ healthy: 0, warnings: 0, errors: 0 })
+      } else {
+        const latestRun = items[0].created_at
         const cutoff = new Date(new Date(latestRun).getTime() - 5 * 60 * 1000).toISOString()
-        const latest = items.filter(e => e.created_at >= cutoff)
+        const latest = items.filter((e) => e.created_at >= cutoff)
         setStats({
-          healthy: latest.filter(e => e.metadata?.severity === 'info').length,
-          warnings: latest.filter(e => e.metadata?.severity === 'warning').length,
-          errors: latest.filter(e => e.metadata?.severity === 'critical').length,
+          healthy: latest.filter((e) => e.metadata?.severity === 'info').length,
+          warnings: latest.filter((e) => e.metadata?.severity === 'warning').length,
+          errors: latest.filter((e) => e.metadata?.severity === 'critical').length,
         })
       }
     } catch (err) {
@@ -145,7 +153,7 @@ export default function SentinelDashboard() {
       <div className="admin-card" style={{ padding: 0 }}>
         {loading ? (
           <div className="admin-loading" style={{ padding: 40 }}>Loading events...</div>
-        ) : events.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p className="admin-empty-text">No monitoring events yet</p>
             <p style={{ color: 'var(--ink-muted)', fontSize: '0.85rem', marginTop: 8 }}>
@@ -154,7 +162,7 @@ export default function SentinelDashboard() {
           </div>
         ) : (
           <div>
-            {events.map((event, i) => {
+            {filteredEvents.map((event, i) => {
               const meta = event.metadata || {}
               return (
                 <div
@@ -162,7 +170,7 @@ export default function SentinelDashboard() {
                   style={{
                     display: 'flex', alignItems: 'flex-start', gap: 12,
                     padding: '14px 20px',
-                    borderBottom: i < events.length - 1 ? '1px solid #f0ede8' : 'none',
+                    borderBottom: i < filteredEvents.length - 1 ? '1px solid #f0ede8' : 'none',
                     background: meta.severity === 'critical' ? '#fff5f5' : meta.severity === 'warning' ? '#fffdf5' : 'transparent',
                   }}
                 >

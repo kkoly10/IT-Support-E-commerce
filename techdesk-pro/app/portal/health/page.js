@@ -17,7 +17,10 @@ export default function HealthPage() {
 
   async function loadHealth() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -25,7 +28,10 @@ export default function HealthPage() {
       .eq('id', user.id)
       .single()
 
-    if (!profile) return
+    if (!profile) {
+      setLoading(false)
+      return
+    }
 
     const { data } = await supabase
       .from('activity_log')

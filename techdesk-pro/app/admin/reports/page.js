@@ -106,7 +106,7 @@ export default function AdminReports() {
           <div className="admin-card-header">
             <h3>Rating Distribution</h3>
           </div>
-          {distribution.reverse().map((d) => (
+          {[...distribution].reverse().map((d) => (
             <div key={d.star} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 600, width: 20, textAlign: 'right', color: 'var(--ink)' }}>{d.star}</span>
               <span style={{ fontSize: '0.85rem' }}>⭐</span>

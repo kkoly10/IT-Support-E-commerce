@@ -67,7 +67,7 @@ export default function AdminKBDraftsPage() {
                   <strong>{draft.parsed.title || 'Untitled Draft'}</strong>
                   <a href={`/admin/tickets/${draft.ticket_id}`} className="admin-btn-small">Open Ticket</a>
                 </div>
-                <div className="admin-table-muted" style={{ marginTop: 6 }}>{draft.parsed.summary || 'No summary provided.'}</div>
+                <div className="admin-table-muted" style={{ marginTop: 6 }}>{draft.parsed.short_summary || draft.parsed.summary || 'No summary provided.'}</div>
                 <div style={{ marginTop: 8, fontSize: '0.82rem', color: 'var(--ink-muted)' }}>
                   Last generated: {new Date(draft.created_at).toLocaleString()}
                 </div>
