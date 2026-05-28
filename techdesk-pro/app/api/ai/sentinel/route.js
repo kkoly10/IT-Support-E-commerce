@@ -2,6 +2,11 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '../../../../lib/supabase/route-auth'
+import {
+  businessHoursBetween,
+  getFirstAgentReplyAt,
+  getResponseTargetHours,
+} from '../../../../lib/sla'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -25,7 +30,7 @@ export async function GET(request) {
     // Get all organizations with monitored URLs
     const { data: orgs } = await supabase
       .from('organizations')
-      .select('id, name, store_url, website_url, platform')
+      .select('id, name, store_url, website_url, platform, plan')
 
     for (const org of (orgs || [])) {
       const checks = []
@@ -43,7 +48,7 @@ export async function GET(request) {
       }
 
       // Check for SLA breaches
-      const slaCheck = await checkSLABreaches(org.id)
+      const slaCheck = await checkSLABreaches(org.id, org.plan)
       if (slaCheck) checks.push(slaCheck)
 
       // Check ticket volume anomalies
@@ -143,30 +148,43 @@ async function checkUrl(url, type) {
   }
 }
 
-async function checkSLABreaches(orgId) {
+async function checkSLABreaches(orgId, plan) {
+  // Open tickets that may have missed their first-response target.
   const { data: tickets } = await supabase
     .from('tickets')
-    .select('id, title, created_at, sla_response_hours, first_response_at')
+    .select('id, title, created_at')
     .eq('organization_id', orgId)
-    .eq('status', 'open')
-    .is('first_response_at', null)
+    .in('status', ['open', 'in_progress'])
 
-  const breached = (tickets || []).filter(t => {
-    if (!t.sla_response_hours) return false
-    const hoursOpen = (Date.now() - new Date(t.created_at).getTime()) / (1000 * 60 * 60)
-    return hoursOpen > t.sla_response_hours
-  })
+  if (!tickets?.length) return null
 
-  if (breached.length > 0) {
-    return {
-      type: 'sla',
-      action: 'sla_breach_detected',
-      status: 'warning',
-      severity: 'warning',
-      message: `${breached.length} ticket${breached.length > 1 ? 's' : ''} breaching SLA: ${breached.map(t => `"${t.title}"`).join(', ')}`,
-    }
+  const targetHours = getResponseTargetHours(plan)
+  const now = new Date().toISOString()
+  const breached = []
+
+  for (const ticket of tickets) {
+    const { data: msgs } = await supabase
+      .from('ticket_messages')
+      .select('sender_type, is_internal_note, created_at')
+      .eq('ticket_id', ticket.id)
+      .order('created_at', { ascending: true })
+
+    const firstReplyAt = getFirstAgentReplyAt(msgs)
+    if (firstReplyAt) continue // already responded; not a first-response breach
+
+    const elapsedBusinessHours = businessHoursBetween(ticket.created_at, now)
+    if (elapsedBusinessHours > targetHours) breached.push(ticket)
   }
-  return null
+
+  if (breached.length === 0) return null
+
+  return {
+    type: 'sla',
+    action: 'sla_breach_detected',
+    status: 'warning',
+    severity: 'warning',
+    message: `${breached.length} ticket${breached.length > 1 ? 's' : ''} past first-response target (${targetHours} business hr${targetHours > 1 ? 's' : ''}): ${breached.map(t => `"${t.title}"`).join(', ')}`,
+  }
 }
 
 async function checkTicketVolume(orgId, orgName) {
