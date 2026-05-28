@@ -72,7 +72,3 @@ export function isInternalCall(request) {
   const header = request.headers.get('authorization') || ''
   return header === `Bearer ${secret}`
 }
-
-export function unauthorized(message = 'Authentication required.', status = 401) {
-  return Response.json({ error: message }, { status })
-}
