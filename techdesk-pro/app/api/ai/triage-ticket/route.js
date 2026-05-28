@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { normalizeRequestCategory } from '../../../../lib/support-ui'
+import { requireAdmin, isInternalCall } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -34,6 +35,11 @@ const normalizeAiCategory = (value) => {
 
 export async function POST(request) {
   try {
+    if (!isInternalCall(request)) {
+      const auth = await requireAdmin()
+      if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+    }
+
     const { ticketId } = await request.json()
 
     if (!ticketId) {

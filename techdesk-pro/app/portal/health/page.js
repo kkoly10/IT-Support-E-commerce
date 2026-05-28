@@ -79,10 +79,10 @@ export default function HealthPage() {
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
           <span style={{ fontSize: '1.3rem' }}>🛡️</span>
-          <h1 style={{ fontSize: '1.6rem', margin: 0 }}>System Health</h1>
+          <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Website Monitoring</h1>
         </div>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem' }}>
-          Sentinel AI monitors your services around the clock.
+          Hourly uptime and response-time checks on the URLs you've shared with us.
         </p>
       </div>
 

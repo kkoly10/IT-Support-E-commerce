@@ -1,6 +1,7 @@
 // File: app/api/ai/assign-training/route.js (new — mkdir -p app/api/ai/assign-training)
 
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,7 +10,11 @@ const supabase = createClient(
 
 export async function POST(request) {
   try {
-    const { organizationId, courseId, dueDate, isRecurring, recurrenceMonths, isMandatory, title, message, assignedBy } = await request.json()
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
+    const { organizationId, courseId, dueDate, isRecurring, recurrenceMonths, isMandatory, title, message } = await request.json()
+    const assignedBy = auth.user.id
 
     if (!organizationId || !courseId || !dueDate) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })

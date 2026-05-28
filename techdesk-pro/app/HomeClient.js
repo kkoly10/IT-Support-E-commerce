@@ -70,19 +70,120 @@ function useInView(opts = {}) {
   return [ref, seen]
 }
 
-// Pricing model: team size + intensity → recommended path.
-function computePlan(teamSize, intensity = 1) {
-  const base = teamSize <= 6 ? 'Starter' : teamSize <= 18 ? 'Growth' : 'Scale'
-  const bumped =
-    intensity === 2 && base === 'Starter'
-      ? 'Growth'
-      : intensity === 2 && base === 'Growth'
-      ? 'Scale'
-      : base
-  const tickets = bumped === 'Starter' ? 10 : bumped === 'Growth' ? 30 : Math.max(40, teamSize * 2)
-  const price = bumped === 'Starter' ? 499 : bumped === 'Growth' ? 999 : 1999 + Math.max(0, teamSize - 25) * 60
-  const responseLabel = bumped === 'Starter' ? '1 business day' : bumped === 'Growth' ? '4 business hours' : '1 business hour'
-  return { plan: bumped, tickets, price, responseLabel }
+// Pricing model: team size + environment + support need + urgency → recommended path.
+// Plans are real and consistent with the pricing cards below.
+const PLAN_CATALOG = {
+  founding: {
+    key: 'founding',
+    name: 'Founding Managed Support',
+    setup: 199,
+    setupLabel: '$199 setup fee',
+    fit: 'Small businesses trying structured remote IT support',
+    summary: 'Up to 5 users / 5 Windows devices · 90-day pilot',
+    response: '1 business day first response',
+    includes: [
+      'Remote helpdesk',
+      'Email/account support',
+      'Microsoft 365 or Google Workspace basic support',
+      'Managed Windows device support',
+      'Remote troubleshooting',
+      'Device health visibility',
+    ],
+  },
+  remote: {
+    key: 'remote',
+    name: 'Remote Desk',
+    perUser: 49,
+    minMonth: 299,
+    setup: 199,
+    setupLabel: '$199 setup fee',
+    fit: 'Helpdesk and cloud account support',
+    summary: 'No managed device monitoring',
+    response: 'Business-hours support',
+    includes: [
+      'Remote helpdesk',
+      'Email/login support',
+      'Microsoft 365 or Google Workspace basic admin',
+      'Software troubleshooting',
+      'Client portal',
+      'Business-hours support',
+    ],
+  },
+  managed: {
+    key: 'managed',
+    name: 'Managed Desk',
+    perUser: 89,
+    minMonth: 499,
+    setup: 499,
+    setupLabel: '$499 setup fee',
+    featured: true,
+    fit: 'Helpdesk plus managed Windows devices',
+    summary: 'One managed Windows device per user',
+    response: 'Business-hours support',
+    includes: [
+      'Everything in Remote Desk',
+      'One managed Windows device per user',
+      'Remote support agent',
+      'Device inventory',
+      'Patch/update visibility',
+      'Basic health checks',
+      'Employee onboarding/offboarding',
+      'Monthly support summary',
+    ],
+  },
+  secure: {
+    key: 'secure',
+    name: 'Secure Desk',
+    perUser: 129,
+    minMonth: 899,
+    setup: 799,
+    setupLabel: '$799+ setup fee',
+    fit: 'Managed support plus security hygiene',
+    summary: 'Basic security hygiene reviews — not full cybersecurity',
+    response: 'Priority business-hours response',
+    includes: [
+      'Everything in Managed Desk',
+      'MFA review',
+      'Local admin review',
+      'Defender/firewall status checks',
+      'BitLocker/encryption review',
+      'Monthly risk notes',
+      'Quarterly access cleanup',
+    ],
+  },
+  custom: {
+    key: 'custom',
+    name: 'Custom Review',
+    fit: 'Larger teams, Mac-heavy environments, urgent or compliance-heavy needs',
+    summary: 'We review your situation and quote a tailored scope',
+    response: 'Quoted by review',
+    includes: [
+      'Mac/Linux support reviewed case by case',
+      'Urgent or after-hours expectations',
+      'Compliance or security incident needs',
+      'Servers, networks, or on-site work',
+    ],
+  },
+}
+
+function computeMonthly(plan, team) {
+  if (!plan) return null
+  if (plan.key === 'founding') return 399
+  if (plan.perUser && plan.minMonth) return Math.max(plan.perUser * team, plan.minMonth)
+  return null
+}
+
+function recommendPath(team, env, need, urgency) {
+  if (urgency === 'urgent') return PLAN_CATALOG.custom
+  if (team > 25) return PLAN_CATALOG.custom
+  if (env === 'mac') return PLAN_CATALOG.custom
+  if (need === 'security') return PLAN_CATALOG.secure
+  if (need === 'managed') {
+    if (team <= 5 && env === 'windows') return PLAN_CATALOG.founding
+    if (env === 'windows' || env === 'mixed') return PLAN_CATALOG.managed
+    return PLAN_CATALOG.custom
+  }
+  return PLAN_CATALOG.remote
 }
 
 function IconStroke({ d, size = 22, color = 'currentColor', sw = 1.6 }) {
@@ -118,7 +219,7 @@ const FOUNDER = {
   initials: 'KK',
   img: '/founder.jpg',
   note:
-    'I started Kocre IT to give small businesses the kind of dependable, day-to-day IT support usually reserved for companies big enough to hire in-house — without the overhead or the guesswork. I am building it deliberately: real onboarding, a structured client portal, clear scope, and AI assistance kept under human supervision. We are early, and I would rather earn trust through process and honesty than inflated claims. If we are a fit, you work directly with the person who built the system.',
+    'I started Kocre IT to give small businesses structured remote IT support without the cost of hiring in-house. The service is intentionally focused: helpdesk, cloud account support, onboarding/offboarding, and managed Windows device support for approved devices. I am building it carefully with real onboarding, a support portal, clear scope, and human-supervised AI. We are early, and I would rather earn trust through process and honesty than inflated claims.',
 }
 
 function FounderAvatar() {
@@ -239,15 +340,14 @@ function CoHero() {
       <div style={{ maxWidth: 1120, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '6px 14px', background: CO.greenSoft, borderRadius: 999, fontSize: 13, color: CO.green, marginBottom: 28, fontWeight: 500 }}>
           <Dot color={CO.green} size={6} />
-          Onboarding small businesses · US, Canada, UK & Ireland
+          Now onboarding founding clients · DMV &amp; remote-first U.S. businesses
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
-          Quietly capable IT support{' '}
-          <br />
-          for the size of business you actually run.
+          Remote IT support for small businesses that need helpdesk, cloud admin, and{' '}
+          <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>managed Windows device support.</span>
         </h1>
-        <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
-          Your outsourced IT department — helpdesk, cloud admin, and user support, run through one structured portal.
+        <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+          Kocre IT helps small teams handle computer issues, email access, Microsoft 365, Google Workspace, onboarding/offboarding, and managed Windows devices through one structured support portal.
         </p>
         <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href="/free-assessment" kind="accent">
@@ -276,7 +376,12 @@ function CoHero() {
       </div>
 
       <div className="co-hero-checks" style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 28, color: CO.ink3, fontSize: 13, flexWrap: 'wrap' }}>
-        {['Month-to-month after onboarding', 'Cancel any time · 30 days notice', 'Activation only after onboarding'].map((t) => (
+        {[
+          'Business-hours remote support',
+          'Windows-first managed devices',
+          'Microsoft 365 & Google Workspace',
+          'Founder-led onboarding',
+        ].map((t) => (
           <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IconStroke d={ICON.check} size={14} color={CO.green} sw={2.5} /> {t}
           </span>
@@ -293,7 +398,7 @@ function CoPlatforms() {
     <div style={{ padding: '40px 0', background: CO.bg2, borderTop: `1px solid ${CO.border}`, borderBottom: `1px solid ${CO.border}` }}>
       <div className="co-section-x">
         <div style={{ textAlign: 'center', fontSize: 12, letterSpacing: 1.4, color: CO.ink3, marginBottom: 22, fontFamily: CO.sans, textTransform: 'uppercase' }}>
-          Works across the tools you already use
+          Supports the tools small teams already use
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '18px 40px', flexWrap: 'wrap' }}>
           {PLATFORMS.map((p) => (
@@ -310,24 +415,31 @@ function CoPlatforms() {
 const SERVICES = [
   {
     icon: ICON.users,
-    title: 'Helpdesk & user support',
+    title: 'Remote helpdesk',
     kicker: 'Day to day',
-    body: 'Account access, email problems, software troubleshooting, device guidance — the small frictions that slow teams down every week.',
-    bullets: ['Email & account access', 'Software troubleshooting', 'Remote device guidance', 'Day-to-day user support'],
+    body: 'Support for everyday computer, software, email, browser, and login issues handled through a structured support process.',
+    bullets: ['Slow computer troubleshooting', 'Email issues', 'Login/password help', 'Software errors', 'Browser & app problems', 'Zoom, Teams, Slack support'],
   },
   {
     icon: ICON.cloud,
-    title: 'Cloud & SaaS administration',
-    kicker: 'Recurring admin',
-    body: 'Microsoft 365, Google Workspace, Slack, Zoom — provisioning, permissions, license hygiene, and the routine admin no one wants to own.',
-    bullets: ['Workspace & M365', 'User provisioning', 'Permission management', 'Routine admin support'],
+    title: 'Microsoft 365 & Google Workspace',
+    kicker: 'Account & cloud admin',
+    body: 'Help managing users, accounts, email access, MFA, shared mailboxes, groups, permissions, and basic admin tasks.',
+    bullets: ['New user setup', 'Password resets', 'MFA setup', 'Shared mailbox help', 'License cleanup', 'Employee offboarding'],
   },
   {
     icon: ICON.shield,
-    title: 'Structured remote support',
-    kicker: 'Without hiring',
-    body: 'A full support model for teams that need real IT without bringing on an internal hire — defined scope, real onboarding, complete audit trail.',
-    bullets: ['Business-hours coverage', 'Portal-based workflow', 'Lifecycle onboarding', 'Human-supervised AI'],
+    title: 'Managed Windows devices',
+    kicker: 'Approved devices',
+    body: 'Approved Windows computers can be connected to Kocre IT’s secure support system for remote help, inventory, update visibility, and basic health checks.',
+    bullets: ['Remote support access', 'Device inventory', 'Storage & health checks', 'Patch/update visibility', 'Software inventory', 'Basic monitoring'],
+  },
+  {
+    icon: ICON.users,
+    title: 'Onboarding & offboarding',
+    kicker: 'Employee lifecycle',
+    body: 'Structured setup and removal of employee access so accounts, devices, and permissions are handled properly.',
+    bullets: ['New hire account setup', 'App access', 'MFA setup', 'Access removal', 'Password resets', 'Offboarding checklist'],
   },
 ]
 
@@ -338,7 +450,7 @@ function CoServices() {
         <div className="co-services-aside" style={{ position: 'sticky', top: 100 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>What we do</div>
           <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: CO.ink, margin: 0, lineHeight: 1.02 }}>
-            <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>Three lanes</span> of work, one delivery model.
+            <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>Four lanes</span> of work, one delivery model.
           </h2>
           <p style={{ marginTop: 20, fontSize: 17, lineHeight: 1.55, color: CO.ink2 }}>
             Every request runs through the same portal, with the same scope and the same audit trail. Quiet by design.
@@ -374,10 +486,10 @@ function CoServices() {
 }
 
 const PRINCIPLES = [
-  ['Coverage', 'Mon–Fri · 9–6 ET', 'Business-hours remote support — US, Canada, and UK/Ireland afternoons.'],
-  ['Onboarding', 'Fit review before activation', 'Scope, access, and contacts confirmed before support goes live.'],
-  ['Delivery', 'Portal-tracked, not ad hoc', 'Every request runs through a ticketed workflow with an audit trail.'],
-  ['Approach', 'AI-assisted, human-supervised', 'Automation where it speeds delivery; people where judgment matters.'],
+  ['Coverage', 'Business-hours remote support', 'Focused support during standard business hours, with urgent or after-hours work reviewed separately.'],
+  ['Onboarding', 'Fit review before activation', 'Scope, contacts, approved users, admin access, and devices are confirmed before support goes live.'],
+  ['Delivery', 'Portal-tracked, not scattered', 'Requests are tracked in a support workflow instead of disappearing into texts, calls, and random emails.'],
+  ['Approach', 'AI-assisted, human-supervised', 'AI may help classify and organize requests, but support actions are reviewed before changes are made.'],
 ]
 
 function CoPrinciples() {
@@ -397,10 +509,11 @@ function CoPrinciples() {
 }
 
 const STEPS = [
-  { n: '01', title: 'Free assessment', body: 'A short async form on your team shape, tools, and recurring pain points.', meta: '≈ 12 minutes' },
-  { n: '02', title: 'Fit recommendation', body: 'We review whether a standard path fits, or recommend waiting. Honest answers.', meta: '≈ 2 business days' },
-  { n: '03', title: 'Portal workspace', body: 'Your workspace is reserved at signup — onboarding, contacts, access tracked in writing.', meta: 'self-serve' },
-  { n: '04', title: 'Activation', body: 'Support goes live only after readiness, scope, handoff, and launch expectations are confirmed.', meta: '5–10 business days' },
+  { n: '01', title: 'Free assessment', body: 'Tell us your team size, tools, devices, and current IT problems.', meta: '≈ 10–12 minutes' },
+  { n: '02', title: 'Fit review', body: 'We confirm whether Kocre IT is the right support fit before activation.', meta: '≈ 1–2 business days' },
+  { n: '03', title: 'Onboarding', body: 'We set up your portal, confirm contacts, approved users, admin access, and device list.', meta: 'controlled setup' },
+  { n: '04', title: 'Support agent install', body: 'For managed plans, approved Windows devices receive the secure support agent.', meta: 'approved devices only' },
+  { n: '05', title: 'Support goes live', body: 'Your team submits requests through the portal and Kocre IT tracks, responds, and documents the work.', meta: 'after readiness' },
 ]
 
 function CoProcess() {
@@ -412,14 +525,14 @@ function CoProcess() {
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>How it works</div>
             <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: CO.ink, margin: 0, lineHeight: 1.02, maxWidth: 760 }}>
-              The right client flow matters as much as <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>the offer.</span>
+              How Kocre IT <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>support works.</span>
             </h2>
           </div>
-          <p style={{ fontSize: 15, lineHeight: 1.55, color: CO.ink2, maxWidth: 320, margin: 0 }}>
-            Four stages. None skipped. The point is correctness of activation — not speed of activation.
+          <p style={{ fontSize: 15, lineHeight: 1.55, color: CO.ink2, maxWidth: 360, margin: 0 }}>
+            We do not just send a random download link. Every client starts with controlled onboarding so users, devices, access, and scope are clear before support goes live.
           </p>
         </div>
-        <div className="co-process-grid" style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+        <div className="co-process-grid" style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 22 }}>
           <div className="co-process-line" style={{ position: 'absolute', top: 22, left: '6%', right: '6%', height: 1, background: CO.border }}>
             <div style={{ height: 1, background: CO.green, width: seen ? '100%' : '0%', transition: 'width 2.6s cubic-bezier(0.2, 0.7, 0.3, 1)' }} />
           </div>
@@ -440,13 +553,13 @@ function CoProcess() {
 }
 
 const COMPARE_ROWS = [
-  ['Support model', 'One engineer wearing five hats', 'Ticketed workflow with explicit scope'],
-  ['First response', 'Whenever they can', 'Defined targets by plan, during business hours'],
-  ['Onboarding', 'We hope nothing was missed', 'Fit review, access, launch — in writing'],
-  ['AI use', 'Pasted into a chatbot', 'Integrated into triage, supervised by people'],
-  ['Off days', 'The office goes dark', 'Continuity is part of the model'],
-  ['Accountability', 'Nothing is tracked', 'Every request leaves a record'],
-  ['Cost trajectory', 'Salary + ramp + risk', 'Flat monthly · cancelable'],
+  ['Support requests', 'Texts, calls, and random emails', 'Portal-tracked support requests'],
+  ['Device issues', 'Handled only after something breaks', 'Managed Windows device visibility'],
+  ['New employees', 'Manual, inconsistent setup', 'Structured onboarding checklist'],
+  ['Departing employees', 'Access may be missed', 'Offboarding and access removal'],
+  ['Microsoft/Google admin', 'Owner guesses settings', 'Routine admin support'],
+  ['Scope', 'Unclear expectations', 'Clear included/not-included rules'],
+  ['Cost', 'Hiring full-time IT may be too expensive', 'Predictable monthly support'],
 ]
 
 function CoCompare() {
@@ -476,53 +589,89 @@ function CoCompare() {
   )
 }
 
+function PickerButtons({ options, value, onChange, columns = 2 }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 8 }}>
+      {options.map(([key, label]) => {
+        const active = value === key
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            style={{
+              padding: '12px 10px',
+              fontFamily: CO.sans,
+              fontSize: 13.5,
+              fontWeight: 500,
+              background: active ? CO.ink : CO.bg,
+              color: active ? '#fff' : CO.ink,
+              border: `1px solid ${active ? CO.ink : CO.border}`,
+              cursor: 'pointer',
+              borderRadius: 999,
+            }}
+          >
+            {label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function CoPricing() {
   const [team, setTeam] = useState(8)
-  const [intensity, setIntensity] = useState(1)
-  const plan = computePlan(team, intensity)
-  const animPrice = useAnimatedNumber(plan.price)
+  const [env, setEnv] = useState('windows')
+  const [need, setNeed] = useState('managed')
+  const [urgency, setUrgency] = useState('normal')
+
+  const plan = recommendPath(team, env, need, urgency)
+  const monthly = computeMonthly(plan, team)
+  const animPrice = useAnimatedNumber(monthly ?? 0)
 
   const tiers = [
-    {
-      name: 'Starter',
-      price: '499',
-      fit: 'Smaller teams · lighter needs',
-      rows: ['10 standard tickets / mo', 'Business-hours helpdesk', 'Email, login, account', 'Software & device guidance', 'Client portal access', '1 business day first response'],
-    },
-    {
-      name: 'Growth',
-      price: '999',
-      fit: 'Steadier support & admin',
-      featured: true,
-      rows: ['30 standard tickets / mo', 'Business-hours helpdesk', 'Cloud & SaaS admin', 'User on / offboarding', 'Routine admin support', 'Monthly review call', '4 business hour first response'],
-    },
-    {
-      name: 'Scale',
-      price: '1,999',
-      fit: 'Larger teams · guided path',
-      from: true,
-      rows: ['Custom support volume', 'Priority remote support', 'Broader systems admin', 'Cross-tool coordination', 'Optional security path', 'Strategic check-ins'],
-    },
+    PLAN_CATALOG.founding,
+    PLAN_CATALOG.remote,
+    PLAN_CATALOG.managed,
+    PLAN_CATALOG.secure,
   ]
+
+  const priceLabel = (p) => {
+    if (p.key === 'founding') return '$399'
+    if (p.perUser) return `$${p.perUser}`
+    return null
+  }
+  const priceSuffix = (p) => {
+    if (p.key === 'founding') return '/ month'
+    if (p.perUser) return '/ user / month'
+    return null
+  }
 
   return (
     <section id="pricing" className="co-section">
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 56px' }}>
+        <div style={{ textAlign: 'center', maxWidth: 760, margin: '0 auto 56px' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>Pricing</div>
           <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: CO.ink, margin: 0, lineHeight: 1.02 }}>
-            Tell us about your team. <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>See what fits.</span>
+            Simple monthly support <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>based on your team size.</span>
           </h2>
+          <p style={{ marginTop: 20, fontSize: 16.5, lineHeight: 1.55, color: CO.ink2 }}>
+            Plans are priced per supported user, with managed Windows device support included on Managed Desk and Secure Desk. Standard remote support is included under fair-use rules. Projects, migrations, after-hours emergencies, hardware repair, cabling, and on-site work are quoted separately.
+          </p>
         </div>
 
-        <div className="co-calc" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28, alignItems: 'stretch', marginBottom: 20 }}>
-          <div style={{ background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 40 }}>
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+        <div className="co-calc" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 28, alignItems: 'stretch', marginBottom: 28 }}>
+          <div style={{ background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 36 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: CO.ink3, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 18 }}>
+              Find your support path
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
                 <label style={{ fontSize: 14, fontWeight: 500, color: CO.ink }}>Team size</label>
-                <span style={{ fontFamily: CO.serif, fontSize: 42, fontWeight: 500, color: CO.ink, letterSpacing: -1.2, lineHeight: 1 }}>
+                <span style={{ fontFamily: CO.serif, fontSize: 38, fontWeight: 500, color: CO.ink, letterSpacing: -1.2, lineHeight: 1 }}>
                   {team}
-                  <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 18, color: CO.ink3, marginLeft: 6 }}>users</span>
+                  <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 16, color: CO.ink3, marginLeft: 6 }}>users</span>
                 </span>
               </div>
               <input type="range" min="1" max="50" value={team} onChange={(e) => setTeam(+e.target.value)} style={{ width: '100%', accentColor: CO.green }} />
@@ -534,87 +683,120 @@ function CoPricing() {
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: 14, fontWeight: 500, color: CO.ink, display: 'block', marginBottom: 14 }}>Support intensity</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                {['Light', 'Standard', 'Heavy'].map((l, i) => (
-                  <button
-                    key={l}
-                    onClick={() => setIntensity(i)}
-                    style={{
-                      padding: '14px 10px',
-                      fontFamily: CO.sans,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      background: intensity === i ? CO.ink : CO.bg,
-                      color: intensity === i ? '#fff' : CO.ink,
-                      border: `1px solid ${intensity === i ? CO.ink : CO.border}`,
-                      cursor: 'pointer',
-                      borderRadius: 999,
-                    }}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: 13.5, fontWeight: 500, color: CO.ink, display: 'block', marginBottom: 10 }}>Device environment</label>
+              <PickerButtons
+                value={env}
+                onChange={setEnv}
+                columns={3}
+                options={[
+                  ['windows', 'Mostly Windows'],
+                  ['mixed', 'Mixed Win/Mac'],
+                  ['mac', 'Mostly Mac/Linux'],
+                ]}
+              />
             </div>
 
-            <div style={{ marginTop: 32, padding: '24px 0 0', borderTop: `1px solid ${CO.border}`, fontSize: 14, color: CO.ink3, fontStyle: 'italic', lineHeight: 1.55, fontFamily: CO.serif }}>
-              The calculator is a starting point. Final fit and activation are confirmed through the free assessment — not a slider.
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: 13.5, fontWeight: 500, color: CO.ink, display: 'block', marginBottom: 10 }}>What you need most</label>
+              <PickerButtons
+                value={need}
+                onChange={setNeed}
+                columns={2}
+                options={[
+                  ['helpdesk', 'Helpdesk only'],
+                  ['helpdesk_admin', 'Helpdesk + cloud admin'],
+                  ['managed', 'Managed devices'],
+                  ['security', 'Security hygiene'],
+                ]}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 13.5, fontWeight: 500, color: CO.ink, display: 'block', marginBottom: 10 }}>Urgency</label>
+              <PickerButtons
+                value={urgency}
+                onChange={setUrgency}
+                columns={3}
+                options={[
+                  ['normal', 'Normal business-hours'],
+                  ['frequent', 'Frequent interruptions'],
+                  ['urgent', 'Needs urgent review'],
+                ]}
+              />
             </div>
           </div>
 
-          <div style={{ background: CO.bg3, color: '#fff', borderRadius: 20, padding: 40 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.6, opacity: 0.5, textTransform: 'uppercase', marginBottom: 16 }}>Recommended path</div>
-            <div style={{ fontFamily: CO.sans, fontWeight: 500, fontSize: 72, letterSpacing: -2.2, lineHeight: 1, color: '#fff', marginBottom: 8 }}>
-              The <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400, color: '#a3d4b3' }}>{plan.plan}</span>
+          <div style={{ background: CO.bg3, color: '#fff', borderRadius: 20, padding: 36, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.6, opacity: 0.55, textTransform: 'uppercase', marginBottom: 14 }}>Recommended path</div>
+            <div style={{ fontFamily: CO.sans, fontWeight: 500, fontSize: 48, letterSpacing: -1.6, lineHeight: 1.05, color: '#fff', marginBottom: 6 }}>
+              <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400, color: '#a3d4b3' }}>{plan.name}</span>
             </div>
-            <div style={{ fontSize: 16, opacity: 0.5, marginBottom: 32 }}>path</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontFamily: CO.sans, fontWeight: 500, fontSize: 64, letterSpacing: -1.8 }}>${Math.round(animPrice).toLocaleString()}</span>
-              <span style={{ fontSize: 16, opacity: 0.6 }}>per month</span>
-            </div>
-            <div style={{ marginTop: 32, display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 14, fontSize: 14 }}>
+            <div style={{ fontSize: 14.5, opacity: 0.7, marginBottom: 20 }}>{plan.summary}</div>
+
+            {monthly !== null ? (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontFamily: CO.sans, fontWeight: 500, fontSize: 52, letterSpacing: -1.6 }}>${Math.round(animPrice).toLocaleString()}</span>
+                <span style={{ fontSize: 15, opacity: 0.6 }}>est. / month</span>
+              </div>
+            ) : (
+              <div style={{ fontFamily: CO.sans, fontWeight: 500, fontSize: 28, letterSpacing: -0.8 }}>Quoted by review</div>
+            )}
+
+            <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 12, fontSize: 14 }}>
               {[
-                ['Standard tickets / mo', plan.tickets],
-                ['First response target', plan.responseLabel],
-                ['Cloud admin', plan.plan === 'Starter' ? 'Add-on' : 'Included'],
-                ['Monthly review', plan.plan === 'Starter' ? '—' : 'Yes'],
-                ['Security path', plan.plan === 'Scale' ? 'Optional' : '—'],
+                ['Best fit', plan.fit],
+                ['Setup', plan.setupLabel || '—'],
+                ['Response', plan.response],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'contents' }}>
                   <span style={{ opacity: 0.6 }}>{k}</span>
-                  <span style={{ fontFamily: CO.mono, fontWeight: 500, textAlign: 'right' }}>{v}</span>
+                  <span style={{ fontFamily: CO.mono, fontWeight: 500, textAlign: 'right', maxWidth: 220 }}>{v}</span>
                 </div>
               ))}
             </div>
-            <a href="/free-assessment" style={{ marginTop: 32, display: 'block', textAlign: 'center', width: '100%', padding: '15px', background: '#a3d4b3', color: CO.bg3, border: 'none', fontFamily: CO.sans, fontSize: 14.5, fontWeight: 600, cursor: 'pointer', borderRadius: 999, textDecoration: 'none' }}>
-              Start {plan.plan} assessment →
+
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13.5, opacity: 0.85 }}>
+              {plan.includes.slice(0, 5).map((row) => (
+                <span key={row} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <IconStroke d={ICON.check} size={13} color="#a3d4b3" sw={2.5} />
+                  {row}
+                </span>
+              ))}
+            </div>
+
+            <a href="/free-assessment" style={{ marginTop: 'auto', paddingTop: 28 }}>
+              <span style={{ display: 'block', textAlign: 'center', width: '100%', padding: '15px', background: '#a3d4b3', color: CO.bg3, fontFamily: CO.sans, fontSize: 14.5, fontWeight: 600, borderRadius: 999, textDecoration: 'none' }}>
+                Start {plan.name} assessment →
+              </span>
             </a>
           </div>
         </div>
 
-        <div className="co-tiers" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+        <div className="co-tiers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
           {tiers.map((t) => (
-            <div key={t.name} style={{ background: t.featured ? CO.bg2 : CO.bg, border: `1px solid ${t.featured ? CO.green : CO.border}`, borderRadius: 20, padding: 36, position: 'relative' }}>
+            <div key={t.key} style={{ background: t.featured ? CO.bg2 : CO.bg, border: `1px solid ${t.featured ? CO.green : CO.border}`, borderRadius: 18, padding: 28, position: 'relative', display: 'flex', flexDirection: 'column' }}>
               {t.featured && (
-                <div style={{ position: 'absolute', top: -12, right: 24, background: CO.green, color: '#fff', fontSize: 11, padding: '4px 12px', borderRadius: 999, letterSpacing: 0.4, fontWeight: 600, textTransform: 'uppercase' }}>Recommended</div>
+                <div style={{ position: 'absolute', top: -12, right: 20, background: CO.green, color: '#fff', fontSize: 10.5, padding: '4px 12px', borderRadius: 999, letterSpacing: 0.4, fontWeight: 600, textTransform: 'uppercase' }}>Recommended</div>
               )}
-              <div style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 34, color: CO.ink, marginBottom: 6, letterSpacing: -0.5, fontWeight: 500 }}>{t.name}</div>
-              <div style={{ fontSize: 13, color: CO.ink3, marginBottom: 28 }}>{t.fit}</div>
+              <div style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 26, color: CO.ink, marginBottom: 4, letterSpacing: -0.4, fontWeight: 500, lineHeight: 1.1 }}>{t.name}</div>
+              <div style={{ fontSize: 12.5, color: CO.ink3, marginBottom: 18, minHeight: 30 }}>{t.fit}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                {t.from && <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 16, color: CO.ink3, marginRight: 4 }}>from</span>}
-                <span style={{ fontSize: 14, fontWeight: 600, color: CO.ink3 }}>$</span>
-                <span style={{ fontFamily: CO.sans, fontSize: 52, fontWeight: 500, color: CO.ink, letterSpacing: -1.6, lineHeight: 1 }}>{t.price}</span>
-                <span style={{ fontSize: 14, color: CO.ink3, marginLeft: 4 }}>/ month</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: CO.ink3 }}>$</span>
+                <span style={{ fontFamily: CO.sans, fontSize: 38, fontWeight: 500, color: CO.ink, letterSpacing: -1.2, lineHeight: 1 }}>{priceLabel(t)?.replace('$', '')}</span>
+                <span style={{ fontSize: 12.5, color: CO.ink3, marginLeft: 4 }}>{priceSuffix(t)}</span>
               </div>
-              <CoBtn as="a" href="/free-assessment" kind={t.featured ? 'accent' : 'ghost'} style={{ marginTop: 24, width: '100%', justifyContent: 'center', padding: '13px' }}>
-                Begin assessment
+              {t.minMonth && (
+                <div style={{ fontSize: 12, color: CO.ink3, marginTop: 4 }}>${t.minMonth}/month minimum</div>
+              )}
+              <div style={{ fontSize: 12, color: CO.ink3, marginTop: 6 }}>{t.setupLabel}</div>
+              <CoBtn as="a" href="/free-assessment" kind={t.featured ? 'accent' : 'ghost'} style={{ marginTop: 18, width: '100%', justifyContent: 'center', padding: '12px' }}>
+                Start assessment
               </CoBtn>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '28px 0 0' }}>
-                {t.rows.map((r) => (
-                  <li key={r} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', fontSize: 14.5, color: CO.ink }}>
-                    <IconStroke d={ICON.check} size={15} color={CO.green} sw={2.5} />
+              <ul style={{ listStyle: 'none', padding: 0, margin: '22px 0 0' }}>
+                {t.includes.map((r) => (
+                  <li key={r} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 0', fontSize: 13.5, color: CO.ink, lineHeight: 1.4 }}>
+                    <IconStroke d={ICON.check} size={14} color={CO.green} sw={2.5} />
                     {r}
                   </li>
                 ))}
@@ -623,12 +805,175 @@ function CoPricing() {
           ))}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: CO.ink3 }}>
+        <div style={{ marginTop: 32, padding: '20px 24px', background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 14, textAlign: 'center', fontSize: 14, color: CO.ink2 }}>
+          <strong style={{ color: CO.ink, fontWeight: 600 }}>Bigger or unusual situation?</strong>{' '}
+          Teams over ~25 users, mostly Mac/Linux environments, after-hours expectations, heavy compliance, or on-site work get a <strong style={{ color: CO.ink, fontWeight: 600 }}>Custom Review</strong> — we quote a tailored scope instead of forcing a standard plan.
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: CO.ink3 }}>
           Routine remote support is standard. Larger projects, migrations, and implementation work are scoped separately.{' '}
           <a href="/support-transparency" style={{ color: CO.green, textDecoration: 'none', fontWeight: 500 }}>
             Review support scope
           </a>
           .
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CoAgentExplainer() {
+  return (
+    <section className="co-section" style={{ background: CO.bg }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>Managed devices</div>
+          <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.6, color: CO.ink, margin: 0, lineHeight: 1.05 }}>
+            How <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>managed device support</span> works.
+          </h2>
+          <p style={{ marginTop: 20, fontSize: 16.5, lineHeight: 1.55, color: CO.ink2, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+            For managed device plans, approved Windows computers can receive a secure Kocre IT support agent. The agent helps with remote troubleshooting, device inventory, update visibility, basic health checks, and faster support sessions.
+          </p>
+        </div>
+        <div className="co-agent-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div style={{ background: CO.bg, border: `1px solid ${CO.border}`, borderRadius: 18, padding: 30 }}>
+            <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.green, letterSpacing: 0.6, marginBottom: 12, textTransform: 'uppercase' }}>What it helps with</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {[
+                'Remote troubleshooting',
+                'Device inventory',
+                'Update visibility',
+                'Storage and health checks',
+                'Software inventory',
+                'Faster support sessions',
+              ].map((r) => (
+                <li key={r} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '10px 0', fontSize: 15, color: CO.ink }}>
+                  <IconStroke d={ICON.check} size={15} color={CO.green} sw={2.5} />
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 18, padding: 30 }}>
+            <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.ink3, letterSpacing: 0.6, marginBottom: 12, textTransform: 'uppercase' }}>What it does not mean</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {[
+                'We do not install it without approval',
+                'We do not support personal devices unless approved',
+                'We do not provide 24/7 monitoring by default',
+                'We do not make major changes without authorization',
+                'We remove the agent during offboarding/cancellation',
+              ].map((r) => (
+                <li key={r} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0', fontSize: 15, color: CO.ink2, lineHeight: 1.45 }}>
+                  <span style={{ marginTop: 7, width: 6, height: 1.5, background: CO.ink3, flexShrink: 0 }} />
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const SCOPE_ITEMS = [
+  ['What counts as standard support?', 'Standard support covers routine remote issues and admin tasks that can normally be handled within 30 minutes.'],
+  ['What is quoted separately?', 'Projects, migrations, vendor escalations, security incidents, after-hours requests, hardware repair, cabling, server work, and major system changes.'],
+  ['What does remote-only mean?', 'Kocre IT supports accounts, software, cloud tools, and approved devices remotely. Physical work is outside standard monthly support.'],
+  ['What happens if usage is too high?', 'If support usage is consistently above the normal range for your plan, Kocre IT may recommend a higher plan or scoped project pricing before continuing.'],
+  ['Is first response the same as resolution?', 'No. First response means the request has been acknowledged and reviewed. Resolution time depends on access, user availability, vendors, and complexity.'],
+]
+
+function CoScopeGuardrails() {
+  const [open, setOpen] = useState(0)
+  return (
+    <section className="co-section" style={{ background: CO.bg2, borderTop: `1px solid ${CO.border}`, borderBottom: `1px solid ${CO.border}` }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>Scope</div>
+          <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.6, color: CO.ink, margin: 0, lineHeight: 1.05 }}>
+            Clear scope. <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>No surprise promises.</span>
+          </h2>
+          <p style={{ marginTop: 18, fontSize: 16, lineHeight: 1.55, color: CO.ink2 }}>
+            Kocre IT is remote-first. Standard support covers routine remote issues. Larger work is reviewed before it becomes a project.
+          </p>
+        </div>
+        <div>
+          {SCOPE_ITEMS.map(([q, a], i) => (
+            <div key={q} style={{ borderTop: `1px solid ${CO.border}` }}>
+              <button aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)} className="co-faq-q" style={{ width: '100%', padding: '22px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                <span style={{ fontFamily: CO.sans, fontSize: 18, fontWeight: 500, color: CO.ink, letterSpacing: -0.3 }}>{q}</span>
+                <span style={{ width: 28, height: 28, minWidth: 28, borderRadius: 14, background: open === i ? CO.ink : 'transparent', border: `1px solid ${open === i ? CO.ink : CO.border}`, color: open === i ? '#fff' : CO.ink2, display: 'grid', placeItems: 'center', fontSize: 16 }}>
+                  {open === i ? '−' : '+'}
+                </span>
+              </button>
+              {open === i && <div style={{ paddingBottom: 22, fontSize: 15.5, lineHeight: 1.6, color: CO.ink2, maxWidth: 780 }}>{a}</div>}
+            </div>
+          ))}
+          <div style={{ borderTop: `1px solid ${CO.border}` }} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const FIT_GOOD = [
+  '1–20 users',
+  'Mostly Windows computers',
+  'Microsoft 365 or Google Workspace',
+  'No internal IT team',
+  'Business-hours support expectations',
+  'Remote-friendly operations',
+  'Needs helpdesk, accounts, software, and device support',
+]
+
+const FIT_NOT = [
+  'Need on-site visits',
+  'Need 24/7 emergency coverage',
+  'Heavy compliance requirements',
+  'Complex servers/networks',
+  'Mostly Mac/Linux environment',
+  'Cabling/network installation',
+  'Full cybersecurity incident response',
+]
+
+function CoFitChecker() {
+  return (
+    <section className="co-section" style={{ background: CO.bg }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>Fit check</div>
+          <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.6, color: CO.ink, margin: 0, lineHeight: 1.05 }}>
+            Is Kocre IT <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>the right fit?</span>
+          </h2>
+        </div>
+        <div className="co-fit-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div style={{ background: CO.bg2, border: `1px solid ${CO.green}40`, borderRadius: 18, padding: 30 }}>
+            <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.green, letterSpacing: 0.6, marginBottom: 14, textTransform: 'uppercase' }}>Good fit</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {FIT_GOOD.map((r) => (
+                <li key={r} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '9px 0', fontSize: 15, color: CO.ink }}>
+                  <IconStroke d={ICON.check} size={15} color={CO.green} sw={2.5} />
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ background: CO.bg, border: `1px solid ${CO.border}`, borderRadius: 18, padding: 30 }}>
+            <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.ink3, letterSpacing: 0.6, marginBottom: 14, textTransform: 'uppercase' }}>Not ideal yet</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {FIT_NOT.map((r) => (
+                <li key={r} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '9px 0', fontSize: 15, color: CO.ink2, lineHeight: 1.45 }}>
+                  <span style={{ marginTop: 7, width: 6, height: 1.5, background: CO.ink3, flexShrink: 0 }} />
+                  {r}
+                </li>
+              ))}
+            </ul>
+            <div style={{ marginTop: 16, fontSize: 13.5, color: CO.ink3, fontStyle: 'italic', fontFamily: CO.serif }}>
+              These situations get a Custom Review — we will tell you honestly whether we are a fit or recommend another path.
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -716,12 +1061,10 @@ function CoCtaFooter() {
         <div style={{ maxWidth: 880, margin: '0 auto' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#a3d4b3', letterSpacing: 0.6, marginBottom: 20, textTransform: 'uppercase' }}>Next</div>
           <h2 className="co-cta-h" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -2.6, lineHeight: 1.02, margin: 0 }}>
-            See if Kocre fits.{' '}
-            <br />
-            <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400, color: '#a3d4b3' }}>Twelve minutes.</span> Free.
+            See if <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400, color: '#a3d4b3' }}>Kocre fits.</span>
           </h2>
-          <p style={{ marginTop: 24, fontSize: 18, lineHeight: 1.55, color: 'rgba(255,255,255,0.65)', maxWidth: 620, marginLeft: 'auto', marginRight: 'auto' }}>
-            The assessment ends with an honest answer — including &ldquo;not yet&rdquo; if that&rsquo;s the right call for your business.
+          <p style={{ marginTop: 24, fontSize: 18, lineHeight: 1.55, color: 'rgba(255,255,255,0.65)', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
+            Start with a free assessment. We review your team size, tools, devices, and support needs before recommending a plan.
           </p>
           <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="/free-assessment" style={{ padding: '15px 24px', background: '#a3d4b3', color: CO.bg3, fontFamily: CO.sans, fontSize: 15, fontWeight: 600, borderRadius: 999, textDecoration: 'none' }}>
@@ -731,6 +1074,9 @@ function CoCtaFooter() {
               Review pilot path
             </a>
           </div>
+          <p style={{ marginTop: 22, fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
+            Limited founding client spots available for 90-day managed support pilots.
+          </p>
         </div>
       </section>
       <footer style={{ padding: '40px 0', background: CO.bg, borderTop: `1px solid ${CO.border}` }}>
@@ -739,7 +1085,7 @@ function CoCtaFooter() {
             <div style={{ maxWidth: 470 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: CO.ink, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>Service areas</div>
               <p style={{ fontSize: 13.5, lineHeight: 1.6, color: CO.ink2, margin: 0 }}>
-                Serving the DMV — Washington, DC, Maryland, and Northern Virginia — plus small businesses across the US, Canada, the UK & Ireland, fully remote.
+                Serving DMV-based and remote-first U.S. small businesses — Washington, DC, Maryland, and Northern Virginia, plus remote teams across the U.S. International remote support may be reviewed case by case.
               </p>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
                 {REGIONS.map((r) => (
@@ -795,8 +1141,11 @@ export default function Home() {
       <CoServices />
       <CoPrinciples />
       <CoProcess />
+      <CoAgentExplainer />
       <CoCompare />
       <CoPricing />
+      <CoScopeGuardrails />
+      <CoFitChecker />
       <CoAbout />
       <CoFaq />
       <CoCtaFooter />
@@ -832,9 +1181,14 @@ const CALMOP_CSS = `
 @keyframes coDotPulse { 0% { transform: scale(1); opacity: 0.7 } 70% { transform: scale(2.6); opacity: 0 } 100% { transform: scale(2.6); opacity: 0 } }
 #calmop .co-dot-pulse { animation: coDotPulse 1.8s infinite; }
 
+@media (max-width: 1100px) {
+  #calmop .co-tiers { grid-template-columns: 1fr 1fr !important; }
+}
 @media (max-width: 1000px) {
   #calmop .co-services-grid { grid-template-columns: 1fr !important; gap: 40px; }
   #calmop .co-services-aside { position: static; }
+  #calmop .co-process-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 32px 22px; }
+  #calmop .co-process-line { display: none; }
 }
 @media (max-width: 880px) {
   #calmop .co-nav-links, #calmop .co-nav-actions { display: none !important; }
@@ -854,13 +1208,14 @@ const CALMOP_CSS = `
   #calmop .co-process-line { display: none; }
   #calmop .co-section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
   #calmop .co-calc { grid-template-columns: 1fr !important; }
-  #calmop .co-tiers { grid-template-columns: 1fr !important; max-width: 440px; margin-left: auto; margin-right: auto; }
+  #calmop .co-tiers { grid-template-columns: 1fr !important; max-width: 460px; margin-left: auto; margin-right: auto; }
   #calmop .co-proof-grid { grid-template-columns: 1fr !important; }
   #calmop .co-compare { grid-template-columns: 1fr !important; }
   #calmop .co-compare-h { display: none; }
   #calmop .co-compare-cat { padding: 18px 0 4px !important; font-size: 12px !important; text-transform: uppercase; letter-spacing: 0.6px; color: ${CO.green} !important; border-top: 1px solid ${CO.border}; }
   #calmop .co-compare > div > div:nth-child(2) { padding: 4px 0 18px !important; border-top: none !important; }
   #calmop .co-compare > div > div:nth-child(3) { padding: 0 0 18px !important; border-top: none !important; }
+  #calmop .co-agent-grid, #calmop .co-fit-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 560px) {
   #calmop .co-principles-grid { grid-template-columns: 1fr !important; }

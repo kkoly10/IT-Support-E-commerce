@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '../../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -54,6 +55,9 @@ async function buildUniqueSlug(title, seed) {
 
 export async function POST(request) {
   try {
+    const auth = await requireAdmin()
+    if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
+
     const { draftId } = await request.json()
 
     if (!draftId) {
