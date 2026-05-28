@@ -3,15 +3,29 @@
 // Business hours are Mon–Fri, 9–18 US Eastern. The "target" terminology
 // matches public pricing copy: it's a goal, not a guarantee.
 
+// Targets keyed by org.plan. Secure Desk gets a tighter target to match
+// the homepage's "priority business-hours response" copy. The legacy
+// ticket-credit plans keep their original targets so grandfathered
+// reports stay accurate.
 export const PLAN_RESPONSE_TARGET_HOURS = {
+  founding: 8,
+  remote: 8,
+  managed: 8,
+  secure: 4,
+  custom: 8,
   starter: 8,
   growth: 4,
   scale: 1,
 }
 
+// Returns null for plans where no target has been agreed (pending fit
+// review, or an unknown/missing plan key). Callers must short-circuit on
+// null instead of falling back to a number — otherwise a brand new lead
+// would trigger SLA-breach alerts before they've even signed.
 export function getResponseTargetHours(plan) {
   const key = String(plan || '').toLowerCase()
-  return PLAN_RESPONSE_TARGET_HOURS[key] ?? PLAN_RESPONSE_TARGET_HOURS.starter
+  if (!key || key === 'pending') return null
+  return PLAN_RESPONSE_TARGET_HOURS[key] ?? 8
 }
 
 // Earliest non-internal agent/AI reply timestamp from a list of ticket_messages.

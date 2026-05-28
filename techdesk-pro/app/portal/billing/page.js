@@ -66,7 +66,7 @@ const PLAN_CATALOG = {
 }
 
 function getPlan(key) {
-  return PLAN_CATALOG[String(key || '').toLowerCase()] || PLAN_CATALOG.remote
+  return PLAN_CATALOG[String(key || '').toLowerCase()] || PLAN_CATALOG.pending
 }
 
 function computeMonthlyCost(plan, userCount) {
