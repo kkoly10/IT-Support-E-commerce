@@ -104,34 +104,38 @@ export async function POST(request) {
     }
 
     if (action === 'mark_waiting_on_client') {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tickets')
         .update({ status: 'waiting_on_client' })
         .in('id', ticketIds)
+        .select('id')
 
       if (error) throw error
 
+      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount: ticketIds.length,
-        message: `${ticketIds.length} ticket(s) moved to waiting on client.`,
+        updatedCount,
+        message: `${updatedCount} ticket(s) moved to waiting on client.`,
       })
     }
 
     if (action === 'mark_resolved') {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tickets')
         .update({ status: 'resolved' })
         .in('id', ticketIds)
+        .select('id')
 
       if (error) throw error
 
+      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount: ticketIds.length,
-        message: `${ticketIds.length} ticket(s) marked resolved.`,
+        updatedCount,
+        message: `${updatedCount} ticket(s) marked resolved.`,
       })
     }
 

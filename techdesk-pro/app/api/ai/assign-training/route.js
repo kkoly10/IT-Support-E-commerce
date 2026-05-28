@@ -41,6 +41,7 @@ export async function POST(request) {
       .eq('organization_id', organizationId)
 
     // Create status records for each member
+    let membersAssigned = 0
     if (members && members.length > 0) {
       const statusRecords = members.map(member => ({
         assignment_id: assignment.id,
@@ -49,9 +50,12 @@ export async function POST(request) {
         status: 'pending',
       }))
 
-      await supabase
+      const { error: statusErr } = await supabase
         .from('training_assignment_status')
         .insert(statusRecords)
+
+      if (statusErr) throw statusErr
+      membersAssigned = members.length
     }
 
     // Log the assignment
@@ -64,7 +68,7 @@ export async function POST(request) {
       metadata: {
         course_id: courseId,
         due_date: dueDate,
-        member_count: members?.length || 0,
+        member_count: membersAssigned,
         is_mandatory: isMandatory,
       },
     })
@@ -72,7 +76,7 @@ export async function POST(request) {
     return Response.json({
       success: true,
       assignment,
-      members_assigned: members?.length || 0,
+      members_assigned: membersAssigned,
     })
 
   } catch (err) {

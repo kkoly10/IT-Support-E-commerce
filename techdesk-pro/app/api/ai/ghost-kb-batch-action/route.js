@@ -115,34 +115,38 @@ export async function POST(request) {
     }
 
     if (action === 'mark_review_needed') {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('kb_sop_drafts')
         .update({ status: 'review_needed' })
         .in('id', draftIds)
+        .select('id')
 
       if (error) throw error
 
+      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount: draftIds.length,
-        message: `${draftIds.length} draft(s) marked review needed.`,
+        updatedCount,
+        message: `${updatedCount} draft(s) marked review needed.`,
       })
     }
 
     if (action === 'mark_ready_to_publish') {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('kb_sop_drafts')
         .update({ status: 'ready_to_publish' })
         .in('id', draftIds)
+        .select('id')
 
       if (error) throw error
 
+      const updatedCount = data?.length || 0
       return Response.json({
         success: true,
         action,
-        updatedCount: draftIds.length,
-        message: `${draftIds.length} draft(s) marked ready to publish.`,
+        updatedCount,
+        message: `${updatedCount} draft(s) marked ready to publish.`,
       })
     }
 

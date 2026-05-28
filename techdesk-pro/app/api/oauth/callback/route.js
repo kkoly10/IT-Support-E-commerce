@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getPlatformConfig, getEnvKeys } from '../../../../lib/oauth/platforms'
+import { verifyState } from '../../../../lib/oauth/state'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -28,11 +29,11 @@ export async function GET(request) {
     return Response.redirect(`${baseUrl}/portal/settings?error=missing_state`)
   }
 
-  // Decode state
-  let state
-  try {
-    state = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
-  } catch (e) {
+  // Verify the signed state. An unsigned/forged/expired state could pin tokens
+  // to an org the caller doesn't control, so reject anything that doesn't
+  // round-trip through verifyState.
+  const state = verifyState(stateParam)
+  if (!state) {
     return Response.redirect(`${baseUrl}/portal/settings?error=invalid_state`)
   }
 
@@ -105,10 +106,17 @@ export async function GET(request) {
       tokenData = await res.json()
 
     } else if (platform === 'woocommerce') {
-      // WooCommerce returns keys directly in the callback
+      // WooCommerce returns the keys directly in the callback query string.
+      // Don't fall back to `code`, which would persist a bogus access token
+      // and mark a failed connection as healthy.
+      const consumerKey = searchParams.get('consumer_key')
+      const consumerSecret = searchParams.get('consumer_secret')
+      if (!consumerKey || !consumerSecret) {
+        return Response.redirect(`${baseUrl}/portal/settings?error=token_exchange_failed`)
+      }
       tokenData = {
-        access_token: searchParams.get('consumer_key') || code,
-        consumer_secret: searchParams.get('consumer_secret') || '',
+        access_token: consumerKey,
+        consumer_secret: consumerSecret,
       }
     }
 

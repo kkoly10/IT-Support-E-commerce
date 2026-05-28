@@ -2,6 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getPlatformConfig, getEnvKeys } from '../../../../lib/oauth/platforms'
+import { signState } from '../../../../lib/oauth/state'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 
@@ -56,14 +57,13 @@ export async function GET(request, { params }) {
     return Response.json({ error: 'Shop domain is required for this platform' }, { status: 400 })
   }
 
-  // Create state token with user info (for callback verification)
-  const state = Buffer.from(JSON.stringify({
+  // Signed state — payload is HMAC'd so the callback can trust userId/orgId.
+  const state = signState({
     userId: user.id,
     orgId: profile.organization_id,
     platform,
     shopDomain: shopDomain || null,
-    timestamp: Date.now(),
-  })).toString('base64url')
+  })
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
