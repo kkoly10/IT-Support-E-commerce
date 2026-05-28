@@ -873,7 +873,7 @@ export default function AdminTicketDetail() {
                         padding: '12px 14px',
                         borderRadius: 10,
                         background: ghostScope.bg,
-                        border: `1px solid ${ghostScope.bg}`,
+                        border: `1px solid ${ghostScope.text}`,
                         color: ghostScope.text,
                       }}
                     >

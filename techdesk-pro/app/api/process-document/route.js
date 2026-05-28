@@ -39,11 +39,12 @@ Return as JSON with:
 }
 
 export async function POST(request) {
+  let jobId = null
   try {
     const auth = await requireAdmin()
     if (auth.error) return Response.json({ error: auth.error }, { status: auth.status })
 
-    const { jobId } = await request.json()
+    ;({ jobId } = await request.json())
     if (!jobId) {
       return Response.json({ error: 'Missing jobId' }, { status: 400 })
     }
@@ -188,9 +189,8 @@ export async function POST(request) {
   } catch (err) {
     console.error('Processing error:', err)
 
-    try {
-      const { jobId } = await request.clone().json()
-      if (jobId) {
+    if (jobId) {
+      try {
         await supabase
           .from('document_jobs')
           .update({
@@ -198,9 +198,9 @@ export async function POST(request) {
             error_message: err.message || 'Processing failed',
           })
           .eq('id', jobId)
+      } catch (e) {
+        // ignore
       }
-    } catch (e) {
-      // ignore
     }
 
     return Response.json({ error: err.message || 'Processing failed' }, { status: 500 })

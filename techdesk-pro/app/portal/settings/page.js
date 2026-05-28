@@ -20,14 +20,18 @@ function toArray(value) {
     .filter(Boolean)
 }
 
+function hasValue(value) {
+  return Array.isArray(value) ? value.length > 0 : Boolean(value)
+}
+
 function isDiscoveryComplete(profile) {
   return Boolean(
     profile.email_platform &&
       profile.identity_provider &&
       profile.remote_work_model &&
-      profile.core_business_apps &&
+      hasValue(profile.core_business_apps) &&
       profile.backup_status &&
-      profile.urgent_systems
+      hasValue(profile.urgent_systems)
   )
 }
 
