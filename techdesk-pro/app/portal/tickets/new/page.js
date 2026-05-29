@@ -21,12 +21,10 @@ export default function NewTicketPage() {
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    async function getUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+    let cancelled = false
 
-      if (!user) return
+    async function loadContext(user) {
+      if (!user || cancelled) return
       setUserId(user.id)
 
       const { data: profile } = await supabase
@@ -35,10 +33,23 @@ export default function NewTicketPage() {
         .eq('id', user.id)
         .single()
 
-      if (profile) setOrgId(profile.organization_id)
+      if (!cancelled && profile) setOrgId(profile.organization_id)
     }
 
-    getUser()
+    // Initial load — auth may or may not be hydrated yet.
+    supabase.auth.getUser().then(({ data }) => loadContext(data?.user))
+
+    // Defense against the hydration race: if the cookie arrives later (or the
+    // user signs in in another tab), pick it up so the submit button doesn't
+    // stay disabled forever on a "Please wait" message.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) loadContext(session.user)
+    })
+
+    return () => {
+      cancelled = true
+      sub.subscription.unsubscribe()
+    }
   }, [supabase])
 
   async function handleSubmit(e) {
