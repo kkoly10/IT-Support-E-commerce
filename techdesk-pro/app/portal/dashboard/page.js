@@ -225,7 +225,11 @@ export default function DashboardPage() {
 
     const planKey = String(org?.plan || '').toLowerCase()
     const isLegacyPlan = planKey === 'starter' || planKey === 'growth' || planKey === 'scale'
-    const monthlyLimit = isLegacyPlan ? (org?.monthly_ticket_limit || 10) : null
+    // `scale` was the unlimited-tickets tier — only starter/growth carry a
+    // monthly cap. Previously a scale customer with no `monthly_ticket_limit`
+    // column fell back to 10 and was displayed as "X / 10".
+    const hasLegacyCap = planKey === 'starter' || planKey === 'growth'
+    const monthlyLimit = hasLegacyCap ? (org?.monthly_ticket_limit || 10) : null
 
     return {
       openCount,

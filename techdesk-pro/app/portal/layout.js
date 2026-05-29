@@ -172,7 +172,9 @@ export default function PortalLayout({ children }) {
           <div className="sidebar-org">
             <div className="sidebar-org-name">{org.name}</div>
             <div className="sidebar-org-plan">
-              {(org.plan || 'starter')} plan · {formatLabel(org.client_status || 'lead')}
+              {(org.plan === 'pending' || !org.plan ? 'Pending fit review' : `${org.plan} plan`)}
+              {' · '}
+              {formatLabel(org.client_status || 'lead')}
             </div>
             {org.needs_human_review ? (
               <div style={{ marginTop: 8 }}>
