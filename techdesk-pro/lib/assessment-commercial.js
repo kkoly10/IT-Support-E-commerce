@@ -22,6 +22,8 @@ const PLAN_META = {
 }
 
 function normalizeTeamSize(range = '') {
+  // The assessment form sends one of these five buckets; anything else falls
+  // through to a numeric parse and finally 0.
   const value = String(range).toLowerCase()
 
   if (value.includes('1-5')) return 3
@@ -29,11 +31,6 @@ function normalizeTeamSize(range = '') {
   if (value.includes('16-30')) return 22
   if (value.includes('31-75')) return 50
   if (value.includes('75+')) return 90
-  if (value.includes('just me')) return 1
-  if (value.includes('2-5')) return 3
-  if (value.includes('6-15')) return 10
-  if (value.includes('16-50')) return 25
-  if (value.includes('50+')) return 75
 
   const parsed = parseInt(value, 10)
   return Number.isFinite(parsed) ? parsed : 0

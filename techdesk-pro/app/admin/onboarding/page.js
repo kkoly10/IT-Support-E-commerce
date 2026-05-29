@@ -541,7 +541,10 @@ export default function AdminOnboardingPage() {
                   </button>
 
                   <button
-                    onClick={() => syncOrganizationFromTasks(selectedOrg.id)}
+                    onClick={async () => {
+                      const context = await loadContext(selectedOrg.id)
+                      await syncOrganizationFromTasks(selectedOrg.id, context)
+                    }}
                     className="admin-btn-small"
                     disabled={saving}
                   >
