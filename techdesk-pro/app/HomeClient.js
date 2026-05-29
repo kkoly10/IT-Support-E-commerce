@@ -340,14 +340,13 @@ function CoHero() {
       <div style={{ maxWidth: 1120, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '6px 14px', background: CO.greenSoft, borderRadius: 999, fontSize: 13, color: CO.green, marginBottom: 28, fontWeight: 500 }}>
           <Dot color={CO.green} size={6} />
-          Now onboarding founding clients · DMV &amp; remote-first U.S. businesses
+          Now onboarding founding clients
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
-          Remote IT support for small businesses that need helpdesk, cloud admin, and{' '}
-          <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>managed Windows device support.</span>
+          Small-business IT support, <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>handled remotely.</span>
         </h1>
         <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-          Kocre IT helps small teams handle computer issues, email access, Microsoft 365, Google Workspace, onboarding/offboarding, and managed Windows devices through one structured support portal.
+          Kocre IT helps small teams with helpdesk requests, Microsoft 365, Google Workspace, employee onboarding, and managed Windows device support through one structured portal.
         </p>
         <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href="/free-assessment" kind="accent">
@@ -377,10 +376,10 @@ function CoHero() {
 
       <div className="co-hero-checks" style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 28, color: CO.ink3, fontSize: 13, flexWrap: 'wrap' }}>
         {[
-          'Business-hours remote support',
-          'Windows-first managed devices',
-          'Microsoft 365 & Google Workspace',
-          'Founder-led onboarding',
+          'Helpdesk support',
+          'Cloud admin',
+          'Managed Windows devices',
+          'Business-hours support',
         ].map((t) => (
           <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IconStroke d={ICON.check} size={14} color={CO.green} sw={2.5} /> {t}
@@ -1186,7 +1185,7 @@ const CALMOP_CSS = `
 }
 @media (max-width: 1000px) {
   #calmop .co-services-grid { grid-template-columns: 1fr !important; gap: 40px; }
-  #calmop .co-services-aside { position: static; }
+  #calmop .co-services-aside { position: static !important; top: auto !important; }
   #calmop .co-process-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 32px 22px; }
   #calmop .co-process-line { display: none; }
 }
