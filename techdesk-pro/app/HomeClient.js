@@ -343,12 +343,12 @@ function CoHero() {
           Now onboarding founding clients
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
-          Small-business IT support, <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>handled remotely.</span>
+          Small-business IT support, handled remotely.
         </h1>
-        <p style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-          Kocre IT helps small teams with helpdesk requests, Microsoft 365, Google Workspace, employee onboarding, and managed Windows device support through one structured portal.
+        <p className="co-hero-sub" style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
+          Helpdesk, Microsoft 365, Google Workspace, employee onboarding, and managed Windows devices — one structured portal.
         </p>
-        <div style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="co-hero-ctas" style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href="/free-assessment" kind="accent">
             Start free assessment
           </CoBtn>
@@ -358,7 +358,7 @@ function CoHero() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1120, margin: '64px auto 0', background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 4 }}>
+      <div className="co-hero-preview" style={{ maxWidth: 1120, margin: '64px auto 0', background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 20, padding: 4 }}>
         <div style={{ background: CO.bg, border: `1px solid ${CO.borderSoft}`, borderRadius: 18, overflow: 'hidden' }}>
           <div style={{ padding: '13px 18px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: `1px solid ${CO.borderSoft}` }}>
             <span style={{ width: 11, height: 11, borderRadius: '50%', background: CO.border }} />
@@ -1194,13 +1194,29 @@ const CALMOP_CSS = `
   #calmop .co-nav-toggle { display: flex !important; }
   #calmop .co-section { padding: 72px 22px; }
   #calmop .co-section-tight { padding: 48px 22px; }
+  #calmop .co-hero { padding-top: 48px !important; padding-bottom: 56px !important; }
   #calmop .co-nav { padding: 16px 22px; }
   #calmop .co-section-x { padding: 0 22px; }
   #calmop .co-h1 { font-size: 40px; letter-spacing: -1.2px; }
+  #calmop .co-hero-sub { font-size: 16.5px !important; margin-top: 18px !important; }
   #calmop .co-h2 { font-size: 34px; letter-spacing: -1px; }
   #calmop .co-quote { font-size: 26px; }
   #calmop .co-cta-h { font-size: 42px; letter-spacing: -1.4px; }
   #calmop .co-h1 br, #calmop .co-cta-h br { display: none; }
+  #calmop .co-hero-ctas { flex-direction: column !important; gap: 10px !important; margin-top: 26px !important; }
+  #calmop .co-hero-ctas > a { width: 100%; justify-content: center; padding: 14px 18px !important; }
+  #calmop .co-hero-preview { margin-top: 32px !important; }
+  #calmop .co-hero-preview img { max-height: 240px; object-fit: cover; object-position: top left; }
+  #calmop .co-hero-checks {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px !important;
+    max-width: 320px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 22px !important;
+    text-align: left;
+  }
   #calmop .co-principles-grid { grid-template-columns: 1fr 1fr !important; }
   #calmop .co-principles-grid > div { border-left: none !important; border-top: 1px solid ${CO.border}; }
   #calmop .co-process-grid { grid-template-columns: 1fr 1fr !important; gap: 36px 24px; }
@@ -1219,5 +1235,8 @@ const CALMOP_CSS = `
 @media (max-width: 560px) {
   #calmop .co-principles-grid { grid-template-columns: 1fr !important; }
   #calmop .co-process-grid { grid-template-columns: 1fr !important; }
+  #calmop .co-h1 { font-size: 36px; letter-spacing: -1px; }
+  #calmop .co-hero-sub { font-size: 16px !important; }
+  #calmop .co-hero-preview img { max-height: 200px; }
 }
 `
