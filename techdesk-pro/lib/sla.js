@@ -25,7 +25,11 @@ export const PLAN_RESPONSE_TARGET_HOURS = {
 export function getResponseTargetHours(plan) {
   const key = String(plan || '').toLowerCase()
   if (!key || key === 'pending') return null
-  return PLAN_RESPONSE_TARGET_HOURS[key] ?? 8
+  // Unknown plan slugs (typos, manual overrides not in the catalog) also
+  // return null so callers don't raise SLA-breach alerts on a target the
+  // client never signed for — both sentinel and auto-report short-circuit
+  // on null.
+  return PLAN_RESPONSE_TARGET_HOURS[key] ?? null
 }
 
 // Earliest non-internal agent/AI reply timestamp from a list of ticket_messages.

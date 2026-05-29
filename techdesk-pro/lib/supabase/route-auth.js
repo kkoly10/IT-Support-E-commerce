@@ -1,7 +1,16 @@
+import crypto from 'node:crypto'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from './server'
 
 let _service = null
+
+function timingSafeMatch(received, expected) {
+  if (typeof received !== 'string' || typeof expected !== 'string') return false
+  const a = Buffer.from(received)
+  const b = Buffer.from(expected)
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(a, b)
+}
 
 export function getService() {
   if (!_service) {
@@ -69,6 +78,8 @@ export function assertResourceOrg(resourceOrgId, profile) {
 export function isInternalCall(request) {
   const secret = process.env.INTERNAL_API_KEY
   if (!secret) return false
-  const header = request.headers.get('authorization') || ''
-  return header === `Bearer ${secret}`
+  return timingSafeMatch(
+    request.headers.get('authorization') || '',
+    `Bearer ${secret}`
+  )
 }

@@ -166,12 +166,13 @@ Give 3-5 specific, actionable recommendations. Return as a JSON array of strings
     let recommendations = []
     if (aiResponse.ok) {
       const aiData = await aiResponse.json()
-      const text = aiData.content.map(b => b.text || '').join('')
+      const blocks = Array.isArray(aiData?.content) ? aiData.content : []
+      const text = blocks.map((b) => b?.text || '').join('')
       try {
         const cleaned = text.replace(/```json\n?|```/g, '').trim()
         recommendations = JSON.parse(cleaned)
       } catch {
-        recommendations = [text]
+        recommendations = text ? [text] : []
       }
     }
 

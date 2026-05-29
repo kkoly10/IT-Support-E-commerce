@@ -6,17 +6,6 @@ import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import BrandMark from '../components/BrandMark'
 
-function getLeadConfig(teamSize, leadInterest) {
-  const parsedTeamSize = teamSize ? parseInt(teamSize, 10) : null
-  const needsReview = (parsedTeamSize !== null && parsedTeamSize > 15) || leadInterest === 'not_sure'
-
-  return {
-    primary_service: 'it',
-    service_types: ['it'],
-    needs_human_review: needsReview,
-  }
-}
-
 export default function SignupPage() {
   const [step, setStep] = useState(1)
   const [fullName, setFullName] = useState('')

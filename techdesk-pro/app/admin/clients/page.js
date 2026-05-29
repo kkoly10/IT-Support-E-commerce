@@ -306,7 +306,7 @@ export default function AdminClients() {
                             className="admin-status-badge"
                             style={{ background: 'var(--teal-light)', color: 'var(--teal)' }}
                           >
-                            {org.plan || 'starter'}
+                            {org.plan || 'pending'}
                           </span>
 
                           {(org.service_types || []).map((st) => (
@@ -493,7 +493,9 @@ function EditPanel({ org, saving, onSave }) {
   const [primaryService, setPrimaryService] = useState(org.primary_service || 'it')
   const [serviceTypes, setServiceTypes] = useState(org.service_types || ['it'])
   const [clientStatus, setClientStatus] = useState(org.client_status || 'lead')
-  const [plan, setPlan] = useState(org.plan || 'starter')
+  // Default to 'pending' so a Save without touching the dropdown doesn't
+  // silently overwrite the org's real plan with the legacy starter tier.
+  const [plan, setPlan] = useState(org.plan || 'pending')
   const [teamSize, setTeamSize] = useState(org.team_size || '')
   const [industry, setIndustry] = useState(org.industry || '')
   const [agreementStatus, setAgreementStatus] = useState(org.agreement_status || 'none')
