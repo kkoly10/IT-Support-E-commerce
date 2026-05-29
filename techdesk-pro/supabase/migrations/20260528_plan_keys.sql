@@ -1,19 +1,26 @@
--- Set the default for organizations.plan to 'pending'.
+-- Extend the plan_tier enum with the new per-user plan keys.
 --
--- After the per-user plan model shipped, app/signup/page.js now passes
--- plan='pending' explicitly so the admin can set the real plan
--- (founding / remote / managed / secure / custom) after the fit
--- review. This migration changes the column default to match, so any
--- future insert path that does not pass plan explicitly still does the
--- right thing instead of silently landing as a legacy 'starter'.
+-- The original revision of this migration only did
+--   ALTER COLUMN plan SET DEFAULT 'pending'
+-- but organizations.plan is a Postgres ENUM (plan_tier) that only contained
+-- the legacy keys (starter/growth/scale/custom). Without 'pending' (and the
+-- other new keys) in the enum, every new signup fails at the DB layer
+-- because app/api/signup/complete/route.js inserts plan='pending' explicitly,
+-- and the admin client edit dropdown can't write founding/remote/managed/
+-- secure either.
 --
--- A CHECK constraint enumerating valid plan values is intentionally
--- not added here. The live DB may contain values outside the catalog
--- (manual overrides, prior data hygiene) that would break the
--- migration. Tighten typing in a follow-up after a separate audit of
--- existing plan values.
---
--- Idempotent: ALTER COLUMN SET DEFAULT can run more than once safely.
+-- All five values are added with IF NOT EXISTS so this migration is safe
+-- to re-apply. SET DEFAULT 'pending' is intentionally removed from this
+-- file: combining ALTER TYPE ADD VALUE with a later ALTER COLUMN SET
+-- DEFAULT that uses the new value in the same transaction is the kind of
+-- thing that varies by Postgres version. The app passes plan='pending'
+-- explicitly at signup, so the column-level default is a nice-to-have, not
+-- a runtime requirement — wire it up later in its own migration if you want
+-- it.
 
-alter table public.organizations
-  alter column plan set default 'pending';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'pending';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'founding';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'remote';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'managed';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'secure';
+ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS 'custom';
