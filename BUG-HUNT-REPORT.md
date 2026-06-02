@@ -357,3 +357,53 @@ side. Once the client profile/org exists, the round-trip can be run.
   Supabase dashboard / via the signup flow, or by fixing `/api/signup/complete` to backfill profiles.
 - Recommend fixing 0.1, 0.2, 0.3 first (user-facing data integrity + confidentiality), then the
   IDOR/tenant-isolation set in §2, then the schema/migration gaps in §5.
+
+---
+
+## 7. Fixes applied on this branch (top criticals)
+
+1. **Internal/AI-draft message leak (0.2 / #69,#70) — fixed.**
+   `app/portal/tickets/[id]/page.js`: added `.eq('is_internal_note', false)` to the messages
+   query and a guard in the realtime INSERT handler so internal notes / AI drafts never reach the
+   client. *Effective immediately on deploy — no DB change needed.*
+
+2. **Missing-profile crash (0.1 / #86) — gracefully handled.**
+   `app/portal/layout.js`: switched the profile fetch to `.maybeSingle()` and added a recovery
+   screen ("Let's finish setting up your account" → Finish signup / Contact support / Sign out) so
+   an authenticated user with no profile no longer renders the raw *"Cannot coerce…"* error on
+   every page. *Effective on deploy.* This is a guardrail, not the data fix — see below.
+
+3. **`ghost_activity_logs` table never created (#131 / #102 class) — migration added.**
+   `supabase/migrations/20260602_ghost_activity_logs.sql` creates the table (correct columns +
+   indexes + admin-only RLS). **NOT** renamed to `activity_log` — the column shapes differ, so a
+   rename would break the query. *Requires the migration to be applied to the DB to take effect.*
+
+### What still needs YOUR Supabase action
+
+- **Apply the new migration** (`supabase db push` or the SQL editor) so Ghost Operations works in prod.
+- **Create the tester's profile/org** so the client portal works for `comlan11@gmail.com`
+  (auth user `583dfa76-acc8-4b54-84f8-6c2404437519`). I can't run this — no DB access to this
+  project. Verify column names against your schema, then run in the Supabase SQL editor:
+
+  ```sql
+  with new_org as (
+    insert into public.organizations
+      (name, slug, plan, client_status, primary_service, service_types,
+       agreement_status, payment_status, onboarding_status)
+    values
+      ('Comlan Test Co', 'comlan-test-' || substr(md5(random()::text),1,6),
+       'pending', 'lead', 'it', array['it'], 'none', 'none', 'not_started')
+    returning id
+  )
+  insert into public.profiles
+    (id, email, full_name, organization_id, role, is_primary_contact)
+  select '583dfa76-acc8-4b54-84f8-6c2404437519', 'comlan11@gmail.com',
+         'Comlan Tester', new_org.id, 'client', true
+  from new_org;
+  ```
+
+  To exercise the full support flow (tickets, etc.) in the client→admin test, set the org
+  `client_status = 'active'` and a real `plan` after creating it.
+
+Once the connector is pointed at the right Supabase account (or you've run the SQL above), tell me
+and I'll re-run the Playwright client→admin round-trip end to end.

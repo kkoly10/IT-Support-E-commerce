@@ -71,10 +71,14 @@ export default function TicketDetailPage() {
       return
     }
 
+    // Never expose internal staff notes or unreviewed AI draft replies to the
+    // client. The AI routes (triage/auto-resolve/post-create) write rows with
+    // is_internal_note: true; those must stay admin-only.
     const { data: msgs } = await supabase
       .from('ticket_messages')
       .select('*, profiles(full_name, avatar_url)')
       .eq('ticket_id', id)
+      .eq('is_internal_note', false)
       .order('created_at', { ascending: true })
 
     setMessages(msgs || [])
@@ -111,6 +115,9 @@ export default function TicketDetailPage() {
         table: 'ticket_messages',
         filter: `ticket_id=eq.${id}`,
       }, (payload) => {
+        // Mirror the initial-load filter — realtime delivers every row matching
+        // the ticket filter, including internal notes / AI drafts, so drop them.
+        if (payload.new?.is_internal_note) return
         setMessages(prev => [...prev, payload.new])
       })
       .on('postgres_changes', {
