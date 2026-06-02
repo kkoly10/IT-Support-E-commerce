@@ -407,3 +407,40 @@ side. Once the client profile/org exists, the round-trip can be run.
 
 Once the connector is pointed at the right Supabase account (or you've run the SQL above), tell me
 and I'll re-run the Playwright client→admin round-trip end to end.
+
+---
+
+## 8. Migrations in the repo + guidance for applying them
+
+All new migrations are **idempotent** (`create … if not exists`, `add column if not exists`,
+`drop policy if exists`), so they're safe to apply against production whether or not the objects
+already exist. **Apply order is by filename**; run `list_tables` / `list_migrations` first to see
+live state.
+
+| Migration | Purpose | Prod impact |
+|-----------|---------|-------------|
+| `20260602_ghost_activity_logs.sql` | Creates the missing `ghost_activity_logs` table (+ admin RLS). | **Real fix** — Ghost Operations 404 + silent audit failures. Table is confirmed absent in prod. |
+| `20260602_kb_pipeline.sql` | Creates `kb_articles` if absent; adds the structured columns `kb_sop_drafts` is missing and relaxes its `draft_json NOT NULL`. | `kb_articles` likely already exists in prod (no-op there); the `kb_sop_drafts` column adds are the real fix for the draft write-path. |
+
+### Deliberately NOT auto-migrated (your terminal Claude should handle with DB visibility)
+
+- **RMM core (`supabase/sql/2026-03-phase1-rmm-core.sql`)** — lives outside `supabase/migrations/`,
+  so the CLI never applies it. I did **not** move it in, for two reasons: (1) the later retention
+  migration guards "skip if `audit_events` doesn't exist", so it's unclear whether these tables are
+  in prod; (2) its RLS has a **critical self-approval hole** (a client can set their own
+  `access_requests.status='approved'` and mutate `remote_sessions`). Before applying it anywhere,
+  tighten those policies so writes to `access_requests.status` / `remote_sessions` require
+  `is_admin()`. Have the terminal Claude `list_tables` to confirm presence, then move + fix in one
+  reviewed migration.
+- **`plan_tier` enum (`growth`/`scale`)** — `lib/sla.js` and `deriveRecommendedPlan` use `growth`/
+  `scale`, but the enum only has `founding/remote/managed/secure/custom/pending`. Only add these
+  values (`ALTER TYPE plan_tier ADD VALUE IF NOT EXISTS …`) if `organizations.plan` is actually that
+  enum AND those keys get written; otherwise prefer fixing the code to use the real plan keys.
+- **The tester's profile/org row** — see §7 SQL. Data, not schema; run it once.
+
+### Suggested sequence for the terminal session
+1. `list_migrations` + `list_tables` to establish live state.
+2. Apply `20260602_ghost_activity_logs.sql` and `20260602_kb_pipeline.sql` (`supabase db push`).
+3. Run the §7 SQL to create the tester profile/org (set `client_status='active'` for the full flow).
+4. Decide on RMM + `plan_tier` per the notes above.
+5. Ping me — I'll run the live client→admin round-trip and confirm the fixes.
