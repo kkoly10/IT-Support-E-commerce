@@ -103,6 +103,7 @@ export default function PortalLayout({ children }) {
   const [profile, setProfile] = useState(null)
   const [org, setOrg] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [profileMissing, setProfileMissing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const router = useRouter()
@@ -119,15 +120,23 @@ export default function PortalLayout({ children }) {
         return
       }
 
+      // maybeSingle so a missing profile row resolves to null instead of a
+      // PGRST116 "0 rows" error. An authenticated user with no profile means
+      // signup never finished server-side (no /api/signup/complete run); show a
+      // recovery screen rather than letting every child page render the raw
+      // "Cannot coerce the result to a single JSON object" error.
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileData) {
         setProfile(profileData)
         setOrg(profileData.organizations)
+        setProfileMissing(false)
+      } else {
+        setProfileMissing(true)
       }
 
       setLoading(false)
@@ -149,6 +158,28 @@ export default function PortalLayout({ children }) {
       <div className="portal-loading">
         <div className="portal-loading-spinner"></div>
         <p>Loading Client Portal...</p>
+      </div>
+    )
+  }
+
+  // Authenticated, but no profile/organization is linked to this account.
+  // Render a clear recovery path instead of the (broken) portal shell.
+  if (profileMissing) {
+    return (
+      <div className="portal-loading" style={{ textAlign: 'center', padding: '0 24px' }}>
+        <h1 style={{ fontSize: '1.3rem', marginBottom: 10 }}>Let’s finish setting up your account</h1>
+        <p style={{ maxWidth: 460, color: 'var(--ink-muted)', marginBottom: 20 }}>
+          Your sign-in worked, but we couldn’t find a company profile linked to this
+          account yet. This usually means onboarding wasn’t completed. Finish signup
+          or contact us and we’ll get you set up.
+        </p>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link href="/signup" className="dashboard-new-ticket">Finish signup</Link>
+          <a href="mailto:hello@kocreit.com" className="auth-back">Contact support</a>
+        </div>
+        <button onClick={handleLogout} className="auth-back" style={{ marginTop: 18 }}>
+          Sign out
+        </button>
       </div>
     )
   }
