@@ -67,10 +67,24 @@ Legend — Severity: **C**ritical / **H**igh / **M**edium / **L**ow.
 
 Nav is gated by `client_status` (lead set shown) — that part is **by design**, not a bug.
 
-**Admin login (`Komlankouhiko@icloud.com`):** ⏸ **blocked — admin password not provided.**
-The client→admin round-trip (create ticket/contact as client → see it as admin → reply → see
-reply as client) is **doubly blocked**: by the missing admin password and by finding 0.1 (the
-client account cannot create org-scoped records while `org = null`).
+**Admin login (`Komlankouhiko@icloud.com`):** ✅ authenticates and reaches `/admin/dashboard`.
+Unlike the client account, the admin **has** a `profiles` row (role=admin), so the console works:
+all 17 admin pages load with real content and **no** "Cannot coerce" errors.
+
+| Admin page | Result |
+|------|--------|
+| dashboard, clients, tickets, contacts, assessments, onboarding, reports, settings, access, compliance, training, document, launch, sentinel, kb, kb-drafts | ✅ load with content, no 4xx |
+| **/admin/ghost (Ghost Operations)** | ❌ **404 `PGRST205`** — queries table `public.ghost_activity_logs` which does not exist (hint: "Perhaps you meant `public.activity_log`"). Activity feed never loads. |
+
+**[LIVE, H] New finding #131 — wrong table name `ghost_activity_logs`.**
+`app/admin/ghost/page.js:142`, `lib/ghost/audit.js:20`, and `pro/lib/ghost/audit.js:20` all use
+`ghost_activity_logs`; the real table is `activity_log` (used correctly by sentinel/health pages).
+Impact: Ghost Operations page can't render its log, **and** every `writeGhostAudit` insert silently
+fails → no audit trail for any Ghost AI action.
+
+**Client→admin round-trip:** still **blocked by finding 0.1** — the client account cannot create
+org-scoped records (tickets/contacts) while `org = null`, so there is nothing to flow to the admin
+side. Once the client profile/org exists, the round-trip can be run.
 
 ---
 
