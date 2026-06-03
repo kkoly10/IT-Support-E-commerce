@@ -38,27 +38,6 @@ export default function AdminContactsPage() {
     }
   }
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-
-    return contacts.filter((contact) => {
-      if (roleFilter !== 'all' && contact.role_type !== roleFilter) return false
-      if (!q) return true
-
-      const blob = [
-        contact.full_name,
-        contact.email,
-        contact.phone,
-        contact.role_type,
-        contact.organization?.name,
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return blob.includes(q)
-    })
-  }, [contacts, search, roleFilter])
-
   const grouped = useMemo(() => {
     const map = new Map()
 
