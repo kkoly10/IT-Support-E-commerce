@@ -87,6 +87,7 @@ alter table public.kb_sop_drafts add column if not exists status text not null d
 -- The code never populates draft_json (it writes structured columns instead),
 -- so the original NOT NULL constraint makes every insert fail. Relax it.
 -- Guarded: the production table was created without draft_json at all, and a
+
 -- bare ALTER COLUMN errors on a missing column.
 do $$
 begin
