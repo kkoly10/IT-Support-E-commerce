@@ -39,7 +39,7 @@ export default function PublishedKnowledgeArticlePage() {
         .from('kb_articles')
         .select('*')
         .eq('id', id)
-        .single()
+        .maybeSingle()
 
       setArticle(data || null)
 
@@ -52,8 +52,10 @@ export default function PublishedKnowledgeArticlePage() {
             title,
             organization:organizations(name)
           `)
+          // The source ticket may have been deleted since publication — the
+          // article should still render.
           .eq('id', data.source_ticket_id)
-          .single()
+          .maybeSingle()
 
         setTicket(ticketData || null)
       }

@@ -31,7 +31,7 @@ export default function NewTicketPage() {
         .from('profiles')
         .select('organization_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!cancelled && profile) setOrgId(profile.organization_id)
     }
@@ -82,23 +82,34 @@ export default function NewTicketPage() {
 
       if (ticketErr) throw ticketErr
 
+      const failedUploads = []
       if (files.length > 0) {
-        for (const file of files) {
-          const filePath = `${orgId}/${ticket.id}/${Date.now()}-${file.name}`
+        for (const [index, file] of files.entries()) {
+          const safeName = file.name.replace(/[^\w.-]+/g, '_')
+          const filePath = `${orgId}/${ticket.id}/${Date.now()}-${index}-${safeName}`
 
           const { error: uploadErr } = await supabase.storage
             .from('ticket-attachments')
             .upload(filePath, file)
 
-          if (!uploadErr) {
-            await supabase.from('ticket_attachments').insert({
-              ticket_id: ticket.id,
-              file_name: file.name,
-              file_path: filePath,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: userId,
-            })
+          if (uploadErr) {
+            console.error('Attachment upload failed:', uploadErr)
+            failedUploads.push(file.name)
+            continue
+          }
+
+          const { error: attachErr } = await supabase.from('ticket_attachments').insert({
+            ticket_id: ticket.id,
+            file_name: file.name,
+            file_path: filePath,
+            file_size: file.size,
+            mime_type: file.type,
+            uploaded_by: userId,
+          })
+
+          if (attachErr) {
+            console.error('Attachment record insert failed:', attachErr)
+            failedUploads.push(file.name)
           }
         }
       }
@@ -111,6 +122,14 @@ export default function NewTicketPage() {
 
       if (!workflowRes.ok) {
         console.warn('Post-create AI workflow returned non-OK status. Ticket was still created.')
+      }
+
+      if (failedUploads.length > 0) {
+        // The request itself was created — warn instead of silently dropping files.
+        alert(
+          `Your request was created, but these attachments failed to upload: ${failedUploads.join(', ')}. ` +
+          'Please mention this in a reply on the request so our team can collect them.'
+        )
       }
 
       router.push(`/portal/tickets/${ticket.id}`)

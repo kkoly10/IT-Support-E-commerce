@@ -24,6 +24,7 @@ export default function TicketDetailPage() {
   const [ratingComment, setRatingComment] = useState('')
   const [submittingRating, setSubmittingRating] = useState(false)
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
+  const [ratingError, setRatingError] = useState(null)
 
   useEffect(() => {
     loadTicket()
@@ -44,7 +45,7 @@ export default function TicketDetailPage() {
       .from('profiles')
       .select('organization_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile?.organization_id) {
       setTicket(null)
@@ -154,9 +155,10 @@ export default function TicketDetailPage() {
   async function handleSubmitRating() {
     if (!selectedRating || !userId || !orgId || !ticket) return
     setSubmittingRating(true)
+    setRatingError(null)
 
     try {
-      await supabase.from('ticket_ratings').insert({
+      const { error: insertError } = await supabase.from('ticket_ratings').insert({
         ticket_id: id,
         organization_id: orgId,
         rated_by: userId,
@@ -164,10 +166,13 @@ export default function TicketDetailPage() {
         comment: ratingComment.trim() || null,
       })
 
+      if (insertError) throw insertError
+
       setExistingRating({ rating: selectedRating, comment: ratingComment })
       setRatingSubmitted(true)
     } catch (err) {
       console.error('Rating error:', err)
+      setRatingError(err.message || 'Failed to submit rating. Please try again.')
     } finally {
       setSubmittingRating(false)
     }
@@ -286,6 +291,12 @@ export default function TicketDetailPage() {
                 {submittingRating ? 'Submitting...' : 'Submit Rating'}
               </button>
             </>
+          )}
+
+          {ratingError && (
+            <div style={{ marginTop: 12, fontSize: '0.85rem', color: '#dc2626' }}>
+              {ratingError}
+            </div>
           )}
         </div>
       )}

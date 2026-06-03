@@ -126,7 +126,7 @@ export default function DashboardPage() {
       .from('profiles')
       .select('*, organizations(*)')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profileData) {
       setLoading(false)

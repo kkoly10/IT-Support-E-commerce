@@ -46,9 +46,14 @@ export default function PortalLaunchPage() {
         .from('profiles')
         .select('organization_id, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) throw profileError
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       setOrg(profileData.organizations || null)
     } catch (err) {

@@ -49,9 +49,14 @@ export default function PortalAccessPage() {
         .from('profiles')
         .select('id, organization_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) throw profileError
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       setProfileId(profileData.id)
       setOrgId(profileData.organization_id)

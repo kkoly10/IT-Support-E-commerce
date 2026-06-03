@@ -108,7 +108,7 @@ export default function BillingPage() {
         .from('profiles')
         .select('*, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!profile?.organizations) {
         setLoading(false)

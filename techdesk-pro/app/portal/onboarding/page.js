@@ -77,7 +77,7 @@ export default function PortalOnboardingPage() {
         .from('profiles')
         .select('*, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!profileData) {
         setLoading(false)

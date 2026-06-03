@@ -75,7 +75,7 @@ export default function AdminKnowledgeDraftDetailPage() {
           .from('ticket_messages')
           .select('id, ticket_id, body, created_at')
           .eq('id', messageId)
-          .single()
+          .maybeSingle()
 
         nextDraft = extractLegacyDraftFromNote(message)
 
@@ -93,7 +93,9 @@ export default function AdminKnowledgeDraftDetailPage() {
           .from('kb_sop_drafts')
           .select('*')
           .eq('id', id)
-          .single()
+          // Stale/deleted draft ids should fall through to the not-found
+          // state, not 406.
+          .maybeSingle()
 
         nextDraft = data || null
 
@@ -119,7 +121,7 @@ export default function AdminKnowledgeDraftDetailPage() {
             organization:organizations(name)
           `)
           .eq('id', nextDraft.ticket_id)
-          .single()
+          .maybeSingle()
 
         setTicket(ticketData || null)
       }

@@ -74,9 +74,14 @@ export default function DocumentsPage() {
         .from('profiles')
         .select('*, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) throw profileError
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       setProfile(profileData || null)
       setOrg(profileData?.organizations || null)
@@ -115,8 +120,9 @@ export default function DocumentsPage() {
     try {
       const uploaded = []
 
-      for (const file of files) {
-        const path = `${org.id}/${Date.now()}-${file.name}`
+      for (const [index, file] of files.entries()) {
+        const safeName = file.name.replace(/[^\w.-]+/g, '_')
+        const path = `${org.id}/${Date.now()}-${index}-${safeName}`
 
         const { error: uploadError } = await supabase.storage
           .from('organization-documents')
@@ -132,23 +138,27 @@ export default function DocumentsPage() {
         })
       }
 
-      try {
-        const rows = uploaded.map((item) => ({
-          organization_id: org.id,
-          uploaded_by: profile.id,
-          title: title.trim(),
-          document_type: docType,
-          notes: notes.trim() || null,
-          storage_path: item.storage_path,
-          file_name: item.file_name,
-          mime_type: item.mime_type,
-          size_bytes: item.size_bytes,
-          status: 'uploaded',
-        }))
+      const rows = uploaded.map((item) => ({
+        organization_id: org.id,
+        uploaded_by: profile.id,
+        title: title.trim(),
+        document_type: docType,
+        notes: notes.trim() || null,
+        storage_path: item.storage_path,
+        file_name: item.file_name,
+        mime_type: item.mime_type,
+        size_bytes: item.size_bytes,
+        status: 'uploaded',
+      }))
 
-        await supabase.from('organization_documents').insert(rows)
-      } catch (insertErr) {
-        console.warn('organization_documents insert skipped or failed:', insertErr)
+      const { error: insertError } = await supabase.from('organization_documents').insert(rows)
+      if (insertError) {
+        // Don't leave orphaned files in storage with no DB record — clean up,
+        // then surface the failure instead of reporting success.
+        await supabase.storage
+          .from('organization-documents')
+          .remove(uploaded.map((item) => item.storage_path))
+        throw insertError
       }
 
       setMessage('Documents uploaded successfully.')

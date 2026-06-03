@@ -48,7 +48,7 @@ export default function AdminLayout({ children }) {
         .from('profiles')
         .select('full_name, email, role')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (data) setProfile(data)
     }

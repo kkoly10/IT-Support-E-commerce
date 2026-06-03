@@ -47,9 +47,14 @@ export default function PortalContactsPage() {
         .from('profiles')
         .select('organization_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) throw profileError
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       setOrgId(profileData.organization_id)
 
