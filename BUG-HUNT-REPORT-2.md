@@ -40,10 +40,12 @@ Severity legend: **C**ritical / **H**igh / **M**edium / **L**ow.
    `kickoff_status`, `hypercare_status`, `support_activated_at`
    (`lib/transition.js:35-37`) — a from-scratch build is missing every onboarding/
    transition column the UI reads.
-5. **[H] `tickets` UPDATE policy `clients_update_own_tickets` has no `WITH CHECK`.**
-   USING restricts to own org + own row, but with a null check clause a client can
-   update their ticket and set `organization_id` to another org or change
-   `created_by` — the new values are never re-validated.
+5. ~~**[H] `tickets` UPDATE policy `clients_update_own_tickets` has no `WITH CHECK`.**~~
+   **RETRACTED — false positive (verified live 2026-06-03).** When an UPDATE policy
+   omits `WITH CHECK`, Postgres applies the `USING` expression to new rows too
+   (`CREATE POLICY` docs). Verified empirically: as a `client`-role user, setting
+   `organization_id` to another org on their own ticket fails with
+   `new row violates row-level security policy`.
 6. **[M] `assessment_submissions_public_insert` is `WITH CHECK (true)` for
    anon/authenticated.** Real submissions go through the service role, so this is dead
    config that lets any anon caller insert arbitrary lead rows via PostgREST (spam
@@ -406,7 +408,7 @@ Severity legend: **C**ritical / **H**igh / **M**edium / **L**ow.
 
 **Fix first (correctness / data-loss / security):**
 - DB reproducibility: #1–#4 (missing column, missing function, missing tables/columns) — the repo can't rebuild the schema from scratch today.
-- Self-approve holes: #5, #33–#35, #36.
+- Self-approve holes: #33–#35, #36 (#5 retracted as a false positive — see above).
 - Silent data divergence shown as success: #68, #72, #74, #51, #88.
 - Broken gates: #65 (primary contact can't sign), #67 (plan gating), #64 (portal-wide 406s).
 - Commercial correctness: #96, #100, #23.

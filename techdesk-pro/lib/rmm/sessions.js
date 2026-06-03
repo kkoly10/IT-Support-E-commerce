@@ -77,10 +77,14 @@ export async function approveAccessRequest(supabase, payload) {
       approved_at: new Date().toISOString(),
     })
     .eq('id', accessRequestId)
+    .eq('status', ACCESS_REQUEST_STATUSES.SUBMITTED)
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) throw error
+  if (!data) {
+    throw new Error('Access request not found or no longer awaiting approval.')
+  }
 
   await writeAuditEvent(supabase, {
     organizationId: data.organization_id,
