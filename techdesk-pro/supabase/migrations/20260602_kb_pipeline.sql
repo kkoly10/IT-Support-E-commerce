@@ -86,4 +86,16 @@ alter table public.kb_sop_drafts add column if not exists status text not null d
 
 -- The code never populates draft_json (it writes structured columns instead),
 -- so the original NOT NULL constraint makes every insert fail. Relax it.
-alter table public.kb_sop_drafts alter column draft_json drop not null;
+-- Guarded: the production table was created without draft_json at all, and a
+-- bare ALTER COLUMN errors on a missing column.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'kb_sop_drafts'
+      and column_name = 'draft_json'
+  ) then
+    alter table public.kb_sop_drafts alter column draft_json drop not null;
+  end if;
+end $$;
