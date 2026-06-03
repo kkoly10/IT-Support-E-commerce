@@ -90,13 +90,14 @@ export default function TicketDetailPage() {
 
     setAttachments(atts || [])
 
-    // Check for existing rating
+    // Check for existing rating. maybeSingle: most tickets have no rating
+    // yet, and .single() turns that into a 406 console error on every view.
     const { data: rating } = await supabase
       .from('ticket_ratings')
       .select('*')
       .eq('ticket_id', id)
       .eq('rated_by', user.id)
-      .single()
+      .maybeSingle()
 
     if (rating) {
       setExistingRating(rating)
