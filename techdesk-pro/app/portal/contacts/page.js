@@ -105,12 +105,14 @@ export default function PortalContactsPage() {
 
       if (insertError) throw insertError
 
+      let demoteError = null
       if (isPrimaryContact && inserted?.id) {
-        await supabase
+        const { error: demoteErr } = await supabase
           .from('organization_contacts')
           .update({ is_primary_contact: false })
           .eq('organization_id', orgId)
           .neq('id', inserted.id)
+        demoteError = demoteErr
       }
 
       setFullName('')
@@ -123,7 +125,14 @@ export default function PortalContactsPage() {
       setReceivesSecurityNotices(false)
       setReceivesEmergencyNotices(false)
       setNotes('')
-      setMessage('Contact added successfully.')
+      if (demoteError) {
+        setError(
+          `Contact added, but the previous primary contact could not be demoted (${demoteError.message}). ` +
+            'Two contacts may be marked primary — please retry or contact support.'
+        )
+      } else {
+        setMessage('Contact added successfully.')
+      }
       await loadData()
     } catch (err) {
       console.error('Add contact error:', err)

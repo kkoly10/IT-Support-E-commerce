@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 import { AGREEMENT_DOCUMENTS, REQUIRED_AGREEMENT_KEYS, isDraftVersion } from '../../../lib/agreements'
+import { canSignAgreements } from '../../../lib/contacts'
 
 const supabase = createClient()
 
@@ -17,6 +18,7 @@ function formatWhen(value) {
 export default function PortalAgreementsPage() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
+  const [primaryContacts, setPrimaryContacts] = useState([])
   const [signatures, setSignatures] = useState([])
   const [activeKey, setActiveKey] = useState(null)
   const [typedName, setTypedName] = useState('')
@@ -54,12 +56,20 @@ export default function PortalAgreementsPage() {
       setTypedName(profileData?.full_name || '')
 
       if (profileData?.organization_id) {
-        const { data: sigs } = await supabase
-          .from('agreement_signatures')
-          .select('*')
-          .eq('organization_id', profileData.organization_id)
-          .order('signed_at', { ascending: false })
+        const [{ data: sigs }, { data: primaries }] = await Promise.all([
+          supabase
+            .from('agreement_signatures')
+            .select('*')
+            .eq('organization_id', profileData.organization_id)
+            .order('signed_at', { ascending: false }),
+          supabase
+            .from('organization_contacts')
+            .select('email, is_primary_contact')
+            .eq('organization_id', profileData.organization_id)
+            .eq('is_primary_contact', true),
+        ])
         setSignatures(sigs || [])
+        setPrimaryContacts(primaries || [])
       }
     } catch (err) {
       console.error('Agreements load error:', err)
@@ -109,7 +119,7 @@ export default function PortalAgreementsPage() {
   const activeDoc = activeKey ? AGREEMENT_DOCUMENTS[activeKey] : null
   const signedCount = REQUIRED_AGREEMENT_KEYS.filter((k) => signatureFor(k)).length
   const allSigned = signedCount === REQUIRED_AGREEMENT_KEYS.length
-  const canSign = !!profile?.is_primary_contact
+  const canSign = canSignAgreements(profile, primaryContacts)
 
   return (
     <div>

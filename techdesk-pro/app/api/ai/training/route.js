@@ -1,6 +1,7 @@
 // File: app/api/ai/training/route.js (new — mkdir -p app/api/ai/training)
 
 import { requireAdmin } from '../../../../lib/supabase/route-auth'
+import { parseClaudeJson } from '../../../../lib/ghost/json'
 
 export async function POST(request) {
   try {
@@ -73,12 +74,11 @@ Make it practical and actionable. Return ONLY valid JSON.`
     }
 
     const aiResult = await response.json()
-    const resultText = aiResult.content
-      .map(block => block.type === 'text' ? block.text : '')
-      .join('')
-
-    const cleaned = resultText.replace(/```json\n?|```/g, '').trim()
-    const parsed = JSON.parse(cleaned)
+    const parsed = parseClaudeJson(aiResult)
+    if (!parsed) {
+      console.error('Training: model returned unparseable output')
+      return Response.json({ error: 'AI returned unparseable training content.' }, { status: 502 })
+    }
 
     return Response.json(parsed)
 

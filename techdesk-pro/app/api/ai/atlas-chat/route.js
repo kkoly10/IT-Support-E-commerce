@@ -13,7 +13,7 @@ export async function POST(request) {
 
     const { message, conversationHistory } = await request.json()
 
-    if (!message) {
+    if (!message || typeof message !== 'string') {
       return Response.json({ error: 'Missing message' }, { status: 400 })
     }
 
@@ -21,13 +21,16 @@ export async function POST(request) {
       .from('profiles')
       .select('*, organization:organizations(*)')
       .eq('id', auth.user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile) {
       return Response.json({ error: 'User not found' }, { status: 404 })
     }
 
     const org = profile.organization
+    if (!org?.id) {
+      return Response.json({ error: 'No organization is linked to this account.' }, { status: 400 })
+    }
 
     const { data: recentTickets } = await supabase
       .from('tickets')
@@ -63,13 +66,18 @@ export async function POST(request) {
             .join('\n')}`
         : 'No support requests yet.'
 
-    const messages = [
-      ...(conversationHistory || []).map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      { role: 'user', content: message },
-    ]
+    // History comes from the client — allowlist roles, require string content,
+    // and cap turn count/length so callers can't inject fake assistant turns,
+    // arbitrary content blocks, or unbounded context.
+    const history = (Array.isArray(conversationHistory) ? conversationHistory : [])
+      .filter(
+        (msg) =>
+          (msg?.role === 'user' || msg?.role === 'assistant') && typeof msg?.content === 'string'
+      )
+      .slice(-20)
+      .map((msg) => ({ role: msg.role, content: msg.content.slice(0, 4000) }))
+
+    const messages = [...history, { role: 'user', content: message.slice(0, 4000) }]
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
