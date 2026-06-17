@@ -1,5 +1,7 @@
 // File: app/api/ai/sentinel/route.js (new — mkdir -p app/api/ai/sentinel)
 
+import { lookup } from 'node:dns/promises'
+import net from 'node:net'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '../../../../lib/supabase/route-auth'
 import {
@@ -94,7 +96,59 @@ export async function GET(request) {
   }
 }
 
+// org URLs are client-controlled — never let the monitor be used to probe
+// loopback/link-local/RFC1918 hosts or cloud metadata endpoints (SSRF).
+function isPrivateIp(ip) {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split('.').map(Number)
+    return (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    )
+  }
+  const lower = ip.toLowerCase()
+  return (
+    lower === '::' ||
+    lower === '::1' ||
+    lower.startsWith('fe80') ||
+    lower.startsWith('fc') ||
+    lower.startsWith('fd') ||
+    lower.startsWith('::ffff:') // be conservative with v4-mapped addresses
+  )
+}
+
+async function isSafeMonitorUrl(raw) {
+  let url
+  try {
+    url = new URL(raw)
+  } catch {
+    return false
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
+  try {
+    const addrs = await lookup(url.hostname, { all: true, verbatim: true })
+    return addrs.length > 0 && !addrs.some((a) => isPrivateIp(a.address))
+  } catch {
+    return false
+  }
+}
+
 async function checkUrl(url, type) {
+  if (!(await isSafeMonitorUrl(url))) {
+    return {
+      type,
+      action: `${type}_check_skipped`,
+      status: 'warning',
+      severity: 'warning',
+      message: `${type} URL is not a publicly routable http(s) address; check skipped`,
+      url,
+    }
+  }
   try {
     const startTime = Date.now()
     const response = await fetch(url, {
@@ -224,21 +278,33 @@ async function checkTicketVolume(orgId, orgName) {
 }
 
 async function autoCreateTicket(orgId, check) {
-  // Get an admin profile to assign
+  // System tickets need a creator: use the longest-standing admin so the
+  // attribution is at least deterministic. With no admin at all there is no
+  // valid created_by — log and skip rather than insert a row that violates
+  // the FK unchecked.
   const { data: admin } = await supabase
     .from('profiles')
     .select('id')
     .eq('role', 'admin')
+    .order('created_at', { ascending: true })
     .limit(1)
-    .single()
+    .maybeSingle()
 
-  await supabase.from('tickets').insert({
+  if (!admin?.id) {
+    console.error('Sentinel: no admin profile found; skipping auto-ticket for org', orgId)
+    return
+  }
+
+  const { error } = await supabase.from('tickets').insert({
     organization_id: orgId,
-    created_by: admin?.id,
+    created_by: admin.id,
     title: `🤖 Sentinel Alert: ${check.message}`,
     description: `Sentinel AI detected an issue:\n\nType: ${check.type}\nSeverity: ${check.severity}\nDetails: ${check.message}\n\nThis ticket was auto-created by the monitoring system.`,
     category: 'helpdesk',
     priority: check.severity === 'critical' ? 'urgent' : 'high',
     status: 'open',
   })
+  if (error) {
+    console.error('Sentinel: auto-ticket insert failed for org', orgId, error)
+  }
 }

@@ -1,7 +1,7 @@
 // File: app/api/process-document/route.js (new — create folder: mkdir -p app/api/process-document)
 
 import { createClient } from '@supabase/supabase-js'
-import { requireAdmin } from '../../../lib/supabase/route-auth'
+import { requireAdmin, assertResourceOrg } from '../../../lib/supabase/route-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -59,6 +59,11 @@ export async function POST(request) {
       return Response.json({ error: 'Job not found' }, { status: 404 })
     }
 
+    // Tie the job to the caller's org. A no-op for global (staff) admins, but
+    // keeps this from becoming an IDOR if access is ever widened beyond staff.
+    const orgErr = assertResourceOrg(job.organization_id, auth.profile)
+    if (orgErr) return Response.json({ error: orgErr.error }, { status: orgErr.status })
+
     await supabase
       .from('document_jobs')
       .update({ status: 'processing' })
@@ -77,7 +82,9 @@ export async function POST(request) {
         continue
       }
 
-      const fileName = filePath.split('/').pop()
+      // Strip newlines/dashes so a crafted filename can't fake a
+      // `--- File: ... ---` separator inside the prompt context.
+      const fileName = filePath.split('/').pop().replace(/[\r\n]/g, ' ').replace(/-{3,}/g, '—')
       const mimeType = fileData.type || 'application/octet-stream'
 
       if (mimeType.startsWith('image/') || mimeType === 'application/pdf') {
@@ -154,7 +161,9 @@ export async function POST(request) {
     }
 
     const aiResult = await anthropicResponse.json()
-    const resultText = aiResult.content
+    // Don't assume the content envelope is an array — a non-array 200 response
+    // would otherwise throw and mark the job failed with a misleading error.
+    const resultText = (Array.isArray(aiResult?.content) ? aiResult.content : [])
       .map(block => block.type === 'text' ? block.text : '')
       .join('\n')
 

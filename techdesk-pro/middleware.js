@@ -65,7 +65,15 @@ export async function middleware(request) {
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
+
+    // A signed-in user with no profile is mid-signup: the auth account exists
+    // but the workspace was never created. Let them reach /signup to finish —
+    // bouncing them to the portal just shows the "finish setting up" wall,
+    // whose button leads back here (a dead-end loop).
+    if (!profile && request.nextUrl.pathname === '/signup') {
+      return supabaseResponse
+    }
 
     const url = request.nextUrl.clone()
     url.pathname = profile?.role === 'admin' ? '/admin/dashboard' : '/portal/dashboard'

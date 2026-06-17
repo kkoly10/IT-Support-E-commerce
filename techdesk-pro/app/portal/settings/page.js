@@ -91,9 +91,14 @@ export default function SettingsPage() {
         .from('profiles')
         .select('id, full_name, email, organization_id, organizations(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError) throw profileError
+
+      if (!profileData) {
+        setLoading(false)
+        return
+      }
 
       const org = profileData.organizations || {}
       const discovery = org.discovery_profile || {}

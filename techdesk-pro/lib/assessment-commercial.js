@@ -23,7 +23,8 @@ const PLAN_META = {
 
 function normalizeTeamSize(range = '') {
   // The assessment form sends one of these five buckets; anything else falls
-  // through to a numeric parse and finally 0.
+  // through to a generic range parse (midpoint), then a plain number, then 0 —
+  // a bare parseInt would silently take the low end of an unrecognized range.
   const value = String(range).toLowerCase()
 
   if (value.includes('1-5')) return 3
@@ -31,6 +32,11 @@ function normalizeTeamSize(range = '') {
   if (value.includes('16-30')) return 22
   if (value.includes('31-75')) return 50
   if (value.includes('75+')) return 90
+
+  const rangeMatch = value.match(/(\d+)\s*[-–]\s*(\d+)/)
+  if (rangeMatch) return Math.round((Number(rangeMatch[1]) + Number(rangeMatch[2])) / 2)
+  const openMatch = value.match(/(\d+)\s*\+/)
+  if (openMatch) return Number(openMatch[1])
 
   const parsed = parseInt(value, 10)
   return Number.isFinite(parsed) ? parsed : 0
@@ -45,8 +51,12 @@ function normalizeUrgency(value = '') {
 
 export function deriveRecommendedPlan(assessment = {}, review = {}) {
   const team = normalizeTeamSize(assessment.team_size_range)
-  const fitScore = Number.isFinite(review?.fit_score) ? review.fit_score : 55
-  const fitLabel = review?.fit_label || 'possible_fit'
+  // Models sometimes return the score as a string — coerce before checking.
+  const rawScore = Number(review?.fit_score)
+  const fitScore = Number.isFinite(rawScore) ? rawScore : 55
+  // A missing label must not mask a clearly low score: defaulting straight to
+  // 'possible_fit' would make the poor_fit short-circuit unreachable.
+  const fitLabel = review?.fit_label || (fitScore < 40 ? 'poor_fit' : 'possible_fit')
   const reviewFlag = review?.review_flag || 'none'
 
   if (fitLabel === 'poor_fit' || reviewFlag === 'scope_watch') {
@@ -59,9 +69,13 @@ export function deriveRecommendedPlan(assessment = {}, review = {}) {
     }
   }
 
+  // Team size sets the baseline tier; a strong internal fit score can justify
+  // at most a one-tier bump. It must never push a tiny team to Scale on its own.
   let key = 'starter'
-  if (team >= 6 || fitScore >= 70) key = 'growth'
-  if (team >= 16 || fitScore >= 85) key = 'scale'
+  if (team >= 6) key = 'growth'
+  if (team >= 16) key = 'scale'
+  if (key === 'starter' && fitScore >= 70) key = 'growth'
+  else if (key === 'growth' && team >= 6 && fitScore >= 85) key = 'scale'
 
   return {
     key,

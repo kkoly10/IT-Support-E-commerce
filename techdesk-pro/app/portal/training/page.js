@@ -5,7 +5,21 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '../../../lib/supabase/client'
 
-const PLAN_RANK = { starter: 1, growth: 2, scale: 3, custom: 4 }
+// Courses store legacy keys (starter/growth/scale) while organizations.plan
+// uses the current catalog (pending/founding/remote/managed/secure/custom) —
+// rank both vocabularies on one scale. Unknown org plans rank lowest so new
+// plan keys fail closed instead of unlocking everything.
+const PLAN_RANK = {
+  pending: 0,
+  founding: 1,
+  remote: 1,
+  starter: 1,
+  managed: 2,
+  growth: 2,
+  secure: 3,
+  scale: 3,
+  custom: 4,
+}
 
 const CATEGORY_LABELS = {
   cybersecurity: { label: 'Cybersecurity', color: '#e74c3c' },
@@ -38,7 +52,7 @@ export default function TrainingCatalog() {
       .from('profiles')
       .select('organization_id, organizations(plan)')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile?.organizations?.plan) {
       setOrgPlan(profile.organizations.plan)
@@ -66,7 +80,9 @@ export default function TrainingCatalog() {
   }
 
   function isLocked(course) {
-    return PLAN_RANK[course.min_plan] > PLAN_RANK[orgPlan]
+    const required = PLAN_RANK[course.min_plan] ?? 0 // no/unknown requirement → open
+    const held = PLAN_RANK[orgPlan] ?? 0 // unknown plan → most restrictive
+    return required > held
   }
 
   const categories = ['all', ...new Set(courses.map(c => c.category))]

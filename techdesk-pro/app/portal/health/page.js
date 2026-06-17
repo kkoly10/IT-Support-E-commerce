@@ -26,7 +26,7 @@ export default function HealthPage() {
       .from('profiles')
       .select('organization_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile) {
       setLoading(false)

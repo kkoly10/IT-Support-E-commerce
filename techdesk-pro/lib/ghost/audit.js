@@ -17,7 +17,9 @@ export async function logGhostEvent({
   outputPayload = {},
 }) {
   try {
-    await supabase.from('ghost_activity_logs').insert({
+    // supabase-js returns errors rather than throwing — check explicitly so a
+    // rejected audit write is at least visible in server logs.
+    const { error } = await supabase.from('ghost_activity_logs').insert({
       actor_user_id: actorUserId,
       entity_type: entityType,
       entity_id: entityId ? String(entityId) : null,
@@ -28,6 +30,10 @@ export async function logGhostEvent({
       input_payload: inputPayload || {},
       output_payload: outputPayload || {},
     })
+
+    if (error) {
+      console.error('Ghost audit log insert rejected:', error, { actionType, entityType, entityId })
+    }
   } catch (err) {
     console.error('Ghost audit log error:', err)
   }

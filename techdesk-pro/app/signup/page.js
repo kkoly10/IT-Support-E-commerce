@@ -20,6 +20,9 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [assessmentId, setAssessmentId] = useState('')
+  // Set when the visitor is already signed in but has no profile yet
+  // (auth account exists, workspace setup never completed).
+  const [sessionUser, setSessionUser] = useState(null)
 
   const router = useRouter()
   const supabase = createClient()
@@ -37,11 +40,24 @@ export default function SignupPage() {
     if (seedEmail) setEmail(seedEmail)
     if (seedCompany) setCompanyName(seedCompany)
     if (seedAssessment) setAssessmentId(seedAssessment)
+
+    // Middleware only lets signed-in users reach /signup when they have no
+    // profile — pick up that session so submit completes the existing
+    // account instead of trying to register the email again.
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        setSessionUser(data.user)
+        setEmail(data.user.email || '')
+        const metaName = data.user.user_metadata?.full_name
+        if (metaName) setFullName((prev) => prev || metaName)
+      }
+    })
   }, [])
 
   const introTitle = useMemo(() => {
+    if (sessionUser) return 'Finish setting up your account'
     return assessmentId ? 'Continue from your assessment' : 'Create your account'
-  }, [assessmentId])
+  }, [assessmentId, sessionUser])
 
   const introDesc = useMemo(() => {
     return assessmentId
@@ -59,29 +75,40 @@ export default function SignupPage() {
     const trimmedIndustry = industry.trim()
     const trimmedPainPoints = painPoints.trim()
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: trimmedFullName,
-          company_name: trimmedCompanyName,
+    let userId
+    let hasSession = false
+
+    if (sessionUser) {
+      // Already signed in (account exists, workspace setup never finished) —
+      // skip registration and go straight to workspace creation.
+      userId = sessionUser.id
+      hasSession = true
+    } else {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: trimmedFullName,
+            company_name: trimmedCompanyName,
+          },
         },
-      },
-    })
+      })
 
-    if (authError) {
-      setError(authError.message)
-      setLoading(false)
-      return
-    }
+      if (authError) {
+        setError(authError.message)
+        setLoading(false)
+        return
+      }
 
-    const userId = authData?.user?.id
+      userId = authData?.user?.id
+      hasSession = Boolean(authData?.session)
 
-    if (!userId) {
-      setError('Account created but user ID was not returned. Please try signing in.')
-      setLoading(false)
-      return
+      if (!userId) {
+        setError('Account created but user ID was not returned. Please try signing in.')
+        setLoading(false)
+        return
+      }
     }
 
     // Org + profile creation runs server-side so `role` is hardcoded by the
@@ -91,7 +118,7 @@ export default function SignupPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId,
-        email,
+        email: sessionUser?.email || email,
         fullName: trimmedFullName,
         companyName: trimmedCompanyName,
         teamSize,
@@ -112,13 +139,13 @@ export default function SignupPage() {
     setSuccess(true)
     setLoading(false)
 
-    if (authData.session) {
+    if (hasSession) {
       router.push('/portal/dashboard')
       router.refresh()
     }
   }
 
-  if (success) {
+  if (success && !sessionUser) {
     return (
       <div className="auth-page">
         <div className="auth-card" style={{ maxWidth: 560 }}>
@@ -265,22 +292,25 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
+                  disabled={Boolean(sessionUser)}
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min 6 characters"
-                  minLength={6}
-                  required
-                />
-              </div>
+              {!sessionUser && (
+                <div className="form-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                    minLength={6}
+                    required
+                  />
+                </div>
+              )}
 
               <button type="submit" className="auth-submit">
                 Continue →

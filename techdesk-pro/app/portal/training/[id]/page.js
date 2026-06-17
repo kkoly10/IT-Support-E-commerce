@@ -34,7 +34,7 @@ export default function CourseDetail() {
       .from('profiles')
       .select('organization_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile) setOrgId(profile.organization_id)
 
@@ -42,7 +42,7 @@ export default function CourseDetail() {
       .from('training_courses')
       .select('*')
       .eq('id', id)
-      .single()
+      .maybeSingle()
 
     setCourse(courseData)
 
@@ -51,9 +51,11 @@ export default function CourseDetail() {
       .select('*')
       .eq('user_id', user.id)
       .eq('course_id', id)
-      .single()
+      // A never-started course legitimately has no progress row — .single()
+      // would 406 on every load.
+      .maybeSingle()
 
-    if (prog) {
+    if (prog && courseData) {
       setProgress(prog)
       setCurrentLesson(Math.min(prog.lessons_completed + 1, courseData.lesson_count))
     }

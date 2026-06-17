@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { normalizeRequestCategory } from '../../../../lib/support-ui'
 import { requireAdmin, isInternalCall } from '../../../../lib/supabase/route-auth'
+import { parseClaudeJson } from '../../../../lib/ghost/json'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -128,12 +129,11 @@ Analyze this ticket for remote IT support triage only.`,
     }
 
     const aiResult = await response.json()
-    const resultText = aiResult.content
-      .map((block) => (block.type === 'text' ? block.text : ''))
-      .join('')
-
-    const cleaned = resultText.replace(/```json\n?|```/g, '').trim()
-    const parsed = JSON.parse(cleaned)
+    const parsed = parseClaudeJson(aiResult)
+    if (!parsed) {
+      console.error('Triage: model returned unparseable output')
+      return Response.json({ error: 'AI triage returned unparseable output.' }, { status: 502 })
+    }
 
     const updatePayload = {
       ai_category: normalizeAiCategory(parsed.ai_category),

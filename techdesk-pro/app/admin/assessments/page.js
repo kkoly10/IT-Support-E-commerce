@@ -58,7 +58,17 @@ export default function AdminAssessmentsPage() {
   }
 
   async function updateStatus(id, status) {
-    await supabase.from('assessment_submissions').update({ status }).eq('id', id)
+    const { error } = await supabase
+      .from('assessment_submissions')
+      .update({ status })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Assessment status update failed:', error)
+      alert(`Failed to update status: ${error.message}`)
+      return
+    }
+
     setItems((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)))
   }
 

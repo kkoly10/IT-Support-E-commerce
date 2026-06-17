@@ -24,9 +24,19 @@ export async function POST(request) {
       return Response.json({ error: 'Missing organizationId' }, { status: 400 })
     }
 
+    if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+      return Response.json({ error: 'Invalid month — expected YYYY-MM.' }, { status: 400 })
+    }
+
     const reportMonth = month || new Date().toISOString().slice(0, 7)
     const startDate = `${reportMonth}-01`
-    const endDate = new Date(new Date(startDate).setMonth(new Date(startDate).getMonth() + 1)).toISOString().slice(0, 10)
+    // Pure string arithmetic — mixing a UTC date parse with local-time
+    // .setMonth() shifted month boundaries on negative-UTC-offset servers.
+    const [reportYear, reportMonthNum] = reportMonth.split('-').map(Number)
+    const endDate =
+      reportMonthNum === 12
+        ? `${reportYear + 1}-01-01`
+        : `${reportYear}-${String(reportMonthNum + 1).padStart(2, '0')}-01`
 
     // Get org info
     const { data: org } = await supabase
@@ -80,8 +90,10 @@ export async function POST(request) {
       if (targetHours !== null && hours <= targetHours) slaCompliantCount += 1
     }
 
+    // Keep these numeric (1 decimal) — monthly_reports columns are numeric and
+    // .toFixed() strings were being written into them.
     const avgResponseHours = ticketResponseHours.length > 0
-      ? (ticketResponseHours.reduce((s, h) => s + h, 0) / ticketResponseHours.length).toFixed(1)
+      ? Math.round((ticketResponseHours.reduce((s, h) => s + h, 0) / ticketResponseHours.length) * 10) / 10
       : null
 
     // Calculate avg resolution time
@@ -91,7 +103,7 @@ export async function POST(request) {
       const totalHours = withResolution.reduce((sum, t) => {
         return sum + (new Date(t.resolved_at) - new Date(t.created_at)) / (1000 * 60 * 60)
       }, 0)
-      avgResolutionHours = (totalHours / withResolution.length).toFixed(1)
+      avgResolutionHours = Math.round((totalHours / withResolution.length) * 10) / 10
     }
 
     // Category breakdown
@@ -164,16 +176,25 @@ Give 3-5 specific, actionable recommendations. Return as a JSON array of strings
     })
 
     let recommendations = []
+    let aiError = null
     if (aiResponse.ok) {
       const aiData = await aiResponse.json()
       const blocks = Array.isArray(aiData?.content) ? aiData.content : []
       const text = blocks.map((b) => b?.text || '').join('')
       try {
         const cleaned = text.replace(/```json\n?|```/g, '').trim()
-        recommendations = JSON.parse(cleaned)
+        const parsed = JSON.parse(cleaned)
+        // The prompt asks for a JSON array of strings; valid-but-wrong-shape
+        // output (object/number) must not crash the report after the AI spend.
+        recommendations = Array.isArray(parsed) ? parsed.map(String) : text ? [text] : []
       } catch {
         recommendations = text ? [text] : []
       }
+    } else {
+      // Surface persistent key/billing failures instead of silently shipping a
+      // report with empty recommendations.
+      aiError = `Recommendations unavailable: AI request failed (${aiResponse.status}).`
+      console.error('AutoReport AI failure:', aiResponse.status, await aiResponse.text().catch(() => ''))
     }
 
     // Build report data
@@ -194,10 +215,11 @@ Give 3-5 specific, actionable recommendations. Return as a JSON array of strings
       },
       categories,
       recommendations,
+      ...(aiError ? { ai_error: aiError } : {}),
     }
 
     // Save to monthly_reports table
-    await supabase.from('monthly_reports').upsert({
+    const { error: upsertError } = await supabase.from('monthly_reports').upsert({
       organization_id: organizationId,
       report_month: startDate,
       tickets_opened: totalTickets,
@@ -206,10 +228,17 @@ Give 3-5 specific, actionable recommendations. Return as a JSON array of strings
       avg_resolution_time_hours: avgResolutionHours,
       sla_compliance_pct: slaCompliance,
       top_categories: categories,
-      recommendations: recommendations.join('\n'),
+      recommendations: recommendations.length > 0 ? recommendations.join('\n') : null,
     }, {
       onConflict: 'organization_id,report_month',
     })
+    if (upsertError) {
+      console.error('AutoReport save failed:', upsertError)
+      return Response.json(
+        { error: `Report computed but could not be saved: ${upsertError.message}` },
+        { status: 500 }
+      )
+    }
 
     return Response.json(reportData)
 

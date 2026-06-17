@@ -112,7 +112,7 @@ export default function TicketsPage() {
       .from('profiles')
       .select('organization_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile?.organization_id) {
       setLoading(false)

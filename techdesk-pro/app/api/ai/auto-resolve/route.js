@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin, isInternalCall } from '../../../../lib/supabase/route-auth'
+import { parseClaudeJson } from '../../../../lib/ghost/json'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -124,12 +125,14 @@ Write the final reply and internal summary now.`,
     }
 
     const aiResult = await response.json()
-    const resultText = aiResult.content
-      .map((block) => (block.type === 'text' ? block.text : ''))
-      .join('')
-
-    const cleaned = resultText.replace(/```json\n?|```/g, '').trim()
-    const parsed = JSON.parse(cleaned)
+    const parsed = parseClaudeJson(aiResult)
+    if (!parsed) {
+      console.error('AutoResolve: model returned unparseable output')
+      return Response.json({
+        resolved: false,
+        message: 'AutoResolve returned unparseable output.',
+      })
+    }
 
     if (!parsed.can_resolve || !parsed.auto_reply) {
       return Response.json({
