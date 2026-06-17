@@ -114,6 +114,108 @@ export const REGIONS = [
 // Flat, de-duplicated city list (for schema areaServed + footer).
 export const SERVICE_CITIES = [...new Set(REGIONS.flatMap((r) => r.cities))]
 
+// Service landing pages. Each becomes /services/<slug>. Content is written to
+// match Kocre IT's real, stated scope (remote-first, Windows-first managed
+// devices, basic security hygiene — not 24/7 SOC/compliance, fair-use not
+// unlimited). `keyword` is the primary search intent the page targets.
+export const SERVICES = [
+  {
+    slug: 'managed-it-services',
+    name: 'Managed IT Services',
+    keyword: 'managed IT services for small business',
+    metaTitle: 'Managed IT Services for Small Businesses | Kocre IT Services',
+    metaDescription:
+      'Remote-first managed IT services for small businesses with 1–20 users — helpdesk, Microsoft 365 and Google Workspace administration, and managed Windows devices on a flat monthly plan.',
+    intro:
+      'Flat-rate, remote-first managed IT for small businesses that don’t have an internal IT team — day-to-day helpdesk, cloud administration, and managed Windows devices, all tracked through a structured support portal.',
+    note:
+      'Most teams we work with have 1–20 people, run on Microsoft 365 or Google Workspace, and have been getting by with “whoever is least bad at computers.” Managed IT replaces that with a predictable monthly plan: a real ticketing portal, written scope, structured onboarding, and accountable response during business hours — without the cost of a full-time hire.',
+    included: [
+      ['Remote helpdesk', 'User issues — passwords, email, software, accounts — handled through a ticketing portal during business hours.'],
+      ['Microsoft 365 & Google Workspace admin', 'User setup, MFA, shared mailboxes, groups, permissions, and clean offboarding.'],
+      ['Managed Windows devices', 'Approved business computers connected for remote troubleshooting, inventory, update visibility, and health checks.'],
+      ['Onboarding & accountability', 'Contacts, access, and documentation tracked in writing so nothing slips through the cracks.'],
+    ],
+    faqKeys: ['What type of businesses are a good fit?', 'Do you offer unlimited support?', 'Do you provide on-site support?'],
+  },
+  {
+    slug: 'remote-it-helpdesk',
+    name: 'Remote IT Helpdesk',
+    keyword: 'remote IT helpdesk support for small business',
+    metaTitle: 'Remote IT Helpdesk Support for Small Businesses | Kocre IT Services',
+    metaDescription:
+      'Business-hours remote IT helpdesk for small businesses — password resets, email and account issues, software troubleshooting, and Microsoft 365 / Google Workspace help through a structured ticketing portal.',
+    intro:
+      'A real helpdesk for small teams without one — submit a request and get structured, accountable help with the everyday IT issues that interrupt your workday.',
+    note:
+      'Your team shouldn’t lose an afternoon to a locked account or a broken mailbox. Our remote helpdesk handles routine issues — typically resolvable within about 30 minutes — through a ticketing portal with clear status updates, AI-assisted triage, and human supervision on every response.',
+    included: [
+      ['Accounts & passwords', 'Resets, lockouts, MFA help, and permission changes for approved users.'],
+      ['Email & collaboration', 'Outlook/Gmail issues, shared mailboxes, calendar, and common Microsoft 365 / Google Workspace tasks.'],
+      ['Software & device help', 'Troubleshooting for approved business apps and managed Windows devices.'],
+      ['Tracked, not lost', 'Every request is a ticket with history, status, and a first-response target during business hours.'],
+    ],
+    faqKeys: ['What is a standard support request?', 'What is a supported user?', 'Do you offer unlimited support?'],
+  },
+  {
+    slug: 'microsoft-365-support',
+    name: 'Microsoft 365 Support',
+    keyword: 'Microsoft 365 support and administration for small business',
+    metaTitle: 'Microsoft 365 Support & Administration for Small Businesses | Kocre IT',
+    metaDescription:
+      'Microsoft 365 support and administration for small businesses — user setup, MFA, shared mailboxes, groups, permissions, and offboarding, handled remotely during business hours.',
+    intro:
+      'Day-to-day Microsoft 365 administration and user support for small businesses — so your email, accounts, and shared tools just work.',
+    note:
+      'Microsoft 365 is the backbone of most small businesses we support, and its admin center is not where a busy owner wants to spend their day. We handle the routine 365 work — onboarding new users, MFA, shared mailboxes, distribution groups, basic permissions, and clean offboarding — and keep access tidy as people join and leave.',
+    included: [
+      ['User lifecycle', 'New-user setup, license assignment, MFA enrollment, and offboarding that actually removes access.'],
+      ['Mailboxes & groups', 'Shared mailboxes, distribution and security groups, aliases, and calendar sharing.'],
+      ['Permissions & sharing', 'SharePoint/OneDrive sharing basics and routine permission changes for approved users.'],
+      ['Security hygiene', 'MFA review, admin-account review, and access cleanup as part of routine housekeeping.'],
+    ],
+    faqKeys: ['Do you support Microsoft 365 and Google Workspace?', 'Do you provide cybersecurity?', 'What is not considered standard support?'],
+  },
+  {
+    slug: 'google-workspace-support',
+    name: 'Google Workspace Support',
+    keyword: 'Google Workspace support and administration for small business',
+    metaTitle: 'Google Workspace Support & Administration for Small Businesses | Kocre IT',
+    metaDescription:
+      'Google Workspace support and administration for small businesses — user setup, 2-step verification, shared drives, groups, and offboarding, handled remotely during business hours.',
+    intro:
+      'Routine Google Workspace administration and user support for small businesses on Gmail, Drive, and the rest of the suite.',
+    note:
+      'For teams running on Google Workspace, we take the admin console off your plate — adding and removing users, enforcing 2-step verification, managing groups and shared drives, and keeping sharing and access clean. The same structured ticketing and business-hours response as the rest of our support.',
+    included: [
+      ['User lifecycle', 'New-user setup, 2-step verification, and offboarding that revokes access cleanly.'],
+      ['Groups & shared drives', 'Google Groups, shared drive structure, and routine membership changes.'],
+      ['Mail & sharing', 'Gmail routing basics, aliases, delegation, and Drive sharing housekeeping.'],
+      ['Security hygiene', '2SV review, admin review, and access cleanup as part of routine housekeeping.'],
+    ],
+    faqKeys: ['Do you support Microsoft 365 and Google Workspace?', 'Do you provide cybersecurity?', 'Do you support Macs?'],
+  },
+  {
+    slug: 'employee-onboarding-offboarding',
+    name: 'Employee IT Onboarding & Offboarding',
+    keyword: 'employee IT onboarding and offboarding for small business',
+    metaTitle: 'Employee IT Onboarding & Offboarding for Small Businesses | Kocre IT',
+    metaDescription:
+      'Structured IT onboarding and offboarding for small businesses — new-hire account setup and clean departures across Microsoft 365 or Google Workspace, tracked in writing.',
+    intro:
+      'Repeatable new-hire setup and clean departures — so access is ready on day one and fully revoked the day someone leaves.',
+    note:
+      'Onboarding and offboarding are where small businesses quietly lose security and time. We make both a checklist, not a scramble: accounts, email, MFA, group membership, and device handoff for new hires; and a documented, auditable shutoff of accounts, sessions, and access when someone leaves — across Microsoft 365 or Google Workspace.',
+    included: [
+      ['New-hire setup', 'Accounts, email, MFA, group membership, and managed-device handoff, ready before day one.'],
+      ['Clean offboarding', 'Accounts disabled, sessions revoked, and access removed on a documented timeline.'],
+      ['Written & auditable', 'Every onboarding/offboarding tracked in the portal so nothing is missed.'],
+      ['Access hygiene', 'Periodic review so old accounts and stale access don’t pile up.'],
+    ],
+    faqKeys: ['What is a supported user?', 'Can I cancel?', 'What type of businesses are a good fit?'],
+  },
+]
+
 // Homepage FAQ — rendered visibly AND emitted as FAQPage schema (must match).
 export const FAQS = [
   ['Do you provide on-site support?', 'No. Kocre IT is currently remote-first. We support approved users, accounts, software, cloud tools, and Windows devices remotely. If an issue requires physical work, cabling, hardware repair, or on-site troubleshooting, we can help guide next steps, but that work is outside standard support.'],

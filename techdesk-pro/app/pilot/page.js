@@ -1,3 +1,21 @@
+import { SITE_URL, OG_BASE } from '../../lib/seo'
+
+const title = 'IT Support Pilot for Small Businesses (90-Day) | Kocre IT Services'
+const description =
+  'Try structured remote IT support before committing. Kocre IT’s 90-day pilot for small businesses (up to 5 users) includes helpdesk, Microsoft 365 or Google Workspace admin, and managed Windows device support.'
+
+export const metadata = {
+  title,
+  description,
+  alternates: { canonical: '/pilot' },
+  openGraph: {
+    ...OG_BASE,
+    url: `${SITE_URL}/pilot`,
+    title,
+    description,
+  },
+}
+
 export default function PilotPage() {
   return (
     <main style={{ maxWidth: 1080, margin: '40px auto', padding: '0 16px 56px' }}>
