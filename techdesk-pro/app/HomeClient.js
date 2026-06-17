@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FAQS, BUSINESS, REGIONS } from '../lib/seo'
+import { FAQS, BUSINESS, REGIONS, SERVICES as SERVICE_PAGES } from '../lib/seo'
 
 // ---------------------------------------------------------------------------
 // "Calm Operator" theme — Mercury/Vanta-style restraint. White + warm cream,
@@ -1095,6 +1095,17 @@ function CoCtaFooter() {
               </div>
             </div>
             <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: CO.ink, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>Services</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                <a href="/services" style={{ fontSize: 13.5, color: CO.ink2, textDecoration: 'none', fontWeight: 600 }}>All services</a>
+                {SERVICE_PAGES.map((s) => (
+                  <a key={s.slug} href={`/services/${s.slug}`} style={{ fontSize: 13, color: CO.ink2, textDecoration: 'none' }}>
+                    {s.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: CO.ink, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 10 }}>Contact</div>
               <a href={`tel:${BUSINESS.telephone}`} style={{ display: 'block', fontSize: 13.5, color: CO.ink2, textDecoration: 'none', marginBottom: 6 }}>{BUSINESS.telephoneDisplay}</a>
               <a href={`mailto:${BUSINESS.email}`} style={{ display: 'block', fontSize: 13.5, color: CO.ink2, textDecoration: 'none', marginBottom: 12 }}>{BUSINESS.email}</a>
@@ -1111,6 +1122,7 @@ function CoCtaFooter() {
                 <span style={{ fontWeight: 600, color: CO.ink }}>Kocre IT</span>
               </span>
               {[
+                ['Services', '/services'],
                 ['Pilot', '/pilot'],
                 ['Scope', '/support-transparency'],
                 ['Privacy', '/privacy'],
