@@ -17,7 +17,7 @@ remotely across the **US, Canada, UK & Ireland**.
 
 - Name: **Kocre IT Services** · Founder: Komlan Kouhiko
 - Base: Stafford, Virginia, USA (remote-only; **no public street address** — service-area business)
-- Phone: (540) 515-8324 · Email: hello@ / legal@ / privacy@ kocreit.com
+- Phone: (540) 573-8366 · Email: hello@ / legal@ / privacy@ kocreit.com
 - Plans: Starter $499/mo, Growth $999/mo, Scale $1,999/mo (month-to-month after onboarding)
 - Role: **processor** for client business data; **controller** for own website/marketing data
 

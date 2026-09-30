@@ -323,7 +323,7 @@ export default function PrivacyPage() {
             Email:{' '}
             <a href="mailto:privacy@kocreit.com" style={linkStyle}>privacy@kocreit.com</a>
             <br />
-            Phone: <a href="tel:+15405158324" style={linkStyle}>(540) 515-8324</a>
+            Phone: <a href="tel:+15405738366" style={linkStyle}>(540) 573-8366</a>
             <br />
             Kocre IT Services, Stafford, Virginia, United States
           </p>

@@ -9,8 +9,8 @@ export const SITE_URL =
 export const BUSINESS = {
   name: 'Kocre IT Services',
   legalName: 'Kocre IT Services',
-  telephone: '+1-540-515-8324',
-  telephoneDisplay: '(540) 515-8324',
+  telephone: '+1-540-573-8366',
+  telephoneDisplay: '(540) 573-8366',
   email: 'hello@kocreit.com',
   priceRange: '$299–$899+/mo',
   // Remote/service-area business — no public street address.
