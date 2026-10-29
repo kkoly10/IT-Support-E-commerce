@@ -63,7 +63,7 @@ export default function ServicesPage() {
   const exactUsers = Number(users)
   const validUsers = service === 'one_time' || (/^[1-9]\d{0,2}$/.test(users) && exactUsers <= 250)
   const estimate = useMemo(() => calculateEstimate({ service, users: exactUsers }), [service, exactUsers])
-  const ongoing = service === 'remote' || service === 'managed'
+  const ongoing = ['remote', 'managed', 'secure'].includes(service)
   const org = data?.organization
   const saved = data?.selection
   const selectedPlan = SERVICE_CATALOG[service]
@@ -150,7 +150,7 @@ export default function ServicesPage() {
             </label>
             <label className={`services-choice ${ongoing ? 'is-selected' : ''}`}>
               <input type="radio" name="service-path" value="ongoing" checked={ongoing} onChange={() => chooseService('remote')} />
-              <span><strong>Ongoing support</strong><span>Remote Desk or Managed Desk for 1–10 people.</span><b>Pilot from {formatUsd(SERVICE_CATALOG.remote.firstUser)} / month</b></span>
+              <span><strong>Ongoing support</strong><span>Remote Desk, Managed Desk, or Secure Desk for 1–10 people.</span><b>Pilot from {formatUsd(SERVICE_CATALOG.remote.firstUser)} / month</b></span>
             </label>
             <label className={`services-choice ${service === 'custom' ? 'is-selected' : ''}`}>
               <input type="radio" name="service-path" value="custom" checked={service === 'custom'} onChange={() => chooseService('custom')} />
@@ -162,7 +162,7 @@ export default function ServicesPage() {
         {ongoing && <fieldset className="services-fieldset" disabled={saving || loading}>
           <legend>Your ongoing support level</legend>
           <div className="services-levels">
-            {['remote', 'managed'].map((key) => <label key={key} className={`services-choice ${service === key ? 'is-selected' : ''}`}>
+            {['remote', 'managed', 'secure'].map((key) => <label key={key} className={`services-choice ${service === key ? 'is-selected' : ''}`}>
               <input type="radio" name="support-level" value={key} checked={service === key} onChange={() => chooseService(key)} />
               <span><strong>{SERVICE_CATALOG[key].name}</strong><span>{SERVICE_CATALOG[key].description}</span><b>{formatUsd(SERVICE_CATALOG[key].firstUser)} first user + {formatUsd(SERVICE_CATALOG[key].additionalUser)} each additional user / month</b></span>
             </label>)}
