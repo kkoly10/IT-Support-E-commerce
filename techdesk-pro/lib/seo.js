@@ -1,3 +1,5 @@
+import { SERVICE_CATALOG, formatUsd } from './service-catalog'
+
 // Centralized SEO / business constants — used by metadata, JSON-LD, sitemap, robots, and service-area pages.
 
 export const SITE_URL =
@@ -12,7 +14,7 @@ export const BUSINESS = {
   telephone: '+1-540-573-8366',
   telephoneDisplay: '(540) 573-8366',
   email: 'hello@kocreit.com',
-  priceRange: '$299–$899+/mo',
+  priceRange: `One-time help ${formatUsd(SERVICE_CATALOG.one_time.sessionPrice)}; monthly support from ${formatUsd(SERVICE_CATALOG.remote.firstUser)}`,
   // Remote/service-area business — no public street address.
   sameAs: [
     'https://www.facebook.com/share/18dexYxLNh/',
@@ -125,11 +127,11 @@ export const SERVICES = [
     keyword: 'managed IT services for small business',
     metaTitle: 'Managed IT Services for Small Businesses | Kocre IT Services',
     metaDescription:
-      'Remote-first managed IT services for small businesses with 1–20 users — helpdesk, Microsoft 365 and Google Workspace administration, and managed Windows devices on a flat monthly plan.',
+      'Remote-first managed IT services for small businesses with 1–10 users — helpdesk, Microsoft 365 and Google Workspace administration, and managed Windows devices on a flat monthly plan.',
     intro:
       'Flat-rate, remote-first managed IT for small businesses that don’t have an internal IT team — day-to-day helpdesk, cloud administration, and managed Windows devices, all tracked through a structured support portal.',
     note:
-      'Most teams we work with have 1–20 people, run on Microsoft 365 or Google Workspace, and have been getting by with “whoever is least bad at computers.” Managed IT replaces that with a predictable monthly plan: a real ticketing portal, written scope, structured onboarding, and accountable response during business hours — without the cost of a full-time hire.',
+      'Most teams we work with have 1–10 people, run on Microsoft 365 or Google Workspace, and have been getting by with “whoever is least bad at computers.” Managed IT replaces that with a predictable monthly plan: a real ticketing portal, written scope, structured onboarding, and accountable response during business hours — without the cost of a full-time hire.',
     included: [
       ['Remote helpdesk', 'User issues — passwords, email, software, accounts — handled through a ticketing portal during business hours.'],
       ['Microsoft 365 & Google Workspace admin', 'User setup, MFA, shared mailboxes, groups, permissions, and clean offboarding.'],
@@ -218,17 +220,21 @@ export const SERVICES = [
 
 // Homepage FAQ — rendered visibly AND emitted as FAQPage schema (must match).
 export const FAQS = [
-  ['Do you provide on-site support?', 'No. Kocre IT is currently remote-first. We support approved users, accounts, software, cloud tools, and Windows devices remotely. If an issue requires physical work, cabling, hardware repair, or on-site troubleshooting, we can help guide next steps, but that work is outside standard support.'],
-  ['What type of businesses are a good fit?', 'Kocre IT is best for small businesses with 1–20 users, Windows computers, Microsoft 365 or Google Workspace, and no internal IT team. We are a strong fit for businesses that need helpdesk, account support, cloud admin, and managed Windows device support during business hours.'],
-  ['What is a supported user?', 'A supported user is an approved employee or team member covered by the monthly plan who can receive help with routine remote IT issues, accounts, email, cloud tools, and approved business devices.'],
-  ['What is a managed device?', 'A managed device is an approved business computer connected to Kocre IT’s secure support system for remote troubleshooting, device inventory, update visibility, and basic health checks.'],
-  ['What is the support agent?', 'The support agent is a secure tool installed only on approved business computers for managed device support. It helps Kocre IT provide remote troubleshooting, view basic device health, review system information, and support approved devices more efficiently.'],
-  ['What is a standard support request?', 'A standard support request is a routine remote issue or admin task that can normally be handled within 30 minutes. Examples include password help, email issues, software troubleshooting, account changes, basic device support, and common Microsoft 365 or Google Workspace tasks.'],
-  ['What is not considered standard support?', 'Projects, migrations, security incidents, vendor escalations, after-hours emergencies, hardware repair, cabling, server work, compliance work, and major system changes are not standard support. Those are reviewed and quoted separately.'],
-  ['Do you offer unlimited support?', 'No. Kocre IT uses fair-use support. Monthly plans cover routine support within a reasonable usage range. If support volume is consistently above normal plan usage, we may recommend a higher plan or scoped project pricing.'],
-  ['Do you support Macs?', 'Mac support is available by review, but Kocre IT is currently Windows-first for managed device support. Businesses with mostly Mac or Linux devices may need a separate review before onboarding.'],
-  ['Do you support Microsoft 365 and Google Workspace?', 'Yes. Kocre IT supports common Microsoft 365 and Google Workspace tasks such as user setup, password help, MFA setup, shared mailbox support, groups, basic permissions, and account offboarding.'],
-  ['Do you provide cybersecurity?', 'Kocre IT provides basic security hygiene support such as MFA review, local admin review, Defender/firewall checks, access cleanup, and risk notes. We do not currently provide full cybersecurity incident response, compliance guarantees, or 24/7 security monitoring as standard support.'],
-  ['Can I cancel?', 'Yes. Monthly support can be cancelled with notice according to the service agreement. After cancellation, Kocre IT will remove support access and uninstall the support agent from managed devices as part of offboarding.'],
-  ['What happens after I start the free assessment?', 'We review your business size, tools, devices, and support needs. If Kocre IT is a good fit, we recommend a plan, schedule onboarding, set up your portal, and activate support after setup is complete.'],
+  ['Is creating an account free?', 'Yes. You can explore services, save your choice, and ask setup questions without a payment. Creating an account or requesting a service does not purchase or activate support. You approve the scope and price before work begins.'],
+  ['Which path fits one person?', `Choose one-time help for an eligible issue (${formatUsd(SERVICE_CATALOG.one_time.sessionPrice)} for up to ${SERVICE_CATALOG.one_time.sessionMinutes} minutes), Remote Desk for ongoing help (${formatUsd(SERVICE_CATALOG.remote.firstUser)}/month plus ${formatUsd(SERVICE_CATALOG.remote.setup)} setup), or Managed Desk for agreed preventive Windows care (${formatUsd(SERVICE_CATALOG.managed.firstUser)}/month plus ${formatUsd(SERVICE_CATALOG.managed.setup)} setup). We confirm fit and availability before work begins.`],
+  ['What type of businesses are a good fit?', 'Our small-team path is for 1–10 people using Microsoft 365 or Google Workspace. Managed device care is Windows-first. Complex environments and larger teams use a custom quote. Personal customers can also request one-time remote help.'],
+  ['How are 3–10-person totals handled?', 'The calculator shows an illustrative total for 3–10 people. We confirm scope, coverage and the final price in a written quote before work begins. Larger teams and complex requirements are custom-priced.'],
+  ['What is a supported user?', 'A supported user is a person included in the agreed support roster. They do not need a portal login to be covered. Aliases and shared mailboxes are not extra people; additional computers, tenants, licenses and project work are scoped separately.'],
+  ['What is a managed device?', 'An approved Windows computer enrolled for the preventive responsibilities in your agreement. Inventory, update handling and the agreed protection checks must be verified before device care is marked ready. Installing an agent or making a payment alone does not establish readiness.'],
+  ['What is the support agent?', 'It is a tool used on approved computers for the remote access and management activities you authorize. Its installation, permissions and service scope are explained during setup. One-time help does not automatically require a permanent management agent.'],
+  ['What is a standard support request?', 'A routine remote issue or administration task within your agreed environment, such as email troubleshooting, password help, or account changes. A routine issue is not automatically reclassified as a project because it takes more than 30 minutes.'],
+  ['What is not considered standard support?', 'A domain rebrand, migration, new laptop build, bulk data transfer, substantial restoration, hardware repair, or additional coverage is separately scoped. Routine employee account and mailbox changes within the supported environment belong to recurring administration. Vendor licenses are separate, and overlapping setup work is not charged twice.'],
+  ['Do you offer unlimited support?', 'No. Recurring support follows the agreed scope and fair-use terms. If demand remains unusually high, we review its cause and agree any future service or price change. We do not add surprise retroactive usage charges.'],
+  ['What hours do you cover?', 'Staffed support windows and the human-response objective are agreed before activation. Submitting a request or receiving an automated receipt does not guarantee immediate troubleshooting, emergency coverage or resolution.'],
+  ['Do you provide on-site support?', 'Kocre IT delivers remote services. We confirm whether an issue can be handled remotely before accepting the work. A non-booting computer, failed hardware, cabling or other physical work may need local assistance and a separate scope.'],
+  ['Do you support Macs?', 'Mac and Linux support is reviewed before acceptance. Managed Desk is Windows-first; we confirm the supported devices and responsibilities in your scope.'],
+  ['Do you support Microsoft 365 and Google Workspace?', 'Yes, within the agreed environment and approved access: user setup, license assignment, MFA, shared mailboxes, groups, routine permissions and offboarding. Rebrands and migrations are separately scoped. Vendor subscriptions are not included in the support price.'],
+  ['Do you provide cybersecurity?', 'Basic security hygiene can be included in an agreed service. Specialist incident response, compliance guarantees, backup services and 24/7 security monitoring require explicit scope and are not automatically included.'],
+  ['Can I cancel?', 'Monthly service follows the notice and effective-date terms in your accepted agreement. We agree the removal of support access and any agent offboarding. Contact Kocre IT for cancellation or a plan change; automated portal cancellation is not yet available.'],
+  ['What happens after signup?', 'Your free workspace saves your service choice. We confirm fit, scope, coverage and price, then you approve the work and complete only the relevant setup. Existing contacts, agreements, access review and onboarding records stay together in the portal. Each service becomes available when its required setup has been verified.'],
 ]

@@ -9,6 +9,7 @@ import {
   STATUS_LABELS,
   toLabel,
 } from '../../../lib/support-ui'
+import ServiceRequestSummary from '../../components/ServiceRequestSummary'
 import { deriveSupportReadiness } from '../../../lib/readiness'
 
 const CLIENT_STATUS_LABELS = {
@@ -282,6 +283,8 @@ export default function DashboardPage() {
           </a>
         )}
       </div>
+
+      <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
 
       {(lifecycle === 'lead' || lifecycle === 'onboarding') && (
         <>

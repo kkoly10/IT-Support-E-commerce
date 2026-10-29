@@ -1,435 +1,227 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '../../lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { createClient } from '../../lib/supabase/client'
+import { SERVICE_CATALOG, calculateEstimate, formatUsd } from '../../lib/service-catalog'
+import { normalizeSignupContext, selectionFromParams, signupResumeHref } from '../../lib/signup-context'
 import BrandMark from '../components/BrandMark'
 
 export default function SignupPage() {
-  const [step, setStep] = useState(1)
+  const [supabase] = useState(createClient)
+  const router = useRouter()
+  const resumed = useRef(false)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState('')
-  const [teamSize, setTeamSize] = useState('')
-  const [industry, setIndustry] = useState('')
-  const [leadInterest, setLeadInterest] = useState('')
-  const [painPoints, setPainPoints] = useState('')
-  const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [assessmentId, setAssessmentId] = useState('')
-  // Set when the visitor is already signed in but has no profile yet
-  // (auth account exists, workspace setup never completed).
+  const [forBusiness, setForBusiness] = useState(false)
+  const [selection, setSelection] = useState(null)
+  const [assessmentId, setAssessmentId] = useState(null)
   const [sessionUser, setSessionUser] = useState(null)
+  const [existingWorkspace, setExistingWorkspace] = useState(false)
+  const [initializing, setInitializing] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [emailSent, setEmailSent] = useState(false)
+  const [completionWarning, setCompletionWarning] = useState(null)
+  const [destination, setDestination] = useState('/portal/services?welcome=1')
 
-  const router = useRouter()
-  const supabase = createClient()
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const params = new URLSearchParams(window.location.search)
-    const seedName = params.get('name')
-    const seedEmail = params.get('email')
-    const seedCompany = params.get('company')
-    const seedAssessment = params.get('assessment')
-
-    if (seedName) setFullName(seedName)
-    if (seedEmail) setEmail(seedEmail)
-    if (seedCompany) setCompanyName(seedCompany)
-    if (seedAssessment) setAssessmentId(seedAssessment)
-
-    // Middleware only lets signed-in users reach /signup when they have no
-    // profile — pick up that session so submit completes the existing
-    // account instead of trying to register the email again.
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setSessionUser(data.user)
-        setEmail(data.user.email || '')
-        const metaName = data.user.user_metadata?.full_name
-        if (metaName) setFullName((prev) => prev || metaName)
-      }
-    })
-  }, [])
-
-  const introTitle = useMemo(() => {
-    if (sessionUser) return 'Finish setting up your account'
-    return assessmentId ? 'Continue from your assessment' : 'Create your account'
-  }, [assessmentId, sessionUser])
-
-  const introDesc = useMemo(() => {
-    return assessmentId
-      ? 'Reserve your onboarding workspace so Kocre IT can connect your assessment, signup, and onboarding flow.'
-      : 'Get started with Kocre IT remote support intake.'
-  }, [assessmentId])
-
-  async function handleSignup(e) {
-    e.preventDefault()
+  async function finishAccount(context) {
     setLoading(true)
     setError(null)
-
-    const trimmedFullName = fullName.trim()
-    const trimmedCompanyName = companyName.trim()
-    const trimmedIndustry = industry.trim()
-    const trimmedPainPoints = painPoints.trim()
-
-    let userId
-    let hasSession = false
-
-    if (sessionUser) {
-      // Already signed in (account exists, workspace setup never finished) —
-      // skip registration and go straight to workspace creation.
-      userId = sessionUser.id
-      hasSession = true
-    } else {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: trimmedFullName,
-            company_name: trimmedCompanyName,
-          },
-        },
+    try {
+      const response = await fetch('/api/signup/complete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(context),
       })
-
-      if (authError) {
-        setError(authError.message)
-        setLoading(false)
-        return
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Could not finish setting up your account. Please retry.')
+      if (result.warning) {
+        setCompletionWarning(result.warning)
+        setDestination(result.next || '/portal/services?welcome=1')
+      } else {
+        router.replace(result.next || '/portal/services?welcome=1')
+        router.refresh()
       }
-
-      userId = authData?.user?.id
-      hasSession = Boolean(authData?.session)
-
-      if (!userId) {
-        setError('Account created but user ID was not returned. Please try signing in.')
-        setLoading(false)
-        return
-      }
-    }
-
-    // Org + profile creation runs server-side so `role` is hardcoded by the
-    // service-role client and the browser can't elevate to 'admin'.
-    const completeRes = await fetch('/api/signup/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        email: sessionUser?.email || email,
-        fullName: trimmedFullName,
-        companyName: trimmedCompanyName,
-        teamSize,
-        industry: trimmedIndustry,
-        leadInterest,
-        painPoints: trimmedPainPoints,
-        assessmentId: assessmentId || null,
-      }),
-    })
-
-    const completeData = await completeRes.json().catch(() => ({}))
-    if (!completeRes.ok) {
-      setError(completeData?.error || 'Account created but workspace setup failed.')
+    } catch (err) {
+      setError(err.message || 'Connection interrupted. Please retry to finish your existing account.')
+    } finally {
       setLoading(false)
-      return
-    }
-
-    setSuccess(true)
-    setLoading(false)
-
-    if (hasSession) {
-      router.push('/portal/dashboard')
-      router.refresh()
     }
   }
 
-  if (success && !sessionUser) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card" style={{ maxWidth: 560 }}>
-          <div className="auth-header">
-            <div className="auth-success-icon">✓</div>
-            <h1>Check your email</h1>
-            <p>
-              We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-            </p>
+  useEffect(() => {
+    let cancelled = false
+    async function restore() {
+      const params = new URLSearchParams(window.location.search)
+      const querySelection = selectionFromParams(params)
+      const seeded = {}
+      if (params.get('name')) seeded.fullName = params.get('name')
+      if (params.get('company')) seeded.companyName = params.get('company')
+      if (params.get('assessment')) seeded.assessmentId = params.get('assessment')
+      if (querySelection) seeded.serviceSelection = querySelection
+      try {
+        const { data } = await supabase.auth.getUser()
+        const user = data?.user
+        const previous = user?.user_metadata?.signup_context || {}
+        const context = normalizeSignupContext(seeded, {
+          ...previous, fullName: previous.fullName || user?.user_metadata?.full_name || '',
+          companyName: previous.companyName || user?.user_metadata?.company_name || '',
+        })
+        if (cancelled) return
+        setFullName(context.fullName)
+        setEmail(user?.email || params.get('email') || '')
+        setCompanyName(context.companyName)
+        setForBusiness(context.accountType === 'business' || Boolean(context.companyName) || ['remote', 'managed', 'custom'].includes(context.serviceSelection?.service))
+        setSelection(context.serviceSelection)
+        setAssessmentId(context.assessmentId)
+        setSessionUser(user || null)
+        let profile = null
+        if (user) {
+          const result = await supabase.from('profiles').select('organization_id, role').eq('id', user.id).maybeSingle()
+          if (result.error) throw new Error('Could not load your account. Please refresh and try again.')
+          profile = result.data
+          if (cancelled) return
+          setExistingWorkspace(Boolean(profile?.organization_id))
+        }
+        setInitializing(false)
+        // Confirmation and incomplete-account login resume the original
+        // request. An existing client's new selection always needs a submit.
+        if (user && params.get('resume') === '1' && !resumed.current &&
+            (!profile?.organization_id || !querySelection) && (context.fullName || profile?.organization_id)) {
+          resumed.current = true
+          await finishAccount(profile?.organization_id ? {} : context)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || 'Could not load your account. Please retry.')
+          setInitializing(false)
+        }
+      }
+    }
+    restore()
+    return () => { cancelled = true }
+  }, [supabase])
 
-            <div
-              style={{
-                marginTop: 16,
-                padding: '14px 16px',
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-                background: '#fafaf8',
-                textAlign: 'left',
-                fontSize: '0.9rem',
-                color: 'var(--ink-muted)',
-                lineHeight: 1.7,
-              }}
-            >
-              <div>
-                <strong style={{ color: 'var(--ink)' }}>What happens next</strong>
-              </div>
-              <div style={{ marginTop: 8 }}>
-                Your workspace has been created in lead status so Kocre IT can connect your assessment,
-                onboarding checklist, and support-readiness review before activation.
-              </div>
-              {assessmentId ? (
-                <div style={{ marginTop: 8 }}>
-                  Assessment reference linked: <strong style={{ color: 'var(--ink)' }}>{assessmentId}</strong>
-                </div>
-              ) : null}
-            </div>
-          </div>
+  const estimate = useMemo(() => calculateEstimate(selection || {}), [selection])
+  const chosen = SERVICE_CATALOG[selection?.service]
+  const loginHref = `/login?${new URLSearchParams({ next: signupResumeHref(selection) }).toString()}`
 
-          <div className="auth-footer">
-            <Link href="/login">Go to login →</Link>
-          </div>
-        </div>
+  async function handleSignup(event) {
+    event.preventDefault()
+    if (!fullName.trim()) { setError('Enter your name.'); return }
+    setLoading(true)
+    setError(null)
+    const context = normalizeSignupContext({
+      fullName, companyName: forBusiness ? companyName : '',
+      accountType: forBusiness ? 'business' : 'personal', serviceSelection: selection, assessmentId,
+    })
+    try {
+      if (!sessionUser) {
+        const confirmUrl = new URL('/auth/confirm', window.location.origin)
+        if (selection?.service) {
+          confirmUrl.searchParams.set('service', selection.service)
+          confirmUrl.searchParams.set('users', String(selection.users))
+        }
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: email.trim(), password,
+          options: {
+            emailRedirectTo: confirmUrl.toString(),
+            data: { full_name: context.fullName, signup_context: context },
+          },
+        })
+        if (authError) throw authError
+        setPassword('')
+        if (!data?.session) {
+          // Email confirmation is still pending: no privileged workspace API.
+          setEmailSent(true)
+          return
+        }
+        setSessionUser(data.user)
+      }
+      await finishAccount(context)
+    } catch (err) {
+      setError(err.message || 'Could not create your account. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (emailSent) return (
+    <div className="auth-page"><div className="auth-card" style={{ maxWidth: 520 }}>
+      <div className="auth-header">
+        <div className="auth-success-icon" aria-hidden="true">✓</div>
+        <h1>Check your email</h1>
+        <p>If this address needs confirmation, you will receive a link at <strong>{email.trim()}</strong>.</p>
+        <p style={{ marginTop: 16 }}>Confirm your email to finish your free account and review your services. Your selection is saved with your signup request.</p>
+        <p style={{ marginTop: 12 }}>Already registered, or opened the link on another device? Sign in to continue.</p>
       </div>
-    )
-  }
+      <div className="auth-footer"><Link href={loginHref}>Continue to sign in →</Link></div>
+    </div></div>
+  )
+
+  if (completionWarning) return (
+    <div className="auth-page"><div className="auth-card" style={{ maxWidth: 520 }}>
+      <div className="auth-header"><h1>Your account is ready</h1><p role="status">{completionWarning}</p></div>
+      <div className="auth-footer"><Link href={destination}>Continue to services →</Link></div>
+    </div></div>
+  )
 
   return (
-    <div className="auth-page">
-      <div className="auth-card" style={{ maxWidth: step === 2 ? 560 : 460 }}>
-        <div className="auth-header">
-          <a href="/" className="auth-logo">
-            <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}>
-              <BrandMark />
-            </div>
-            <span>Kocre IT Services</span>
-          </a>
-
-          <h1>{step === 1 ? introTitle : 'Tell us about your support needs'}</h1>
-          <p>
-            {step === 1
-              ? introDesc
-              : 'This helps us qualify the right onboarding and support path for your business.'}
-          </p>
-
-          {assessmentId ? (
-            <div
-              style={{
-                marginTop: 14,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '6px 12px',
-                borderRadius: 999,
-                background: '#eef4ff',
-                color: '#1d4ed8',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-              }}
-            >
-              Assessment linked: {assessmentId}
-            </div>
-          ) : null}
-
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 16 }}>
-            {[1, 2].map((s) => (
-              <div
-                key={s}
-                style={{
-                  width: s === step ? 32 : 12,
-                  height: 6,
-                  borderRadius: 100,
-                  background: s <= step ? 'var(--teal)' : 'var(--border)',
-                  transition: 'all 0.3s',
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        <form
-          onSubmit={
-            step === 1
-              ? (e) => {
-                  e.preventDefault()
-                  setStep(2)
-                }
-              : handleSignup
-          }
-          className="auth-form"
-        >
-          {error && <div className="auth-error">{error}</div>}
-
-          {step === 1 && (
-            <>
-              <div className="form-group">
-                <label htmlFor="fullName">Full name</label>
-                <input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="companyName">Company name</label>
-                <input
-                  id="companyName"
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Your company name"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Work email</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  disabled={Boolean(sessionUser)}
-                  required
-                />
-              </div>
-
-              {!sessionUser && (
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min 6 characters"
-                    minLength={6}
-                    required
-                  />
-                </div>
-              )}
-
-              <button type="submit" className="auth-submit">
-                Continue →
-              </button>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <div className="form-group">
-                <label htmlFor="leadInterest">What best describes your need?</label>
-                <select
-                  id="leadInterest"
-                  value={leadInterest}
-                  onChange={(e) => setLeadInterest(e.target.value)}
-                  required
-                >
-                  <option value="">Select one</option>
-                  <option value="it_helpdesk">Remote IT helpdesk & support</option>
-                  <option value="it_cloud_admin">Cloud & SaaS administration</option>
-                  <option value="it_managed_devices">Managed Windows device support</option>
-                  <option value="it_general">General technical support</option>
-                  <option value="not_sure">Not sure — I need guidance</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div className="form-group">
-                  <label htmlFor="teamSize">Team size</label>
-                  <select
-                    id="teamSize"
-                    value={teamSize}
-                    onChange={(e) => setTeamSize(e.target.value)}
-                  >
-                    <option value="">Select</option>
-                    <option value="1">Just me</option>
-                    <option value="3">2-5 people</option>
-                    <option value="10">6-15 people</option>
-                    <option value="25">16-50 people</option>
-                    <option value="75">50+ people</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="industry">Industry (optional)</label>
-                  <input
-                    id="industry"
-                    type="text"
-                    value={industry}
-                    onChange={(e) => setIndustry(e.target.value)}
-                    placeholder="e.g. Legal, Retail"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="painPoints">Biggest support challenge right now (optional)</label>
-                <textarea
-                  id="painPoints"
-                  value={painPoints}
-                  onChange={(e) => setPainPoints(e.target.value)}
-                  placeholder="What is causing the most recurring support friction today?"
-                  rows={3}
-                />
-              </div>
-
-              <div
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: 10,
-                  background: '#fafaf8',
-                  border: '1px solid var(--border)',
-                  fontSize: '0.84rem',
-                  color: 'var(--ink-muted)',
-                  lineHeight: 1.7,
-                  marginBottom: 6,
-                }}
-              >
-                This signup reserves your Kocre IT workspace. Final support scope, onboarding sequence,
-                and activation are confirmed through review — not by signup alone.
-              </div>
-
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  style={{
-                    flex: 1,
-                    padding: 14,
-                    border: '1.5px solid var(--border)',
-                    borderRadius: 10,
-                    background: 'white',
-                    fontSize: '0.92rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'Inter Tight, sans-serif',
-                    color: 'var(--ink-muted)',
-                  }}
-                >
-                  ← Back
-                </button>
-
-                <button type="submit" className="auth-submit" disabled={loading} style={{ flex: 2 }}>
-                  {loading ? 'Creating account...' : 'Create Account'}
-                </button>
-              </div>
-            </>
-          )}
-        </form>
-
-        <div className="auth-footer">
-          <p>
-            Already have an account? <Link href="/login">Sign in</Link>
-          </p>
-          <a href="/" className="auth-back">
-            ← Back to website
-          </a>
-        </div>
+    <div className="auth-page"><div className="auth-card" style={{ maxWidth: 500 }}>
+      <div className="auth-header">
+        <Link href="/" className="auth-logo">
+          <div className="logo-mark" style={{ width: 34, height: 34, borderRadius: 9 }}><BrandMark /></div>
+          <span>Kocre IT Services</span>
+        </Link>
+        <h1>{existingWorkspace ? 'Review your service request' : sessionUser ? 'Finish your account' : 'Create your free account'}</h1>
+        <p>{existingWorkspace ? 'Save your interest for review in your existing workspace.' : 'Explore the portal, choose a service, and complete its setup when you are ready.'}</p>
       </div>
-    </div>
+
+      {chosen && <section aria-label="Selected service" style={{ padding: 16, marginBottom: 20, border: '1px solid var(--border)', borderRadius: 12, background: '#f3faf8', lineHeight: 1.6 }}>
+        <strong>{chosen.name}</strong>
+        <div>{selection.service === 'one_time' ? `${formatUsd(estimate.oneTime)} · up to 60 minutes` : estimate.monthly !== null ? `${estimate.requiresQuote ? 'Illustrative estimate' : 'Pilot pricing'}: ${selection.users} ${selection.users === 1 ? 'user' : 'users'} · ${formatUsd(estimate.monthly)}/month + ${formatUsd(estimate.setup)} setup` : 'Written scope and custom quote'}</div>
+        {estimate.monthly !== null && !estimate.requiresQuote && <div style={{ fontSize: '0.87rem' }}>For 1–2 users. Scope, availability, and staffed support windows are agreed before activation.</div>}
+        {estimate.requiresQuote && <div style={{ fontSize: '0.87rem' }}>Subject to a written quote and capacity review.</div>}
+        <div style={{ fontSize: '0.87rem', color: 'var(--ink-muted)', marginTop: 6 }}>You can review or change this in Services after sign-in. No payment is collected here.</div>
+      </section>}
+
+      <form onSubmit={handleSignup} className="auth-form" aria-busy={loading || initializing}>
+        {error && <div className="auth-error" role="alert">{error}</div>}
+        <div className="form-group">
+          <label htmlFor="fullName">Full name</label>
+          <input id="fullName" type="text" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} maxLength={120} required disabled={initializing} />
+        </div>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required disabled={Boolean(sessionUser) || initializing} />
+        </div>
+        {!sessionUser && <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input id="password" type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={8} placeholder="At least 8 characters" required disabled={initializing} />
+        </div>}
+        {!existingWorkspace && <>
+          <label htmlFor="forBusiness" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <input id="forBusiness" type="checkbox" checked={forBusiness} onChange={(event) => setForBusiness(event.target.checked)} style={{ width: 'auto' }} disabled={initializing} />
+            I am requesting support for a business
+          </label>
+          {forBusiness && <div className="form-group">
+            <label htmlFor="companyName">Company name (optional)</label>
+            <input id="companyName" type="text" autoComplete="organization" value={companyName} onChange={(event) => setCompanyName(event.target.value)} maxLength={160} />
+          </div>}
+        </>}
+        <p style={{ fontSize: '0.84rem', lineHeight: 1.6, color: 'var(--ink-muted)', margin: 0 }}>Creating an account is free. Team members can suggest service needs; accepted scope and charges require Kocre review and an authorized agreement.</p>
+        <button type="submit" className="auth-submit" disabled={loading || initializing}>
+          {initializing ? 'Loading...' : loading ? 'Finishing setup...' : existingWorkspace ? 'Save service request' : sessionUser ? 'Continue to services' : 'Create account'}
+        </button>
+      </form>
+      <div className="auth-footer">
+        {!sessionUser && <p>Already have an account? <Link href={loginHref}>Sign in</Link></p>}
+        {sessionUser && existingWorkspace && <p><Link href="/portal/services">Go to my services</Link></p>}
+        <Link href="/" className="auth-back">← Back to website</Link>
+      </div>
+    </div></div>
   )
 }

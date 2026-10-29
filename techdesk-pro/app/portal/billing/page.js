@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import ServiceRequestSummary from '../../components/ServiceRequestSummary'
 import { createClient } from '../../../lib/supabase/client'
 
-// Plan catalog mirrors the homepage PLAN_CATALOG so the portal tells the same
-// story as the public site. Legacy ticket-credit plans are kept so any org
-// still seeded with starter/growth/scale renders honestly with the original
-// terms they signed up under.
+// Existing plan terms are preserved here until a new quote is accepted.
+// New service requests use the versioned shared catalog and are shown
+// separately; they do not silently reprice existing organizations.
 const PLAN_CATALOG = {
   pending: {
     label: 'Plan to be confirmed',
@@ -97,12 +97,12 @@ export default function BillingPage() {
   const [userCount, setUserCount] = useState(1)
   const [monthlyCount, setMonthlyCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [supabase] = useState(createClient)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { setLoading(false); return }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -166,6 +166,8 @@ export default function BillingPage() {
         Your current plan and this month's usage. Invoices are managed directly by Kocre IT.
       </p>
 
+      <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -176,7 +178,7 @@ export default function BillingPage() {
           <div className="stat-card-label">Current plan</div>
           <div className="stat-card-value" style={{ fontSize: '1.35rem' }}>{plan.label}</div>
           <div style={{ fontSize: '0.85rem', color: 'var(--ink-muted)', marginTop: 4 }}>
-            {priceLine(plan, userCount)}
+            {plan.pricing.type === 'per_user' ? 'See your accepted quote or invoice for the agreed total.' : priceLine(plan, userCount)}
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--ink-muted)', marginTop: 6 }}>
             {plan.note}
@@ -185,10 +187,10 @@ export default function BillingPage() {
 
         {plan.pricing.type === 'per_user' && (
           <div className="stat-card">
-            <div className="stat-card-label">Supported users</div>
+            <div className="stat-card-label">Portal accounts</div>
             <div className="stat-card-value" style={{ fontSize: '1.35rem' }}>{userCount}</div>
             <div style={{ fontSize: '0.85rem', color: 'var(--ink-muted)' }}>
-              Counted from your portal profiles. Adjust your roster through Settings or contact support.
+              Portal logins may differ from supported people. Your accepted quote and invoice determine the billable roster; contact Kocre IT to change it.
             </div>
           </div>
         )}

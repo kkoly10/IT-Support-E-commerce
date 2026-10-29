@@ -147,7 +147,14 @@ export default function SettingsPage() {
     setMessage(null)
 
     try {
+      // Preserve service requests and other independently managed discovery
+      // keys; reject a concurrent change rather than silently overwrite it.
+      const { data: currentOrg, error: readError } = await supabase
+        .from('organizations').select('discovery_profile').eq('id', orgId).single()
+      if (readError) throw readError
+      const previousDiscovery = currentOrg.discovery_profile
       const discoveryProfile = {
+        ...(previousDiscovery || {}),
         user_count: userCount.trim() || null,
         device_count: deviceCount.trim() || null,
         location_count: locationCount.trim() || null,
@@ -174,7 +181,7 @@ export default function SettingsPage() {
 
       if (profileError) throw profileError
 
-      const { error: orgError } = await supabase
+      let organizationUpdate = supabase
         .from('organizations')
         .update({
           name: companyName.trim() || null,
@@ -191,8 +198,13 @@ export default function SettingsPage() {
           discovery_review_status: discoveryCompleted ? 'pending_review' : 'not_started',
         })
         .eq('id', orgId)
+      organizationUpdate = previousDiscovery == null
+        ? organizationUpdate.is('discovery_profile', null)
+        : organizationUpdate.eq('discovery_profile', JSON.stringify(previousDiscovery))
+      const { data: savedOrg, error: orgError } = await organizationUpdate.select('id').maybeSingle()
 
       if (orgError) throw orgError
+      if (!savedOrg) throw new Error('Your workspace changed while saving. Please refresh and retry.')
 
       setCurrentDiscoveryCompleted(discoveryCompleted)
       setCurrentDiscoveryReviewStatus(discoveryCompleted ? 'pending_review' : 'not_started')

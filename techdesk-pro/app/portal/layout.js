@@ -13,6 +13,7 @@ const supabase = createClient()
 
 const ACTIVE_NAV = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+  { label: 'Services', href: '/portal/services', icon: '🧩' },
   { label: 'Support Requests', href: '/portal/tickets', icon: '🎫' },
   { label: 'Website Monitoring', href: '/portal/health', icon: '🛡️' },
   { label: 'Atlas Assistant', href: '/portal/atlas', icon: '🧠' },
@@ -30,6 +31,7 @@ const BREADCRUMB_LABELS = {
   portal: 'Client Portal',
   tickets: 'Support Requests',
   dashboard: 'Dashboard',
+  services: 'Services',
   onboarding: 'Onboarding',
   health: 'Website Monitoring',
   atlas: 'Atlas Assistant',
@@ -50,6 +52,7 @@ function buildNav(org) {
   if (clientStatus === 'lead') {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+  { label: 'Services', href: '/portal/services', icon: '🧩' },
       { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Agreements', href: '/portal/agreements', icon: '✍️' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
@@ -63,6 +66,7 @@ function buildNav(org) {
   if (clientStatus === 'onboarding') {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+  { label: 'Services', href: '/portal/services', icon: '🧩' },
       { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Agreements', href: '/portal/agreements', icon: '✍️' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
@@ -77,6 +81,7 @@ function buildNav(org) {
   if (clientStatus === 'paused' || clientStatus === 'former') {
     return [
       { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
+  { label: 'Services', href: '/portal/services', icon: '🧩' },
       { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Access', href: '/portal/access', icon: '🔐' },
@@ -186,7 +191,7 @@ export default function PortalLayout({ children }) {
 
   return (
     <div className="portal-wrapper">
-      <aside className={`portal-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside id="portal-navigation" className={`portal-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link href="/" className="sidebar-logo">
             <div className="logo-mark" style={{ width: 32, height: 32, borderRadius: 8 }}>
@@ -194,7 +199,7 @@ export default function PortalLayout({ children }) {
             </div>
             <span>Kocre IT Services</span>
           </Link>
-          <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
+          <button aria-label="Close navigation" className="sidebar-close" onClick={() => setSidebarOpen(false)}>
             ✕
           </button>
         </div>
@@ -262,7 +267,7 @@ export default function PortalLayout({ children }) {
 
       <div className="portal-main">
         <header className="portal-topbar">
-          <button className="topbar-menu" onClick={() => setSidebarOpen(true)}>
+          <button aria-label="Open navigation" aria-expanded={sidebarOpen} aria-controls="portal-navigation" className="topbar-menu" onClick={() => setSidebarOpen(true)}>
             <span></span>
             <span></span>
             <span></span>
