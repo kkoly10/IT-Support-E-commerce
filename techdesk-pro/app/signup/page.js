@@ -80,11 +80,12 @@ export default function SignupPage() {
         setSessionUser(user || null)
         let profile = null
         if (user) {
-          const result = await supabase.from('profiles').select('organization_id, role').eq('id', user.id).maybeSingle()
+          const result = await supabase.from('profiles').select('organization_id, role, full_name').eq('id', user.id).maybeSingle()
           if (result.error) throw new Error('Could not load your account. Please refresh and try again.')
           profile = result.data
           if (cancelled) return
           setExistingWorkspace(Boolean(profile?.organization_id))
+          if (profile?.organization_id && profile.full_name) setFullName(profile.full_name)
         }
         setInitializing(false)
         // Confirmation and incomplete-account login resume the original
@@ -111,7 +112,7 @@ export default function SignupPage() {
 
   async function handleSignup(event) {
     event.preventDefault()
-    if (!fullName.trim()) { setError('Enter your name.'); return }
+    if (!existingWorkspace && !fullName.trim()) { setError('Enter your name.'); return }
     setLoading(true)
     setError(null)
     const context = normalizeSignupContext({
@@ -192,7 +193,7 @@ export default function SignupPage() {
         {error && <div className="auth-error" role="alert">{error}</div>}
         <div className="form-group">
           <label htmlFor="fullName">Full name</label>
-          <input id="fullName" type="text" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} maxLength={120} required disabled={initializing} />
+          <input id="fullName" type="text" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} maxLength={120} required={!existingWorkspace} readOnly={existingWorkspace} disabled={initializing} />
         </div>
         <div className="form-group">
           <label htmlFor="email">Email</label>
