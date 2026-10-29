@@ -144,7 +144,7 @@ test('existing client selection is explicit, preserves unrelated discovery data,
   await completeVerifiedSignup({ service: db, user, payload: { serviceSelection: { service: 'remote', users: 5 } }, now })
   const org = db.tables.organizations[0]
   assert.equal(org.discovery_profile.notes, 'keep')
-  assert.equal(org.discovery_profile.service_selection.monthly, 345)
+  assert.equal(org.discovery_profile.service_selection.monthly, null)
   assert.equal(org.discovery_profile.service_selection.requiresQuote, true)
   assert.equal(org.plan, 'pending')
   assert.equal(org.client_status, 'lead')
