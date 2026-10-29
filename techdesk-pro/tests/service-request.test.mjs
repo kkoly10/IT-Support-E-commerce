@@ -96,10 +96,10 @@ test('saving recomputes prices, preserves existing commercial state, and marks r
   assert.equal(response.status, 200)
   const actual = db.tables.organizations[0]
   const selected = actual.discovery_profile.service_selection
-  assert.equal(selected.monthly, 288)
+  assert.equal(selected.monthly, 328)
   assert.equal(selected.setup, 499)
-  assert.equal(selected.totalInitial, 787)
-  assert.equal(selected.priceVersion, '2026-10-29')
+  assert.equal(selected.totalInitial, 827)
+  assert.equal(selected.priceVersion, '2026-10-29-v2')
   assert.equal(selected.requestedBy, user.id)
   assert.equal(selected.status, 'requested')
   assert.deepEqual(selected.systems, ['Microsoft 365', 'Windows'])
