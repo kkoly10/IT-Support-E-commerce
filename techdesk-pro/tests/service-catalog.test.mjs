@@ -3,19 +3,27 @@ import assert from 'node:assert/strict'
 import { calculateEstimate, normalizeSelection, signupHref } from '../lib/service-catalog.js'
 
 test('published estimates match the agreed one-, two-, five-, and ten-person examples', () => {
-  for (const [users, remote, managed] of [[1, 149, 199], [2, 198, 288], [5, 345, 555], [10, 590, 1000]]) {
-    for (const [service, monthly, setup] of [['remote', remote, 199], ['managed', managed, 499]]) {
+  const examples = [
+    [1, { remote: 149, managed: 229, secure: 299 }],
+    [2, { remote: 198, managed: 328, secure: 428 }],
+    [5, { remote: 345, managed: 625, secure: 815 }],
+    [10, { remote: 590, managed: 1120, secure: 1460 }],
+  ]
+  const setup = { remote: 199, managed: 499, secure: 699 }
+
+  for (const [users, prices] of examples) {
+    for (const service of ['remote', 'managed', 'secure']) {
       const estimate = calculateEstimate({ service, users })
-      assert.equal(estimate.monthly, monthly)
-      assert.equal(estimate.setup, setup)
-      assert.equal(estimate.totalInitial, monthly + setup)
+      assert.equal(estimate.monthly, prices[service])
+      assert.equal(estimate.setup, setup[service])
+      assert.equal(estimate.totalInitial, prices[service] + setup[service])
       assert.equal(estimate.requiresQuote, users > 2)
     }
   }
 })
 
 test('larger-team links, signup, and estimates all use fully custom pricing', () => {
-  for (const service of ['remote', 'managed', 'custom']) {
+  for (const service of ['remote', 'managed', 'secure', 'custom']) {
     const estimate = calculateEstimate({ service, users: 11 })
     assert.equal(estimate.service, 'custom')
     assert.equal(estimate.users, 11)
