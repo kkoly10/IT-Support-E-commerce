@@ -138,7 +138,7 @@ const SERVICE_DETAILS = {
   },
 }
 
-function recommendPathfunction recommendPath(team, env, need, urgency) {
+function recommendPath(team, env, need, urgency) {
   if (need === 'custom' || urgency === 'urgent') return 'custom'
   if (need !== 'one_time' && team > 10) return 'custom'
   if (env === 'mac' || (['managed', 'secure'].includes(need) && env === 'mixed')) return 'custom'
@@ -421,7 +421,7 @@ const SERVICES = [
   },
 ]
 
-function CoServicesfunction CoServices() {
+function CoServices() {
   return (
     <section id="services" className="co-section">
       <div className="co-services-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 80, alignItems: 'start', maxWidth: 1280, margin: '0 auto' }}>
