@@ -138,8 +138,8 @@ const SERVICE_DETAILS = {
   },
 }
 
-function recommendPath(team, env, need, urgency) {
-  if (need === 'custom' || urgency === 'urgent') return 'custom'
+function recommendPath(team, env, need) {
+  if (need === 'custom') return 'custom'
   if (need !== 'one_time' && team > 10) return 'custom'
   if (env === 'mac' || (['managed', 'secure'].includes(need) && env === 'mixed')) return 'custom'
   return need
@@ -608,9 +608,7 @@ function CoPricing() {
   const [team, setTeam] = useState(1)
   const [env, setEnv] = useState('windows')
   const [need, setNeed] = useState('remote')
-  const [urgency, setUrgency] = useState('normal')
-
-  const selection = normalizeSelection({ service: recommendPath(team, env, need, urgency), users: need === 'one_time' ? 1 : team })
+  const selection = normalizeSelection({ service: recommendPath(team, env, need), users: need === 'one_time' ? 1 : team })
   const estimate = calculateEstimate(selection)
   const plan = { ...SERVICE_CATALOG[selection.service], ...SERVICE_DETAILS[selection.service] }
   const isRecurring = ['remote', 'managed', 'secure'].includes(selection.service)
@@ -690,20 +688,6 @@ function CoPricing() {
               />
             </div>
 
-            <div>
-              <label style={{ fontSize: 13.5, fontWeight: 500, color: CO.ink, display: 'block', marginBottom: 10 }}>Support needs</label>
-              <PickerButtons
-                value={urgency}
-                onChange={setUrgency}
-                columns={3}
-                options={[
-                  ['normal', 'Scheduled support'],
-                  ['frequent', 'Frequent interruptions'],
-                  ['urgent', 'Needs urgent review'],
-                ]}
-              />
-              {urgency === 'frequent' && <p style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.5, color: CO.ink2 }}>We will review recurring issues and the expected workload before agreeing the ongoing service.</p>}
-            </div>
           </div>
 
           <div style={{ background: CO.bg3, color: '#fff', borderRadius: 20, padding: 36, display: 'flex', flexDirection: 'column' }}>
