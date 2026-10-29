@@ -1,16 +1,18 @@
 # Kocre IT
 
+> **Primary architecture:** [AI-Native MSP Primary Vision](docs/AI-NATIVE-MSP-PRIMARY-VISION.md) — this is the controlling product direction unless the owner explicitly changes it.
+
 Kocre IT is being built as a **human-supervised, AI-native managed service provider (MSP)** for small businesses.
 
 The business model is simple: Kocre should take increasing responsibility for a customer's everyday IT environment while keeping the control plane, automation, customer experience and ordinary IT operations in-house. Specialist services that depend on large 24/7 expert teams or independent attestations are integrated through partners rather than rebuilt from scratch.
 
 ## North Star
 
-The target operating loop is:
+Kocre has **one target operating mode from the beginning**:
 
-> **Customer ticket or monitoring event → AI triage → verified client/device context → diagnosis → supervised runbook → execution → independent verification → ticket/customer update → human escalation when needed.**
+> **Customer ticket or monitoring event → verified client/device context → AI diagnosis → runbook/tool selection → execution through Personal Commands → independent verification → ticket/customer update → human supervision or escalation when needed.**
 
-The goal is not to remove people from support. The goal is to let a human technician supervise many more environments because routine diagnosis, remediation, verification and documentation are handled by AI through Personal Commands.
+There are no separate long-term autonomy stages. Development can test components in isolation, but the architecture is built for the final closed loop from day one. The goal is not to remove people from support; it is to let a human technician supervise many more environments while the AI Technician autonomously handles routine diagnosis, remediation, verification and documentation.
 
 ## Commercial service ladder
 
