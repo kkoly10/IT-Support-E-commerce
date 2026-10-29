@@ -74,7 +74,7 @@ export default function SignupPage() {
         setFullName(context.fullName)
         setEmail(user?.email || params.get('email') || '')
         setCompanyName(context.companyName)
-        setForBusiness(context.accountType === 'business' || Boolean(context.companyName) || ['remote', 'managed', 'custom'].includes(context.serviceSelection?.service))
+        setForBusiness(context.accountType === 'business' || Boolean(context.companyName) || ['remote', 'managed', 'secure', 'custom'].includes(context.serviceSelection?.service))
         setSelection(context.serviceSelection)
         setAssessmentId(context.assessmentId)
         setSessionUser(user || null)
