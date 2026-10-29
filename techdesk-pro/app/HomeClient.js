@@ -80,54 +80,68 @@ const SERVICE_DETAILS = {
     includes: [
       `Up to ${SERVICE_CATALOG.one_time.sessionMinutes} minutes of remote diagnosis or repair`,
       'One agreed computer issue',
-      'Repair or restore options explained before larger work',
+      'Repair, reset or restore options explained before larger work',
       'Session notes and next steps',
       'No subscription required',
     ],
   },
   remote: {
     fit: 'Helpdesk and cloud account support',
-    summary: 'Routine help with your existing computers and accounts',
+    summary: 'Routine help with your existing computers, people and accounts',
     includes: [
       'Remote helpdesk',
       'Email/login support',
       'Microsoft 365 or Google Workspace basic admin',
+      'Routine employee onboarding and offboarding',
       'Software troubleshooting',
-      'Client portal',
-      'Support windows agreed before service starts',
+      'Client portal and tracked requests',
     ],
   },
   managed: {
-    fit: 'Helpdesk plus managed Windows devices',
-    summary: 'One approved Windows computer per person',
+    fit: 'Helpdesk plus proactively managed Windows devices',
+    summary: 'One approved Windows computer per supported person',
     includes: [
       'Everything in Remote Desk',
       'One approved Windows computer per person',
-      'Support access after enrollment is verified',
-      'Device inventory',
-      'Patch/update visibility',
-      'Basic health checks',
-      'Routine employee account changes',
-      'A summary of completed support work',
+      'Remote support access after enrollment is verified',
+      'Device and software inventory',
+      'Patch/update management and visibility',
+      'Health and maintenance checks',
+      'Routine endpoint configuration',
+      'Monthly support activity summary',
+    ],
+  },
+  secure: {
+    fit: 'Managed IT plus security and recovery oversight',
+    summary: 'Managed endpoint protection and continuity for agreed systems',
+    includes: [
+      'Everything in Managed Desk',
+      'Managed endpoint protection / EDR',
+      'MFA and security baseline reviews',
+      'Vulnerability and security hygiene review',
+      'Agreed backup and recovery monitoring',
+      'Security and recovery summary',
+      'Third-party licenses and storage priced separately unless quoted',
     ],
   },
   custom: {
-    fit: 'Larger teams or a different scope',
+    fit: 'Cloud, larger teams or a different scope',
     summary: 'Scope, delivery and price confirmed in a written quote',
     includes: [
       'Teams with more than 10 people',
+      'Cloud hosting and infrastructure management',
+      'DigitalOcean workloads, databases and backups',
       'Mac/Linux support reviewed case by case',
-      'Additional coverage requirements',
       'Servers, networks or specialized requirements',
-      'Capabilities confirmed before any commitment',
+      'Advanced security, compliance or extended coverage',
     ],
   },
 }
 
-function recommendPath(team, env, need, urgency) {
+function recommendPathfunction recommendPath(team, env, need, urgency) {
   if (need === 'custom' || urgency === 'urgent') return 'custom'
   if (need !== 'one_time' && team > 10) return 'custom'
-  if (env === 'mac' || (need === 'managed' && env === 'mixed')) return 'custom'
+  if (env === 'mac' || (['managed', 'secure'].includes(need) && env === 'mixed')) return 'custom'
   return need
 }
 
@@ -164,7 +178,7 @@ const FOUNDER = {
   initials: 'KK',
   img: '/founder.jpg',
   note:
-    'I started Kocre IT to give small businesses structured remote IT support without the cost of hiring in-house. The service is intentionally focused: helpdesk, cloud account support, onboarding/offboarding, and managed Windows device support for approved devices. I am building it carefully with real onboarding, a support portal, clear scope, and human-supervised AI. We are early, and I would rather earn trust through process and honesty than inflated claims.',
+    'I started Kocre IT to give small businesses a practical alternative to hiring an internal IT department. We can start with helpdesk and Microsoft 365, then take on managed computers, endpoint security, backup and recovery, and cloud infrastructure as the environment requires. Advanced services are scoped before activation so we can advertise what we can deliver without pretending every client needs the same stack.',
 }
 
 function FounderAvatar() {
@@ -288,10 +302,10 @@ function CoHero() {
           Support for solo businesses and small teams
         </div>
         <h1 className="co-h1" style={{ fontFamily: CO.sans, fontWeight: 500, lineHeight: 1.04, letterSpacing: -2.4, color: CO.ink, margin: 0 }}>
-          Small-business IT support, handled remotely.
+          Your small-business IT, managed remotely.
         </h1>
         <p className="co-hero-sub" style={{ marginTop: 26, fontSize: 20, lineHeight: 1.5, color: CO.ink2, maxWidth: 720, marginLeft: 'auto', marginRight: 'auto' }}>
-          One-time computer help, ongoing support for your business, and custom IT services. Microsoft 365, Google Workspace, and approved Windows devices, with clear scope and pricing.
+          Helpdesk, Microsoft 365, managed computers, endpoint security, backup and recovery, and cloud infrastructure — with a clear path from one-time help to fully managed IT.
         </p>
         <div className="co-hero-ctas" style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <CoBtn as="a" href={signupHref()} kind="accent">
@@ -321,10 +335,10 @@ function CoHero() {
 
       <div className="co-hero-checks" style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 28, color: CO.ink3, fontSize: 13, flexWrap: 'wrap' }}>
         {[
-          'Helpdesk support',
-          'Cloud admin',
-          'Managed Windows devices',
-          'Agreed support windows',
+          'Helpdesk & Microsoft 365',
+          'Managed computers',
+          'Security & recovery',
+          'Cloud management',
         ].map((t) => (
           <span key={t} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IconStroke d={ICON.check} size={14} color={CO.green} sw={2.5} /> {t}
@@ -359,45 +373,65 @@ function CoPlatforms() {
 const SERVICES = [
   {
     icon: ICON.users,
-    title: 'Remote helpdesk',
-    kicker: 'Day to day',
-    body: 'Support for everyday computer, software, email, browser, and login issues handled through a structured support process.',
-    bullets: ['Slow computer troubleshooting', 'Email issues', 'Login/password help', 'Software errors', 'Browser & app problems', 'Zoom, Teams, Slack support'],
+    title: 'Helpdesk & Microsoft 365',
+    kicker: 'Day-to-day IT',
+    availability: 'Available now',
+    body: 'A remote IT desk for everyday computer, software, email, identity, and Microsoft 365 or Google Workspace issues.',
+    bullets: ['Computer troubleshooting', 'Email & login issues', 'Microsoft 365 admin', 'MFA & permissions', 'Software support', 'Employee onboarding/offboarding'],
   },
   {
     icon: ICON.cloud,
-    title: 'Microsoft 365 & Google Workspace',
-    kicker: 'Account & cloud admin',
-    body: 'Help managing users, accounts, email access, MFA, shared mailboxes, groups, permissions, and basic admin tasks.',
-    bullets: ['New user setup', 'Password resets', 'MFA setup', 'Shared mailbox help', 'License cleanup', 'Employee offboarding'],
+    title: 'Managed Windows computers',
+    kicker: 'Endpoint management',
+    availability: 'Available by scope',
+    body: 'Approved business computers can be enrolled for remote support, inventory, patching, maintenance checks, and ongoing device administration.',
+    bullets: ['Remote support access', 'Device inventory', 'Patch management', 'Software inventory', 'Health checks', 'Routine endpoint configuration'],
   },
   {
     icon: ICON.shield,
-    title: 'Managed Windows devices',
-    kicker: 'Approved devices',
-    body: 'Approved Windows computers can be connected to Kocre IT’s secure support system for remote help, inventory, update visibility, and basic health checks.',
-    bullets: ['Remote support access', 'Device inventory', 'Storage & health checks', 'Patch/update visibility', 'Software inventory', 'Basic monitoring'],
+    title: 'Managed security',
+    kicker: 'Protection',
+    availability: 'Available by scope',
+    body: 'Security built around the systems you already use: endpoint protection, MFA, baseline hardening, vulnerability visibility, and security hygiene reviews.',
+    bullets: ['Endpoint protection / EDR', 'Microsoft Defender options', 'MFA review', 'Security baselines', 'Vulnerability visibility', 'Security reporting'],
+  },
+  {
+    icon: ICON.shield,
+    title: 'Backup & recovery',
+    kicker: 'Continuity',
+    availability: 'Scoped to your data',
+    body: 'Backup and restoration are scoped around what has to survive a failed computer, deleted data, or a cloud incident — including cloud-server backup options available today.',
+    bullets: ['Cloud-server backups', 'Restore planning', 'Recovery testing', 'Retention planning', 'Endpoint backup options', 'Microsoft 365 backup options'],
+  },
+  {
+    icon: ICON.cloud,
+    title: 'Cloud hosting & management',
+    kicker: 'DigitalOcean & cloud',
+    availability: 'Available now',
+    body: 'Kocre can deploy and manage eligible cloud workloads, including apps, virtual servers, databases, storage, backups, DNS, and routine infrastructure administration.',
+    bullets: ['App & server hosting', 'DigitalOcean management', 'Managed databases', 'Cloud backups', 'DNS & SSL coordination', 'Monitoring & maintenance'],
   },
   {
     icon: ICON.users,
-    title: 'Onboarding & offboarding',
-    kicker: 'Employee lifecycle',
-    body: 'Structured setup and removal of employee access so accounts, devices, and permissions are handled properly.',
-    bullets: ['New hire account setup', 'App access', 'MFA setup', 'Access removal', 'Password resets', 'Offboarding checklist'],
+    title: 'IT operations & employee lifecycle',
+    kicker: 'Ongoing operations',
+    availability: 'Available now',
+    body: 'The operational work that keeps a small company organized: onboarding, offboarding, access, documentation, vendor coordination, and tracked IT work.',
+    bullets: ['New hire setup', 'Access removal', 'License cleanup', 'IT documentation', 'Vendor coordination', 'Portal-tracked work'],
   },
 ]
 
-function CoServices() {
+function CoServicesfunction CoServices() {
   return (
     <section id="services" className="co-section">
       <div className="co-services-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 80, alignItems: 'start', maxWidth: 1280, margin: '0 auto' }}>
         <div className="co-services-aside" style={{ position: 'sticky', top: 100 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>What we do</div>
           <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: CO.ink, margin: 0, lineHeight: 1.02 }}>
-            <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>Four lanes</span> of work, one delivery model.
+            <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>Six areas</span> of IT, one accountable partner.
           </h2>
           <p style={{ marginTop: 20, fontSize: 17, lineHeight: 1.55, color: CO.ink2 }}>
-            Every request runs through the same portal, with the same scope and the same audit trail. Quiet by design.
+            Start with the problem you have today. Add managed devices, security, recovery, or cloud only when your business actually needs them.
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -407,8 +441,11 @@ function CoServices() {
                 <IconStroke d={s.icon} size={22} color={CO.green} sw={1.7} />
               </div>
               <div>
-                <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.ink3, letterSpacing: 0.6, marginBottom: 6, textTransform: 'uppercase' }}>
-                  0{i + 1} · {s.kicker}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <div style={{ fontFamily: CO.mono, fontSize: 11, color: CO.ink3, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+                    0{i + 1} · {s.kicker}
+                  </div>
+                  <span style={{ fontFamily: CO.mono, fontSize: 10.5, color: CO.green, background: CO.greenSoft, borderRadius: 999, padding: '4px 9px', textTransform: 'uppercase', letterSpacing: 0.35 }}>{s.availability}</span>
                 </div>
                 <h3 style={{ fontFamily: CO.sans, fontSize: 26, fontWeight: 500, letterSpacing: -0.6, color: CO.ink, margin: 0, lineHeight: 1.1 }}>{s.title}</h3>
                 <p style={{ fontSize: 15.5, lineHeight: 1.55, color: CO.ink2, marginTop: 12, marginBottom: 16 }}>{s.body}</p>
@@ -498,12 +535,15 @@ function CoProcess() {
 
 const COMPARE_ROWS = [
   ['Support requests', 'Texts, calls, and random emails', 'Portal-tracked support requests'],
-  ['Device issues', 'Handled only after something breaks', 'Managed Windows device visibility'],
+  ['Device issues', 'Handled only after something breaks', 'Managed Windows device care'],
+  ['Security', 'Antivirus installed and mostly forgotten', 'Managed endpoint protection and security baselines'],
+  ['Backups', 'Hope the important data is recoverable', 'Defined backup and recovery scope'],
+  ['Cloud', 'Servers and apps are unmanaged after launch', 'Optional managed cloud infrastructure'],
   ['New employees', 'Manual, inconsistent setup', 'Structured onboarding checklist'],
   ['Departing employees', 'Access may be missed', 'Offboarding and access removal'],
   ['Microsoft/Google admin', 'Owner guesses settings', 'Routine admin support'],
   ['Scope', 'Unclear expectations', 'Clear included/not-included rules'],
-  ['Cost', 'Hiring full-time IT may be too expensive', 'Predictable monthly support'],
+  ['Cost', 'Hiring full-time IT may be too expensive', 'Predictable support with provider costs separated'],
 ]
 
 function CoCompare() {
@@ -573,14 +613,14 @@ function CoPricing() {
   const selection = normalizeSelection({ service: recommendPath(team, env, need, urgency), users: need === 'one_time' ? 1 : team })
   const estimate = calculateEstimate(selection)
   const plan = { ...SERVICE_CATALOG[selection.service], ...SERVICE_DETAILS[selection.service] }
-  const isRecurring = selection.service === 'remote' || selection.service === 'managed'
+  const isRecurring = ['remote', 'managed', 'secure'].includes(selection.service)
   const displayedPrice = estimate.oneTime ?? estimate.monthly
   const animPrice = useAnimatedNumber(displayedPrice ?? 0)
   const updateTeam = (value) => setTeam(Math.min(50, normalizeSelection({ service: 'remote', users: value }).users))
 
   const paths = [
     { key: 'one_time', name: 'One-time help', fit: 'A computer fix or restore request', ...SERVICE_DETAILS.one_time },
-    { key: 'ongoing', name: 'Ongoing business support', fit: 'One person today, room for your next hire', featured: true },
+    { key: 'ongoing', name: 'Ongoing business support', fit: 'Remote support through secure managed IT', featured: true },
     { key: 'custom', ...SERVICE_CATALOG.custom, ...SERVICE_DETAILS.custom },
   ]
 
@@ -590,10 +630,10 @@ function CoPricing() {
         <div style={{ textAlign: 'center', maxWidth: 760, margin: '0 auto 56px' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: CO.green, letterSpacing: 0.6, marginBottom: 16, textTransform: 'uppercase' }}>Pricing</div>
           <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: CO.ink, margin: 0, lineHeight: 1.02 }}>
-            Three ways to get <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>the help you need.</span>
+            Choose how much IT responsibility <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>you want us to take on.</span>
           </h2>
           <p style={{ marginTop: 20, fontSize: 16.5, lineHeight: 1.55, color: CO.ink2 }}>
-            Book a one-time session, choose ongoing support for your business, or discuss a custom scope. Monthly pilots start with one person. See your monthly and one-time costs before creating a free account.
+            Start with one-time help, choose Remote, Managed, or Secure Desk for ongoing support, or request a custom cloud or infrastructure scope. See the service fee before creating a free account.
           </p>
         </div>
 
@@ -644,7 +684,8 @@ function CoPricing() {
                   ['one_time', 'One-time computer help'],
                   ['remote', 'Remote Desk'],
                   ['managed', 'Managed Desk'],
-                  ['custom', 'Custom support'],
+                  ['secure', 'Secure Desk'],
+                  ['custom', 'Cloud / custom'],
                 ]}
               />
             </div>
@@ -703,7 +744,7 @@ function CoPricing() {
                     ? `Up to ${SERVICE_CATALOG.one_time.sessionMinutes} minutes, scheduled after we confirm the issue is suitable for remote help. Larger work needs your approval.`
                     : 'We review the environment and coverage you need before offering a scope or price.'}
             </p>
-            {isRecurring && <p style={{ margin: '10px 0 0', fontSize: 12.5, lineHeight: 1.5, opacity: 0.6 }}>Microsoft 365 and other licenses, new laptop builds, rebrands and migrations are separate. No payment is required to create an account.</p>}
+            {isRecurring && <p style={{ margin: '10px 0 0', fontSize: 12.5, lineHeight: 1.5, opacity: 0.6 }}>Microsoft 365, security/backup licenses, storage and cloud-provider usage are separate unless included in your quote. Projects such as rebrands, migrations and new laptop builds are scoped separately.</p>}
 
             <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13.5, opacity: 0.85 }}>
               {plan.includes.slice(0, 5).map((row) => (
@@ -734,10 +775,10 @@ function CoPricing() {
               <div style={{ fontSize: 12.5, color: CO.ink3, marginBottom: 18, minHeight: 30 }}>{t.fit}</div>
               {t.key === 'ongoing' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  {['remote', 'managed'].map((key) => {
+                  {['remote', 'managed', 'secure'].map((key) => {
                     const service = SERVICE_CATALOG[key]
                     return (
-                      <div key={key} style={{ paddingTop: key === 'managed' ? 22 : 0, borderTop: key === 'managed' ? `1px solid ${CO.border}` : 'none' }}>
+                      <div key={key} style={{ paddingTop: key !== 'remote' ? 22 : 0, borderTop: key !== 'remote' ? `1px solid ${CO.border}` : 'none' }}>
                         <div style={{ fontSize: 15, fontWeight: 600, color: CO.ink, marginBottom: 8 }}>{service.name}</div>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                           <span style={{ fontFamily: CO.sans, fontSize: 36, fontWeight: 500, color: CO.ink, letterSpacing: -1.1 }}>{formatUsd(service.firstUser)}</span>
@@ -745,7 +786,7 @@ function CoPricing() {
                         </div>
                         <div style={{ fontSize: 12.5, color: CO.ink2, lineHeight: 1.6 }}>+{formatUsd(service.additionalUser)} per additional person<br />{formatUsd(service.setup)} one-time setup</div>
                         <p style={{ fontSize: 13.5, lineHeight: 1.5, color: CO.ink2, margin: '12px 0 0' }}>{service.description}</p>
-                        <CoBtn as="a" href={signupHref({ service: team > 10 ? 'custom' : key, users: team })} aria-label={`Create free account for ${service.name}`} kind={key === 'managed' ? 'accent' : 'ghost'} style={{ marginTop: 14, width: '100%', justifyContent: 'center', padding: '12px' }}>
+                        <CoBtn as="a" href={signupHref({ service: team > 10 ? 'custom' : key, users: team })} aria-label={`Create free account for ${service.name}`} kind={key === 'secure' ? 'accent' : 'ghost'} style={{ marginTop: 14, width: '100%', justifyContent: 'center', padding: '12px' }}>
                           Create free account
                         </CoBtn>
                       </div>
@@ -783,7 +824,7 @@ function CoPricing() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: CO.ink3 }}>
-          All prices are in USD. Licenses, rebrands, new computer builds, migrations and larger restoration work are quoted separately. Existing customers keep their agreed pricing.{' '}
+          All prices are in USD. Third-party licenses, backup storage, cloud-provider usage, rebrands, new computer builds, migrations and larger restoration work are separate unless your written quote says otherwise. Existing customers keep their agreed pricing.{' '}
           <a href="/support-transparency" style={{ color: CO.green, textDecoration: 'none', fontWeight: 500 }}>
             Review support scope
           </a>
@@ -804,7 +845,7 @@ function CoAgentExplainer() {
             How <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>managed device support</span> works.
           </h2>
           <p style={{ marginTop: 20, fontSize: 16.5, lineHeight: 1.55, color: CO.ink2, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
-            Managed Desk covers agreed care for approved Windows computers. Support access, inventory, update visibility and health checks become available after enrollment and configuration are verified. Installing an agent alone does not confirm that device care is ready.
+            Managed Desk covers proactive care for approved Windows computers. Secure Desk adds managed endpoint protection and agreed recovery oversight. Device care becomes active only after enrollment and configuration are verified; selecting a plan alone does not make a device managed.
           </p>
         </div>
         <div className="co-agent-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -832,7 +873,7 @@ function CoAgentExplainer() {
               {[
                 'We do not install it without approval',
                 'We do not support personal devices unless approved',
-                'We do not provide 24/7 monitoring by default',
+                'We do not claim 24/7 SOC or monitoring unless separately scoped',
                 'We do not make major changes without authorization',
                 'We remove the agent during offboarding/cancellation',
               ].map((r) => (
@@ -851,11 +892,69 @@ function CoAgentExplainer() {
 
 const SCOPE_ITEMS = [
   ['What counts as standard support?', 'Everyday remote help with your agreed users, computers and existing setup: email, logins, software troubleshooting and basic cloud administration. A request does not become a project just because troubleshooting takes longer than expected.'],
-  ['What is quoted separately?', 'Microsoft 365 and other licenses, hardware, new computer builds, rebrands, migrations, larger restoration work and other changes outside the agreed service scope. We explain and quote additional work before you approve it.'],
+  ['What is quoted separately?', 'Microsoft 365 and other licenses, endpoint-security subscriptions, backup storage, cloud-provider usage, hardware, new computer builds, rebrands, migrations, larger restoration work and other changes outside the agreed service scope. We explain and quote additional work before you approve it.'],
+  ['What does Secure Desk add?', 'Secure Desk adds managed endpoint protection, MFA and security-baseline review, vulnerability/security hygiene review, and agreed backup/recovery oversight. It is not advertised as a 24/7 SOC or compliance program unless that coverage is separately scoped.'],
+  ['How does Cloud Care work?', 'Eligible small cloud workloads can be managed from $99/month per workload plus the provider bill. Initial deployment, migration, unusual databases, high availability, compliance, and larger infrastructure are scoped separately before work begins.'],
   ['What does remote-only mean?', 'Kocre IT supports accounts, software, cloud tools, and approved devices remotely. Physical work is outside standard monthly support.'],
   ['What happens if my needs change?', 'We review recurring issues and the support your business needs. Any future scope or price change is discussed and agreed before it applies; this does not create a retroactive per-ticket charge.'],
   ['Is first response the same as resolution?', 'A human response means your request has been reviewed; an automated receipt is only confirmation that it arrived. Work scheduling and resolution depend on the agreed support windows, access, availability and complexity.'],
 ]
+
+function CoExpansionServices() {
+  const offers = [
+    {
+      title: 'Cloud Care',
+      price: 'From $99 / month',
+      meta: 'per eligible small workload + provider usage',
+      body: 'Ongoing administration for eligible DigitalOcean or similar cloud workloads: routine maintenance, backup checks, monitoring, DNS/SSL coordination, and infrastructure support. Initial deployment or migration is quoted separately.',
+      cta: 'Discuss cloud management',
+    },
+    {
+      title: 'Backup & Recovery',
+      price: 'Scoped to your data',
+      meta: 'provider, storage and retention costs separate',
+      body: 'Cloud-server backup is available today. Endpoint and Microsoft 365 backup options are quoted after we understand storage, retention and recovery requirements rather than selling a backup that has never been tested.',
+      cta: 'Plan recovery coverage',
+    },
+    {
+      title: 'Security Projects',
+      price: 'Written quote',
+      meta: 'for needs beyond Secure Desk',
+      body: 'Tenant hardening, security cleanup, identity changes, incident assistance, advanced security tooling and other projects can be scoped separately. We do not advertise a 24/7 SOC unless that service is actually contracted.',
+      cta: 'Discuss security',
+    },
+  ]
+  return (
+    <section className="co-section-tight" style={{ background: CO.bg3, color: '#fff' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div className="co-section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, marginBottom: 36 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#a3d4b3', letterSpacing: 0.6, marginBottom: 14, textTransform: 'uppercase' }}>Beyond the desk plans</div>
+            <h2 className="co-h2" style={{ fontFamily: CO.sans, fontWeight: 500, letterSpacing: -1.8, color: '#fff', margin: 0, lineHeight: 1.02 }}>
+              Cloud, recovery and security <span style={{ fontFamily: CO.serif, fontStyle: 'italic', fontWeight: 400 }}>without fake bundles.</span>
+            </h2>
+          </div>
+          <p style={{ fontSize: 15, lineHeight: 1.55, color: 'rgba(255,255,255,.68)', maxWidth: 410, margin: 0 }}>
+            These services depend on the actual workload, data and provider costs, so we advertise the capability and scope it before activation instead of hiding variable costs inside a support plan.
+          </p>
+        </div>
+        <div className="co-expansion-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
+          {offers.map((offer) => (
+            <div key={offer.title} style={{ border: '1px solid rgba(255,255,255,.14)', borderRadius: 18, padding: 28, display: 'flex', flexDirection: 'column', minHeight: 300, background: 'rgba(255,255,255,.035)' }}>
+              <div style={{ fontFamily: CO.serif, fontStyle: 'italic', fontSize: 28, color: '#fff', marginBottom: 16 }}>{offer.title}</div>
+              <div style={{ fontFamily: CO.sans, fontSize: 26, fontWeight: 500, letterSpacing: -0.7, color: '#a3d4b3' }}>{offer.price}</div>
+              <div style={{ fontFamily: CO.mono, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 0.4, color: 'rgba(255,255,255,.5)', marginTop: 5 }}>{offer.meta}</div>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'rgba(255,255,255,.74)', margin: '18px 0 24px' }}>{offer.body}</p>
+              <CoBtn as="a" href={signupHref({ service: 'custom', users: 1 })} kind="ghost" style={{ marginTop: 'auto', justifyContent: 'center', borderColor: 'rgba(255,255,255,.24)', color: '#fff' }}>
+                {offer.cta}
+              </CoBtn>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function CoScopeGuardrails() {
   const [open, setOpen] = useState(0)
@@ -1129,6 +1228,7 @@ export default function Home() {
       <CoAgentExplainer />
       <CoCompare />
       <CoPricing />
+      <CoExpansionServices />
       <CoScopeGuardrails />
       <CoFitChecker />
       <CoAbout />
@@ -1216,7 +1316,7 @@ const CALMOP_CSS = `
   #calmop .co-compare-cat { padding: 18px 0 4px !important; font-size: 12px !important; text-transform: uppercase; letter-spacing: 0.6px; color: ${CO.green} !important; border-top: 1px solid ${CO.border}; }
   #calmop .co-compare > div > div:nth-child(2) { padding: 4px 0 18px !important; border-top: none !important; }
   #calmop .co-compare > div > div:nth-child(3) { padding: 0 0 18px !important; border-top: none !important; }
-  #calmop .co-agent-grid, #calmop .co-fit-grid { grid-template-columns: 1fr !important; }
+  #calmop .co-agent-grid, #calmop .co-fit-grid, #calmop .co-expansion-grid { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 560px) {
   #calmop .co-picker[data-columns="3"] { grid-template-columns: 1fr !important; }
