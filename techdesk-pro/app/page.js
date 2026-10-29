@@ -5,14 +5,14 @@ import { SITE_URL, BUSINESS, STATES_SERVED, SERVICE_CITIES, COUNTRIES_SERVED, FA
 export const metadata = {
   title: 'Remote IT Support for Small Businesses | Kocre IT',
   description:
-    'Kocre IT provides founder-led remote helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support for small businesses.',
+    'Kocre IT provides remote helpdesk, Microsoft 365 support, managed Windows computers, endpoint security, backup and recovery, and cloud infrastructure services for small businesses.',
   alternates: { canonical: '/' },
   openGraph: {
     ...OG_BASE,
     url: SITE_URL,
     title: 'Remote IT Support for Small Businesses | Kocre IT',
     description:
-      'Founder-led remote helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support for small businesses.',
+      'Remote helpdesk, Microsoft 365 support, managed computers, endpoint security, backup and recovery, and cloud infrastructure services for small businesses.',
   },
 }
 
@@ -26,7 +26,7 @@ const SERVICE_LD = {
   logo: `${SITE_URL}/brand/png/mark-512.png`,
   image: `${SITE_URL}/og.png`,
   description:
-    'Founder-led remote IT support for small businesses — helpdesk, Microsoft 365 and Google Workspace support, employee onboarding/offboarding, and managed Windows device support. DMV-based, remote-first across the U.S.',
+    'Remote-first managed IT for small businesses — helpdesk, Microsoft 365 and Google Workspace administration, managed Windows computers, endpoint security, backup and recovery, and cloud infrastructure. DMV-based, remote-first across the U.S.',
   serviceType: 'Managed IT support',
   telephone: BUSINESS.telephone,
   email: BUSINESS.email,
@@ -49,8 +49,10 @@ const SERVICE_LD = {
   makesOffer: [
     { '@type': 'Offer', name: SERVICE_CATALOG.one_time.name, price: String(SERVICE_CATALOG.one_time.sessionPrice), priceCurrency: 'USD', description: 'Scheduled remote help, up to 60 minutes for an eligible issue. Additional work requires approval.' },
     { '@type': 'Offer', name: SERVICE_CATALOG.remote.name, price: String(SERVICE_CATALOG.remote.firstUser), priceCurrency: 'USD', description: `Monthly support including the first person; $${SERVICE_CATALOG.remote.additionalUser} per additional person; $${SERVICE_CATALOG.remote.setup} setup. Pilot pricing for 1–2 people; 3–10 people require a written quote. Licenses and projects separate.` },
-    { '@type': 'Offer', name: SERVICE_CATALOG.managed.name, price: String(SERVICE_CATALOG.managed.firstUser), priceCurrency: 'USD', description: `Monthly support including the first person; $${SERVICE_CATALOG.managed.additionalUser} per additional person; $${SERVICE_CATALOG.managed.setup} setup. Includes agreed care for one approved Windows computer per person. Pilot pricing for 1–2 people; 3–10 people require a written quote. Scope and readiness are confirmed before activation.` },
-    { '@type': 'Offer', name: SERVICE_CATALOG.custom.name, description: 'Written scope and pricing for complex environments, larger teams and additional coverage.' },
+    { '@type': 'Offer', name: SERVICE_CATALOG.managed.name, price: String(SERVICE_CATALOG.managed.firstUser), priceCurrency: 'USD', description: `Monthly support including the first person; ${SERVICE_CATALOG.managed.additionalUser} per additional person; ${SERVICE_CATALOG.managed.setup} setup. Includes proactive care for one approved Windows computer per person. Pilot pricing for 1–2 people; 3–10 people require a written quote.` },
+    { '@type': 'Offer', name: SERVICE_CATALOG.secure.name, price: String(SERVICE_CATALOG.secure.firstUser), priceCurrency: 'USD', description: `Managed Desk plus managed endpoint security and agreed recovery oversight. ${SERVICE_CATALOG.secure.additionalUser} per additional person; ${SERVICE_CATALOG.secure.setup} setup. Third-party licenses, storage and provider usage are separate unless quoted.` },
+    { '@type': 'Offer', name: 'Cloud Care', price: '99', priceCurrency: 'USD', description: 'Managed administration for an eligible small cloud workload, from $99/month plus cloud-provider usage. Deployment, migration and larger infrastructure are quoted separately.' },
+    { '@type': 'Offer', name: SERVICE_CATALOG.custom.name, description: 'Written scope and pricing for complex environments, larger teams, cloud infrastructure and additional coverage.' },
   ],
 }
 
