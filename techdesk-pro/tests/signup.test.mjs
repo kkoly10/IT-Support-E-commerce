@@ -61,7 +61,7 @@ test('identity and privileges come from verified auth; prices are recomputed and
   assert.equal(org.payment_status, 'none')
   assert.equal(org.name, "Alex's workspace")
   assert.equal(org.discovery_profile.company_name, null)
-  assert.equal(org.discovery_profile.service_selection.monthly, 288)
+  assert.equal(org.discovery_profile.service_selection.monthly, 328)
   assert.equal(org.discovery_profile.service_selection.setup, 499)
   assert.equal(db.tables.organization_contacts[0].email, user.email)
   assert.equal(db.tables.organization_contacts[0].is_primary_contact, true)
@@ -115,7 +115,7 @@ test('changing a selection during unfinished signup replaces the earlier draft o
   assert.equal(db.tables.organizations.length, 1)
   assert.equal(db.tables.organizations[0].id, originalId)
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.service, 'managed')
-  assert.equal(db.tables.organizations[0].discovery_profile.service_selection.monthly, 288)
+  assert.equal(db.tables.organizations[0].discovery_profile.service_selection.monthly, 328)
   assert.equal(db.tables.organizations[0].plan, 'pending')
 })
 
