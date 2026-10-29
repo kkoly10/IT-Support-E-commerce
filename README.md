@@ -57,6 +57,12 @@ The architectural rule is:
 
 ## AI-native platform strategy
 
+### Runtime architecture
+
+The **AI Technician lives in Kocre's cloud/backend**, not inside the customer endpoint and not inside the browser UI. **Atlas AI remains the customer-facing copilot** for questions, ticket intake and explanations; it does not receive unrestricted endpoint authority. Each managed client computer installs a **Kocre/Personal Commands endpoint agent** that securely connects to the Personal Commands cloud control plane. The AI Technician uses verified customer, ticket and device context to call that control plane, which routes actions to the exact enrolled endpoint and returns results for independent verification. **Customers do not need ChatGPT installed.** ChatGPT is a development/operator client today, not the future MSP runtime.
+
+**Control path:** Portal/ticket or monitoring event → Kocre AI Technician → Personal Commands cloud broker → enrolled endpoint agent → inspect/remediate → verify → ticket/portal update → human escalation when needed.
+
 Personal Commands is the long-term Kocre control plane. Its job is to evolve from powerful remote computer control into fleet-grade MSP automation:
 
 1. Model clients, sites, users, devices, cloud workloads and service entitlements.
