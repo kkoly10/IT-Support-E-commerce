@@ -58,9 +58,10 @@ export function calculateEstimate(selection = {}) {
   const { service, users } = normalizeSelection(selection)
   const plan = SERVICE_CATALOG[service]
   const recurring = RECURRING_SERVICES.has(service)
-  // 3–10 person totals are illustrative and require a written quote. Larger
-  // environments are custom-priced; never pretend the small-team rate applies.
-  const monthly = recurring && users <= 10 ? plan.firstUser + (users - 1) * plan.additionalUser : null
+  // Public arithmetic is intentionally limited to the 1–2 person pilot. Three
+  // or more people require a written quote so a calculator cannot anchor a
+  // complex environment to a price before workload and scope are reviewed.
+  const monthly = recurring && users <= 2 ? plan.firstUser + (users - 1) * plan.additionalUser : null
   const setup = plan?.setup ?? null
   const oneTime = service === 'one_time' ? plan.sessionPrice : null
   return {
