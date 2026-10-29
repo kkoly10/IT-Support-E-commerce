@@ -183,7 +183,7 @@ export default function SignupPage() {
 
       {chosen && <section aria-label="Selected service" style={{ padding: 16, marginBottom: 20, border: '1px solid var(--border)', borderRadius: 12, background: '#f3faf8', lineHeight: 1.6 }}>
         <strong>{chosen.name}</strong>
-        <div>{selection.service === 'one_time' ? `${formatUsd(estimate.oneTime)} · up to 60 minutes` : estimate.monthly !== null ? `${estimate.requiresQuote ? 'Illustrative estimate' : 'Pilot pricing'}: ${selection.users} ${selection.users === 1 ? 'user' : 'users'} · ${formatUsd(estimate.monthly)}/month + ${formatUsd(estimate.setup)} setup` : 'Written scope and custom quote'}</div>
+        <div>{selection.service === 'one_time' ? `${formatUsd(estimate.oneTime)} · up to 60 minutes` : estimate.monthly !== null ? `${estimate.requiresQuote ? 'Illustrative estimate' : 'Pilot pricing'}: ${selection.users} ${selection.users === 1 ? 'user' : 'users'} · ${formatUsd(estimate.monthly)}/month + ${formatUsd(estimate.setup)} setup` : 'Written quote after scope review'}</div>
         {estimate.monthly !== null && !estimate.requiresQuote && <div style={{ fontSize: '0.87rem' }}>For 1–2 users. Scope, availability, and staffed support windows are agreed before activation.</div>}
         {estimate.requiresQuote && <div style={{ fontSize: '0.87rem' }}>Subject to a written quote and capacity review.</div>}
         <div style={{ fontSize: '0.87rem', color: 'var(--ink-muted)', marginTop: 6 }}>You can review or change this in Services after sign-in. No payment is collected here.</div>
