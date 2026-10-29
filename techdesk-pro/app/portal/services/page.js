@@ -176,16 +176,16 @@ export default function ServicesPage() {
         </div>}
 
         {selectedPlan && validUsers && <section aria-labelledby="estimate-title" className="services-estimate">
-          <h3 id="estimate-title">{estimate.monthly !== null ? estimate.requiresQuote ? 'Illustrative estimate · written quote required' : 'Pilot pricing · 1–2 users' : service === 'one_time' ? 'Your estimated cost' : 'Custom quote'}</h3>
+          <h3 id="estimate-title">{estimate.monthly !== null ? 'Pilot pricing · 1–2 users' : service === 'one_time' ? 'Your estimated cost' : 'Written quote required'}</h3>
           <dl>
             {service === 'one_time' ? <div><dt>One session, up to 60 minutes</dt><dd>{formatUsd(estimate.oneTime)}</dd></div> : <>
-              <div><dt>Monthly support · {estimate.users} {estimate.users === 1 ? 'user' : 'users'}</dt><dd>{estimate.monthly === null ? 'By written quote' : `${estimate.requiresQuote ? 'Illustrative estimate: ' : ''}${formatUsd(estimate.monthly)}`}</dd></div>
-              <div><dt>{estimate.requiresQuote && estimate.monthly !== null ? 'Illustrative one-time setup' : 'One-time setup'}</dt><dd>{estimate.monthly === null ? 'By written quote' : formatUsd(estimate.setup)}</dd></div>
-              {estimate.totalInitial !== null && <div className="services-total"><dt>{estimate.requiresQuote ? 'Illustrative first month + setup' : 'First month + setup'}</dt><dd>{formatUsd(estimate.totalInitial)}</dd></div>}
+              <div><dt>Monthly support · {estimate.users} {estimate.users === 1 ? 'user' : 'users'}</dt><dd>{estimate.monthly === null ? 'By written quote' : formatUsd(estimate.monthly)}</dd></div>
+              <div><dt>One-time setup</dt><dd>{estimate.monthly === null ? 'By written quote' : formatUsd(estimate.setup)}</dd></div>
+              {estimate.totalInitial !== null && <div className="services-total"><dt>First month + setup</dt><dd>{formatUsd(estimate.totalInitial)}</dd></div>}
             </>}
           </dl>
           <p className="services-small">Pricing version {estimate.priceVersion}. Scope, availability, and charges are confirmed before service begins.</p>
-          {ongoing && <p className="services-small">The current pilot serves 1–2 users, with scope, availability, and staffed support windows agreed before activation. Requests for 3 or more users require a written quote and capacity review; 3–10 user totals are illustrative.</p>}
+          {ongoing && <p className="services-small">The public pilot price covers 1–2 supported people. Requests for 3 or more people require a written quote after workload, devices, security, cloud and compliance needs are reviewed.</p>}
           {service === 'one_time' && <p className="services-small">Additional work or time is separately scoped and approved.</p>}
         </section>}
 
