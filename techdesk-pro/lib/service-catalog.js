@@ -1,11 +1,11 @@
 // New inquiries use this catalog. Existing organizations keep their accepted
 // plan/price until a new quote is approved; choosing a service never activates it.
-export const PRICING_VERSION = '2026-10-29'
+export const PRICING_VERSION = '2026-10-29-v2'
 
 export const SERVICE_CATALOG = Object.freeze({
   one_time: Object.freeze({
     key: 'one_time',
-    name: 'One-time help',
+    name: 'One-time IT Help',
     description: 'A scheduled remote diagnosis or repair session for an eligible issue.',
     sessionPrice: 125,
     sessionMinutes: 60,
@@ -14,7 +14,7 @@ export const SERVICE_CATALOG = Object.freeze({
   remote: Object.freeze({
     key: 'remote',
     name: 'Remote Desk',
-    description: 'Routine remote help and administration of your agreed cloud environment.',
+    description: 'Remote helpdesk, employee IT support, and administration of your agreed cloud accounts.',
     firstUser: 149,
     additionalUser: 49,
     setup: 199,
@@ -22,17 +22,27 @@ export const SERVICE_CATALOG = Object.freeze({
   managed: Object.freeze({
     key: 'managed',
     name: 'Managed Desk',
-    description: 'Remote Desk plus agreed preventive care for one approved Windows computer per person.',
-    firstUser: 199,
-    additionalUser: 89,
+    description: 'Remote Desk plus proactive management for one approved Windows computer per supported person.',
+    firstUser: 229,
+    additionalUser: 99,
     setup: 499,
+  }),
+  secure: Object.freeze({
+    key: 'secure',
+    name: 'Secure Desk',
+    description: 'Managed Desk plus managed endpoint security, security baselines, and agreed backup/recovery oversight.',
+    firstUser: 299,
+    additionalUser: 129,
+    setup: 699,
   }),
   custom: Object.freeze({
     key: 'custom',
     name: 'Custom & enterprise',
-    description: 'A written scope for complex environments, larger teams or additional coverage.',
+    description: 'A written scope for complex environments, cloud infrastructure, larger teams, or additional coverage.',
   }),
 })
+
+const RECURRING_SERVICES = new Set(['remote', 'managed', 'secure'])
 
 export function normalizeSelection(selection = {}) {
   const candidate = selection && typeof selection === 'object' ? selection : {}
@@ -40,14 +50,14 @@ export function normalizeSelection(selection = {}) {
   const raw = typeof candidate.users === 'number' ? candidate.users :
     /^\d{1,3}$/.test(String(candidate.users ?? '')) ? Number(candidate.users) : 1
   const users = Number.isInteger(raw) && raw > 0 ? Math.min(raw, 250) : 1
-  if ((service === 'remote' || service === 'managed') && users > 10) service = 'custom'
+  if (RECURRING_SERVICES.has(service) && users > 10) service = 'custom'
   return { service, users: service === 'one_time' ? 1 : users }
 }
 
 export function calculateEstimate(selection = {}) {
   const { service, users } = normalizeSelection(selection)
   const plan = SERVICE_CATALOG[service]
-  const recurring = service === 'remote' || service === 'managed'
+  const recurring = RECURRING_SERVICES.has(service)
   // 3–10 person totals are illustrative and require a written quote. Larger
   // environments are custom-priced; never pretend the small-team rate applies.
   const monthly = recurring && users <= 10 ? plan.firstUser + (users - 1) * plan.additionalUser : null
