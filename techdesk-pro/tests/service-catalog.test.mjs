@@ -2,12 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { calculateEstimate, normalizeSelection, signupHref } from '../lib/service-catalog.js'
 
-test('published estimates match the agreed one-, two-, five-, and ten-person examples', () => {
+test('published estimates are exact for the 1–2 person pilot', () => {
   const examples = [
     [1, { remote: 149, managed: 229, secure: 299 }],
     [2, { remote: 198, managed: 328, secure: 428 }],
-    [5, { remote: 345, managed: 625, secure: 815 }],
-    [10, { remote: 590, managed: 1120, secure: 1460 }],
   ]
   const setup = { remote: 199, managed: 499, secure: 699 }
 
@@ -17,7 +15,20 @@ test('published estimates match the agreed one-, two-, five-, and ten-person exa
       assert.equal(estimate.monthly, prices[service])
       assert.equal(estimate.setup, setup[service])
       assert.equal(estimate.totalInitial, prices[service] + setup[service])
-      assert.equal(estimate.requiresQuote, users > 2)
+      assert.equal(estimate.requiresQuote, false)
+    }
+  }
+})
+
+test('three to ten supported people require a written quote without a calculator anchor', () => {
+  for (const users of [3, 5, 10]) {
+    for (const service of ['remote', 'managed', 'secure']) {
+      const estimate = calculateEstimate({ service, users })
+      assert.equal(estimate.service, service)
+      assert.equal(estimate.monthly, null)
+      assert.equal(estimate.totalInitial, null)
+      assert.equal(estimate.requiresQuote, true)
+      assert.equal(signupHref({ service, users }), `/signup?service=${service}&users=${users}`)
     }
   }
 })
