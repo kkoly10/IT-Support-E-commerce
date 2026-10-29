@@ -308,11 +308,11 @@ function CoHero() {
           Helpdesk, Microsoft 365, managed computers, endpoint security, backup and recovery, and cloud infrastructure — with a clear path from one-time help to fully managed IT.
         </p>
         <div className="co-hero-ctas" style={{ marginTop: 36, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <CoBtn as="a" href={signupHref()} kind="accent">
-            Create free account
+          <CoBtn as="a" href="#pricing" kind="accent">
+            See plans & pricing
           </CoBtn>
-          <CoBtn as="a" href="#pricing" kind="ghost">
-            See pricing
+          <CoBtn as="a" href={signupHref({ service: 'one_time', users: 1 })} kind="ghost">
+            I need IT help now
           </CoBtn>
         </div>
       </div>
@@ -737,7 +737,7 @@ function CoPricing() {
 
             <p style={{ margin: '18px 0 0', fontSize: 13.5, lineHeight: 1.55, color: '#c4dccb' }}>
               {isRecurring && estimate.requiresQuote
-                ? 'Illustrative estimate for 3–10 people. Your scope, setup and final price require a written quote.'
+                ? 'Three or more people require a written quote after we review workload, devices, security and any cloud or compliance requirements.'
                 : isRecurring
                   ? 'Pilot pricing for 1–2 people. We confirm scope, staffed support windows and setup before service begins.'
                   : estimate.oneTime !== null
@@ -792,7 +792,7 @@ function CoPricing() {
                       </div>
                     )
                   })}
-                  <div style={{ fontSize: 12, color: CO.ink3, lineHeight: 1.55 }}>For 3–10 people, use the calculator for an illustrative estimate and request a written quote.</div>
+                  <div style={{ fontSize: 12, color: CO.ink3, lineHeight: 1.55 }}>For 3 or more people, request a written quote after we review the environment and expected workload.</div>
                 </div>
               ) : (
                 <>
@@ -820,7 +820,7 @@ function CoPricing() {
 
         <div style={{ marginTop: 32, padding: '20px 24px', background: CO.bg2, border: `1px solid ${CO.border}`, borderRadius: 14, textAlign: 'center', fontSize: 14, color: CO.ink2 }}>
           <strong style={{ color: CO.ink, fontWeight: 600 }}>A clear scope before you commit.</strong>{' '}
-          The public monthly pilot is for 1–2 people. Estimates for 3–10 people need a written quote; larger teams and specialized requirements use custom pricing. Staffed support windows and any response commitments are agreed before service starts.
+          The public monthly pilot is for 1–2 people. Three or more people need a written quote so workload, devices, security, cloud and compliance needs can be priced correctly. Staffed support windows and any response commitments are agreed before service starts.
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 20, fontSize: 14, color: CO.ink3 }}>
@@ -1222,12 +1222,12 @@ export default function Home() {
       <CoNav />
       <CoHero />
       <CoPlatforms />
+      <CoPricing />
       <CoServices />
       <CoPrinciples />
       <CoProcess />
       <CoAgentExplainer />
       <CoCompare />
-      <CoPricing />
       <CoExpansionServices />
       <CoScopeGuardrails />
       <CoFitChecker />
