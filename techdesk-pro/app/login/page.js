@@ -22,6 +22,8 @@ export default function LoginPage() {
     setNext(safeAuthNext(params.get('next'), '/portal/dashboard'))
     if (params.get('auth_error') === 'confirmation') {
       setNotice('The confirmation link could not open a session here. If your email is confirmed, sign in to continue. Otherwise, open the latest confirmation email in the browser where you signed up.')
+    } else if (params.get('password_updated') === '1') {
+      setNotice('Password updated. Sign in with your new password to continue.')
     }
   }, [])
 
@@ -67,6 +69,7 @@ export default function LoginPage() {
           <label htmlFor="password">Password</label>
           <input id="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Your password" required />
         </div>
+        <p style={{ textAlign: 'right', margin: '-4px 0 4px', fontSize: '.88rem' }}><Link href="/forgot-password">Forgot password?</Link></p>
         <button type="submit" className="auth-submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
       </form>
       <div className="auth-footer">
