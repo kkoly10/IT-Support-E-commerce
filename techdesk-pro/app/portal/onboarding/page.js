@@ -132,6 +132,47 @@ export default function PortalOnboardingPage() {
     return <div className="portal-page-loading">Loading onboarding checklist...</div>
   }
 
+  if (org?.client_status === 'lead') {
+    return (
+      <div>
+        <div className="portal-page-header" style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: '1.6rem', marginBottom: 4 }}>Getting Started</h1>
+          <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem' }}>
+            Your request is with Kocre for review. You do not need to complete a long onboarding checklist before we confirm the service.
+          </p>
+        </div>
+
+        <div className="dashboard-section" style={{ marginBottom: 20 }}>
+          <div className="dashboard-section-header"><h2>Your path to active support</h2></div>
+          <div style={{ display: 'grid', gap: 14 }}>
+            {[
+              ['Request received', 'Your selected service and company details are saved in your workspace.', true],
+              ['Kocre review', 'We confirm fit, scope, availability and the price that applies to your environment.', false],
+              ['Agreement & setup', 'After the service is confirmed, we show only the agreements, access and setup items that apply to you.', false],
+              ['Support goes live', 'Kocre confirms activation before your team begins using the managed support workflow.', false],
+            ].map(([title, copy, done], index) => (
+              <div key={title} style={{ display: 'grid', gridTemplateColumns: '36px 1fr', gap: 12, alignItems: 'start' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 999, display: 'grid', placeItems: 'center', fontWeight: 700, background: done ? '#ecfdf3' : '#f2f4f7', color: done ? '#067647' : '#475467' }}>
+                  {done ? '✓' : index + 1}
+                </div>
+                <div>
+                  <strong>{title}</strong>
+                  <div className="admin-table-muted" style={{ marginTop: 4 }}>{copy}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dashboard-actions">
+          <Link href="/portal/services" className="action-card"><span className="action-icon">🧩</span>Review service request</Link>
+          <Link href="/portal/settings" className="action-card"><span className="action-icon">🏢</span>Company details</Link>
+          <a href="mailto:hello@kocreit.com?subject=Kocre%20service%20request" className="action-card"><span className="action-icon">✉️</span>Ask Kocre a question</a>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="portal-page-header" style={{ marginBottom: 24 }}>
@@ -279,7 +320,7 @@ export default function PortalOnboardingPage() {
             Onboarding is a short setup project that prepares your account for reliable support. The checklist below shows which items are waiting on your team and which items Kocre IT is handling internally.
           </p>
           <p style={{ marginTop: 10 }}>
-            Full support begins after contacts, discovery, access, documents, and readiness review are complete.
+            Complete the items Kocre has assigned for your service. Requirements vary by plan, so not every customer will need every access, document, or device step.
           </p>
         </div>
 
