@@ -8,6 +8,53 @@ At the time of inspection, DNS for rmm.kocreit.com, api-rmm.kocreit.com, and mes
 
 **Cause is not determined.** The VM may be off, firewalled, withdrawn, or unreachable for another reason. Do not assume it is a broken Tactical application, change DNS, reissue agents, or install onto a different host until the provider state is verified.
 
+
+## DigitalOcean replacement — provisioned October 30, 2026
+
+The owner confirmed the old Hetzner Tactical server is suspended and inaccessible. Rather than change the existing working recovery MeshCentral machine, an **independent** DigitalOcean server was provisioned and verified:
+
+| Item | Verified status |
+| --- | --- |
+| DigitalOcean Droplet | 614278568, kocre-tactical-rmm-primary-20261030 |
+| Public IPv4 | 147.182.176.4 |
+| Operating system | Fresh Debian 13 (trixie), x64; only SSH originally running |
+| Resources | NYC1, 2 shared vCPU, 4 GB RAM, 80 GB |
+| SSH | Dedicated key in Mac ~/.ssh/kocre_tactical_do_20261030, private file mode 0600. Never print or commit key material |
+| Backups | DigitalOcean console independently says Automated Weekly Backups enabled, 28-day retention |
+| Estimated billing | $24/month compute + $4.80/month weekly backups = $28.80/month |
+
+The other DigitalOcean Droplet, kocre-tactical-rmm-20261026 at 138.197.144.46, actually hosts independent meshcentral-recovery.service. It is used by remote.kocreit.com and MUST NOT be touched or repurposed.
+
+### DNS hold — human live-change confirmation required
+
+Vercel authoritative DNS is in the owner team komlan-kouhikos-projects (team_A3Dv2lg1siA9CtVB7BKdhkOi). These three A records are STILL pointed at the suspended Hetzner host 5.78.108.99:
+
+| FQDN | DNS record ID | New value |
+| --- | --- | --- |
+| rmm.kocreit.com | rec_40ab01c018c360d00ea889eb | 147.182.176.4 |
+| api-rmm.kocreit.com | rec_5f87d01e47b76ee75b041fd3 | 147.182.176.4 |
+| mesh.kocreit.com | rec_8f385a5a34a111866891f4b5 | 147.182.176.4 |
+
+Vercel connector write returned HTTP 403 / forbidden. The authenticated Mac CLI reports action_required / interactive_confirmation_required and explicitly requires the owner to run a terminal command and confirm. No DNS changes were made. Do not bypass the owner-confirmation gate through other executors.
+
+The OWNER must run and confirm each command in their Mac Terminal, or edit these exact A records in Vercel DNS UI:
+
+    vercel dns update rec_40ab01c018c360d00ea889eb --value 147.182.176.4 --scope komlan-kouhikos-projects
+    vercel dns update rec_5f87d01e47b76ee75b041fd3 --value 147.182.176.4 --scope komlan-kouhikos-projects
+    vercel dns update rec_8f385a5a34a111866891f4b5 --value 147.182.176.4 --scope komlan-kouhikos-projects
+
+Preserve remote.kocreit.com at 138.197.144.46, all existing Kocre website records, MX and email records. The official installer also requires a temporary Let's Encrypt wildcard DNS TXT value at _acme-challenge.kocreit.com; that value is generated during the interactive trusted-cert request, not beforehand.
+
+### OS maintenance hold — original Mac policy
+
+An attempted prerequisite apt-get update/install over SSH via Personal Commands on the Mac was blocked at command admission by CATASTROPHIC_DISABLED ("Blocked: catastrophic system command pattern"). Read-only policy checks showed Full Control, owner trust and no emergency stop, but that does not authorize retrying via a different executor. NO OS package installation command ran on the Droplet.
+
+When human authorization is available, perform the official Debian 13 preparation, set up the tactical sudo user and UTF-8 locale, verify persistent SSH and firewall port 22/443 access, and run the official install.sh as tactical (NOT root). Use real trusted Let's Encrypt certificates; do not use --insecure (cannot safely convert without reinstalling agent certificates). Protect bootstrap admin password and TOTP secrets.
+
+### Release gate
+
+This server exists and its weekly backup SCHEDULE is enabled, but Tactical RMM is NOT installed, new DNS is NOT published and no agent has re-enrolled. Do not mistake a scheduled backup for a verified restore. After installer completion verify web/API certificate, service health, first actual restorable backup, independent Mesh manual takeover, and exact owner Windows 11/10 agent re-enrollment. No old Tactical database was recovered from Hetzner.
+
 ## Product ownership
 
 - Tactical RMM is a temporary, internal monitoring/inventory/patch/alert sensor.
