@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../../lib/supabase/client'
 import { activationBlockers, checksFor, formatOrderAmount, ORDER_STATUS_LABELS } from '../../../lib/client-activation.js'
@@ -23,6 +23,7 @@ function toCents(value) {
 }
 
 export default function AdminActivationPage() {
+  const requestSequence = useRef(0)
   const [orgs, setOrgs] = useState([])
   const [orgId, setOrgId] = useState('')
   const [data, setData] = useState(null)
@@ -67,15 +68,46 @@ export default function AdminActivationPage() {
 
   async function load(selectedId) {
     if (!selectedId) return
+    const sequence = ++requestSequence.current
     setLoading(true); setError('')
     try {
       const response = await fetch('/api/client-activation?organizationId=' + encodeURIComponent(selectedId), { cache: 'no-store' })
       const result = await response.json().catch(() => ({}))
+      if (sequence !== requestSequence.current) return
       if (!response.ok) throw new Error(result.error || 'Unable to load activation record.')
       setData(result)
       setAuthorizedSignerUserId('')
-    } catch (err) { setError(err.message || 'Unable to load activation record.'); setData(null) }
-    finally { setLoading(false) }
+    } catch (err) {
+      if (sequence !== requestSequence.current) return
+      setError(err.message || 'Unable to load activation record.')
+      setData(null)
+    } finally {
+      if (sequence === requestSequence.current) setLoading(false)
+    }
+  }
+
+  function switchCustomer(nextOrgId) {
+    // Prevent evidence and legally consequential attestations from one
+    // customer being carried into a different customer's service order.
+    ++requestSequence.current // also invalidates in-flight reads for the old org
+    setData(null)
+    setError('')
+    setNotice('')
+    setAgreementRef('')
+    setPaymentRef('')
+    setEvidenceByKey({})
+    setAgreementAttested(false)
+    setPaymentAttested(false)
+    setScopeSummary('')
+    setPricingExplanation('')
+    setAuthorizedSignerUserId('')
+    setMonthly('')
+    setSetup('')
+    setOneTime('')
+    setExclusions('Hardware, third-party licenses and out-of-scope projects are separately quoted.')
+    setExternalCosts('Third-party licenses, endpoint security, backup storage and cloud usage are separate unless explicitly included.')
+    setSupportWindow('Weekdays 9:00 AM–6:00 PM Eastern, excluding US holidays')
+    setOrgId(nextOrgId)
   }
   useEffect(() => { load(orgId) }, [orgId])
 
@@ -130,7 +162,7 @@ export default function AdminActivationPage() {
 
     <section style={style.panel}>
       <Field label="Customer organization">
-        <select value={orgId} onChange={(e) => { setOrgId(e.target.value); setNotice(''); setError(''); }} style={style.input}>
+        <select value={orgId} disabled={busy} onChange={(e) => switchCustomer(e.target.value)} style={style.input}>
           {!orgs.length && <option value="">No organizations available</option>}
           {orgs.map((o) => <option key={o.id} value={o.id}>{o.name} — {o.client_status}</option>)}
         </select>
