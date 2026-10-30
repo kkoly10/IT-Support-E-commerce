@@ -287,6 +287,14 @@ export default function DashboardPage() {
       </div>
 
       <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
+      {(lifecycle === 'lead' || lifecycle === 'onboarding' || lifecycle === 'active') && (
+        <div className="dashboard-actions" style={{ marginBottom: 18 }}>
+          <a href="/portal/activation" className="action-card">
+            <span className="action-icon">✅</span>
+            {lifecycle === 'active' ? 'Accepted service & coverage' : 'Written offer & activation'}
+          </a>
+        </div>
+      )}
 
       {lifecycle === 'lead' && requestedSelection && (
         <>
