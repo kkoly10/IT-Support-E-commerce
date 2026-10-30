@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 import BrandMark from '../components/BrandMark'
@@ -13,13 +13,9 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState(null)
   const [linkError, setLinkError] = useState(false)
 
-  // Read once on mount, without making a client-rendered auth failure a server error.
-  useState(() => {
-    if (typeof window !== 'undefined') setLinkErrorValue()
-    function setLinkErrorValue() {
-      // The expired-link state is also handled by a fresh URL check below.
-    }
-  })
+  useEffect(() => {
+    setLinkError(new URLSearchParams(window.location.search).get('auth_error') === 'recovery')
+  }, [])
 
   async function submit(event) {
     event.preventDefault()
@@ -46,6 +42,7 @@ export default function ForgotPasswordPage() {
         ? 'If that address is associated with a Kocre account, a secure password reset link will arrive. Check your inbox and spam folder.'
         : 'Enter the email you use for Kocre IT. We will send a secure link to reset your password.'}</p>
     </div>
+    {linkError && !sent && <p role="status" style={{ fontSize: '.9rem', color: '#b45309', lineHeight: 1.6 }}>Your previous reset link was invalid or expired. Enter your address to request a fresh link.</p>}
     {!sent && <form onSubmit={submit} className="auth-form" aria-busy={sending}>
       {error && <div className="auth-error" role="alert">{error}</div>}
       <div className="form-group"><label htmlFor="email">Account email</label><input id="email" type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" disabled={sending} /></div>
