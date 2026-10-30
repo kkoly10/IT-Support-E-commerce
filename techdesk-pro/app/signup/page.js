@@ -26,7 +26,7 @@ export default function SignupPage() {
   const [error, setError] = useState(null)
   const [emailSent, setEmailSent] = useState(false)
   const [completionWarning, setCompletionWarning] = useState(null)
-  const [destination, setDestination] = useState('/portal/services?welcome=1')
+  const [destination, setDestination] = useState('/portal/dashboard?welcome=1')
 
   async function finishAccount(context) {
     setLoading(true)
@@ -40,9 +40,9 @@ export default function SignupPage() {
       if (!response.ok) throw new Error(result.error || 'Could not finish setting up your account. Please retry.')
       if (result.warning) {
         setCompletionWarning(result.warning)
-        setDestination(result.next || '/portal/services?welcome=1')
+        setDestination(result.next || '/portal/dashboard?welcome=1')
       } else {
-        router.replace(result.next || '/portal/services?welcome=1')
+        router.replace(result.next || '/portal/dashboard?welcome=1')
         router.refresh()
       }
     } catch (err) {
@@ -166,7 +166,7 @@ export default function SignupPage() {
   if (completionWarning) return (
     <div className="auth-page"><div className="auth-card" style={{ maxWidth: 520 }}>
       <div className="auth-header"><h1>Your account is ready</h1><p role="status">{completionWarning}</p></div>
-      <div className="auth-footer"><Link href={destination}>Continue to services →</Link></div>
+      <div className="auth-footer"><Link href={destination}>Continue to your portal →</Link></div>
     </div></div>
   )
 
@@ -178,7 +178,7 @@ export default function SignupPage() {
           <span>Kocre IT Services</span>
         </Link>
         <h1>{existingWorkspace ? 'Review your service request' : sessionUser ? 'Finish your account' : 'Create your free account'}</h1>
-        <p>{existingWorkspace ? 'Save your interest for review in your existing workspace.' : 'Explore the portal, choose a service, and complete its setup when you are ready.'}</p>
+        <p>{existingWorkspace ? 'Save your interest for review in your existing workspace.' : 'Create your account, review your request, and see exactly what happens next.'}</p>
       </div>
 
       {chosen && <section aria-label="Selected service" style={{ padding: 16, marginBottom: 20, border: '1px solid var(--border)', borderRadius: 12, background: '#f3faf8', lineHeight: 1.6 }}>
@@ -215,7 +215,7 @@ export default function SignupPage() {
         </>}
         <p style={{ fontSize: '0.84rem', lineHeight: 1.6, color: 'var(--ink-muted)', margin: 0 }}>Creating an account is free. Team members can suggest service needs; accepted scope and charges require Kocre review and an authorized agreement.</p>
         <button type="submit" className="auth-submit" disabled={loading || initializing}>
-          {initializing ? 'Loading...' : loading ? 'Finishing setup...' : existingWorkspace ? 'Save service request' : sessionUser ? 'Continue to services' : 'Create account'}
+          {initializing ? 'Loading...' : loading ? 'Finishing setup...' : existingWorkspace ? 'Save service request' : sessionUser ? 'Continue to portal' : 'Create account'}
         </button>
       </form>
       <div className="auth-footer">

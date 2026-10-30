@@ -156,7 +156,7 @@ export async function completeVerifiedSignup({ service, user, payload = {}, now 
     }
   }
   return {
-    success: true, organizationId: org.id, next: '/portal/services?welcome=1',
+    success: true, organizationId: org.id, next: '/portal/dashboard?welcome=1',
     ...(assessmentWarning ? { warning: assessmentWarning } : {}),
   }
 }

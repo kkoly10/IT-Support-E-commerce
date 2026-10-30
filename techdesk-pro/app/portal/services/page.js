@@ -68,6 +68,8 @@ export default function ServicesPage() {
   const saved = data?.selection
   const selectedPlan = SERVICE_CATALOG[service]
   const active = org?.clientStatus === 'active'
+  const lead = org?.clientStatus === 'lead'
+  const onboarding = org?.clientStatus === 'onboarding'
 
   function chooseService(nextService) {
     setService(normalizeSelection({ service: nextService, users: Number(users) }).service || '')
@@ -205,13 +207,21 @@ export default function ServicesPage() {
       </form>
 
       <section className="services-panel" aria-labelledby="service-next-title">
-        <h2 id="service-next-title">Continue your setup</h2>
-        <p className="services-muted">Kocre reviews your request and confirms the applicable next steps. These pages keep your contact details and setup information together.</p>
+        <h2 id="service-next-title">{lead ? 'What happens next' : onboarding ? 'Continue your setup' : active ? 'Your support is active' : 'Next steps'}</h2>
+        <p className="services-muted">
+          {lead
+            ? 'Your request is saved. Kocre reviews fit, workload, scope and price before asking you to complete service-specific onboarding.'
+            : onboarding
+              ? 'Your service is in setup. Use Getting Started to see the items that apply to your account.'
+              : active
+                ? 'Your accepted service remains in effect. Use Support Requests when your team needs help.'
+                : 'Kocre will confirm the next step for this account.'}
+        </p>
         <div className="services-next-links">
-          <Link href="/portal/contacts">Confirm your contacts →</Link>
-          <Link href="/portal/onboarding">View onboarding steps →</Link>
-          <Link href="/portal/access">Review access requests →</Link>
-          {active ? <Link href="/portal/tickets/new">Open a support request →</Link> : <a href="mailto:hello@kocreit.com?subject=Service%20setup%20question">Ask a setup question →</a>}
+          <Link href="/portal/dashboard">Back to overview →</Link>
+          {onboarding && <Link href="/portal/onboarding">Continue getting started →</Link>}
+          {active && <Link href="/portal/tickets/new">Open a support request →</Link>}
+          {!active && <a href="mailto:hello@kocreit.com?subject=Service%20request%20question">Ask Kocre a question →</a>}
         </div>
       </section>
 

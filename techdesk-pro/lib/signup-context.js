@@ -32,7 +32,7 @@ export function signupResumeHref(selection) {
   return `${path}${path.includes('?') ? '&' : '?'}resume=1`
 }
 
-export function safeAuthNext(value, fallback = '/portal/services') {
+export function safeAuthNext(value, fallback = '/portal/dashboard') {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//') || /[\\\u0000-\u001f]/.test(value)) return fallback
   const path = new URL(value, 'https://local.invalid')
   const allowed = path.pathname === '/signup' || path.pathname === '/portal' || path.pathname.startsWith('/portal/')

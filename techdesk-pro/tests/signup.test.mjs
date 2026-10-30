@@ -51,6 +51,8 @@ test('identity and privileges come from verified auth; prices are recomputed and
     fullName: 'Alex', serviceSelection: { service: 'managed', users: 2, monthly: 1, setup: 0 },
   }))
   assert.equal(response.status, 200)
+  const responseBody = await response.json()
+  assert.equal(responseBody.next, '/portal/dashboard?welcome=1')
   const org = db.tables.organizations[0]
   const profile = db.tables.profiles[0]
   assert.equal(profile.id, user.id)
@@ -206,7 +208,7 @@ test('signup context sanitizes editable values and auth redirects remain inside 
   assert.deepEqual(context.serviceSelection, { service: 'managed', users: 3 })
   assert.equal(signupResumeHref(context.serviceSelection), '/signup?service=managed&users=3&resume=1')
   for (const unsafe of ['https://evil.example', '//evil.example', '/\\evil.example', '/api/signup/complete', '/admin/dashboard', '/portal/../../admin']) {
-    assert.equal(safeAuthNext(unsafe), '/portal/services')
+    assert.equal(safeAuthNext(unsafe), '/portal/dashboard')
   }
   assert.equal(safeAuthNext('/signup?service=one_time&users=1'), '/signup?service=one_time&users=1')
   assert.notEqual(signupRecordId('organization', user.id), signupRecordId('contact', user.id))
