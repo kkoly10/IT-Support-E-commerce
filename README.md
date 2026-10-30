@@ -95,6 +95,8 @@ Do not confuse an existing page with a finished service. The product should repr
 
 ## Temporary RMM bridge
 
+**Live recovery status (October 30, 2026):** Existing Tactical agents remain installed on both owner Windows machines, but the former Hetzner RMM server and API are unreachable. The internal read-only sensor prototype has tests, not a verified live provider connection. Recovery, tenancy, credentials, Mesh ownership, human takeover and production validation are tracked in [Tactical RMM recovery and internal bridge](docs/TACTICAL-RMM-RECOVERY-2026-10-30.md). Do not claim monitoring is activated based on installed services or the presence of the adapter.
+
 Tactical RMM may be used tactically while Personal Commands grows into the long-term RMM/NOC layer. Its purpose would be to provide commodity monitoring, patching, inventory and alerting sooner—not to replace Personal Commands as the AI/control architecture.
 
 Avoid unnecessary duplicate agents or overlapping remote-control ownership. If Tactical RMM is activated, deliberately choose whether it should run without its Mesh component or integrate with the existing Mesh architecture.
