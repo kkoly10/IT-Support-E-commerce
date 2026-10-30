@@ -87,7 +87,13 @@ export default function SignupPage() {
           if (cancelled) return
           setExistingWorkspace(Boolean(profile?.organization_id))
           if (profile?.organization_id && profile.full_name) setFullName(profile.full_name)
-          if (profile?.organization_id && querySelection) {
+          if (profile?.organization_id && !querySelection) {
+            // Old signup metadata is recovery context, not a new service request
+            // for an already-provisioned workspace. Only an explicit current
+            // service URL may populate the existing-client request form.
+            setSelection(null)
+            setServiceRevision(null)
+          } else if (profile?.organization_id && querySelection) {
             const serviceResponse = await fetch('/api/services/selection', { cache: 'no-store' })
             const serviceState = await serviceResponse.json().catch(() => ({}))
             if (!serviceResponse.ok || typeof serviceState.revision !== 'string') {
