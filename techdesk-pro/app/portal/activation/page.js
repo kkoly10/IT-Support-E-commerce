@@ -55,6 +55,10 @@ export default function ClientActivationPage() {
   const order = data?.orders?.find((row) => ['offered', 'accepted', 'onboarding', 'active'].includes(row.status)) || data?.orders?.[0]
   const selectedService = data?.selection?.service
   const serviceName = order ? (SERVICE_CATALOG[order.service_key]?.name || 'Custom service') : null
+  const activationSynchronized = !order || order.status !== 'active' ||
+    (data?.organization?.clientStatus === 'active' && data?.organization?.plan === order.service_key)
+  const statusLabel = order?.status === 'active' && !activationSynchronized
+    ? 'Finalizing activation' : (ORDER_STATUS_LABELS[order?.status] || order?.status)
 
   return <div style={{ maxWidth: 960 }}>
     <header className="portal-page-header" style={{ marginBottom: 24 }}>
@@ -78,10 +82,10 @@ export default function ClientActivationPage() {
         <div>
           <div style={{ fontSize: '.82rem', color: 'var(--ink-muted)' }}>Written service offer</div>
           <h2 style={{ margin: '6px 0 2px' }}>{serviceName}</h2>
-          <p style={{ ...muted, margin: 0 }}>{order.supported_users} supported {order.supported_users === 1 ? 'person' : 'people'} · {ORDER_STATUS_LABELS[order.status] || order.status}</p>
+          <p style={{ ...muted, margin: 0 }}>{order.supported_users} supported {order.supported_users === 1 ? 'person' : 'people'} · {statusLabel}</p>
         </div>
-        <span className="ticket-platform" style={{ background: order.status === 'active' ? '#ecfdf3' : '#eef4ff', color: order.status === 'active' ? '#067647' : '#1d4ed8' }}>
-          {ORDER_STATUS_LABELS[order.status] || order.status}
+        <span className="ticket-platform" style={{ background: order.status === 'active' && activationSynchronized ? '#ecfdf3' : '#eef4ff', color: order.status === 'active' && activationSynchronized ? '#067647' : '#1d4ed8' }}>
+          {statusLabel}
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 18 }}>
@@ -127,7 +131,16 @@ export default function ClientActivationPage() {
           return <div key={key}><strong>{checked ? '✓' : '○'} {label}</strong><p style={{ margin: '2px 0', ...muted }}>{checked ? 'Verified by Kocre' : 'Kocre will confirm this during setup'}</p></div>
         })}
       </div>
-      {order.status === 'active' && <p role="status" style={{ marginTop: 18, padding: 12, background: '#ecfdf3', color: '#067647', borderRadius: 8 }}>Your service was activated on {new Date(order.activated_at).toLocaleDateString('en-US')}. <Link href="/portal/tickets/new">Open a support request →</Link></p>}
+      {order.status === 'active' && (activationSynchronized
+        ? <p role="status" style={{ marginTop: 18, padding: 12, background: '#ecfdf3', color: '#067647', borderRadius: 8 }}>
+            {order.service_key === 'one_time'
+              ? 'Your one-time support session has been activated within the agreed scope.'
+              : 'Your managed service is active.'}
+            {' '}Activated on {new Date(order.activated_at).toLocaleDateString('en-US')}. <Link href="/portal/tickets/new">Open a support request →</Link>
+          </p>
+        : <p role="status" style={{ marginTop: 18, padding: 12, background: '#eef4ff', color: '#1d4ed8', borderRadius: 8 }}>
+            Kocre is completing the final account activation. Your support service will be shown as active once the account synchronization is confirmed.
+          </p>)}
     </section>}
 
     <p style={muted}>Questions about your offer? <a href="mailto:hello@kocreit.com?subject=Kocre%20service%20activation">Contact Kocre IT</a>.</p>
