@@ -31,6 +31,34 @@ function endpoint(apiUrl) {
   return new URL('/agents/?detail=false', parsed.origin).toString()
 }
 
+async function readBodyBounded(response) {
+  // Reading Response.text() first is not a real size limit: it buffers all bytes.
+  if (typeof response?.body?.getReader !== 'function') fail('TACTICAL_INVALID_RESPONSE')
+  const reader = response.body.getReader()
+  const chunks = []
+  let total = 0
+  let completed = false
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) {
+        completed = true
+        break
+      }
+      if (!(value instanceof Uint8Array)) fail('TACTICAL_INVALID_RESPONSE')
+      total += value.byteLength
+      if (total > MAX_BODY_BYTES) fail('TACTICAL_RESPONSE_TOO_LARGE')
+      chunks.push(value)
+    }
+  } finally {
+    if (!completed) {
+      try { await reader.cancel() } catch { /* original read failure is authoritative */ }
+    }
+    reader.releaseLock()
+  }
+  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk))).toString('utf8')
+}
+
 function validateBindings(bindings) {
   if (!Array.isArray(bindings)) fail('TACTICAL_INVALID_BINDINGS')
   const providerIds = new Set()
@@ -105,11 +133,15 @@ export function createTacticalMonitor({
       if (!response?.ok) fail('TACTICAL_UNAVAILABLE')
       let agents
       try {
-        const raw = await response.text()
-        if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) fail('TACTICAL_RESPONSE_TOO_LARGE')
-        const parsed = JSON.parse(raw)
+        const parsed = JSON.parse(await readBodyBounded(response))
+        if (!Array.isArray(parsed) && parsed?.next != null) {
+          // Never invent missing/offline devices from a partial page.
+          fail('TACTICAL_PAGINATION_UNSUPPORTED')
+        }
         agents = Array.isArray(parsed) ? parsed : parsed?.results
         if (!Array.isArray(agents)) fail('TACTICAL_INVALID_RESPONSE')
+        if (!Array.isArray(parsed) && Number.isFinite(parsed.count) &&
+            parsed.count > agents.length) fail('TACTICAL_PAGINATION_UNSUPPORTED')
       } catch (error) {
         if (error instanceof TacticalMonitorError) throw error
         fail('TACTICAL_INVALID_RESPONSE')
