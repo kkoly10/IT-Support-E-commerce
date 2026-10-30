@@ -173,7 +173,7 @@ export default function PortalOnboardingPage() {
         </div>
 
         <div className="dashboard-actions">
-          <Link href="/portal/services" className="action-card"><span className="action-icon">🧩</span>Review service request</Link>
+          <Link href="/portal/services" className="action-card"><span className="action-icon">🧩</span>{requestedSelection ? 'Review service request' : 'Choose a service'}</Link>
           <Link href="/portal/settings" className="action-card"><span className="action-icon">🏢</span>Company details</Link>
           <a href="mailto:hello@kocreit.com?subject=Kocre%20service%20request" className="action-card"><span className="action-icon">✉️</span>Ask Kocre a question</a>
         </div>
