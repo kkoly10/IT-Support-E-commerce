@@ -17,7 +17,7 @@ The AI-native MSP primary vision remains [unchanged](AI-NATIVE-MSP-PRIMARY-VISIO
 - New prospects see their own saved service request and can open **Offer & Activation**.
 - Before a quote is prepared, the page explains that Kocre is reviewing the request; no payment or activation is implied.
 - A quote displays its **fixed price, service, supported-person count, written scope, excluded work, separate provider charges, support window and expiration**.
-- Only the **current primary contact whose email matches verified Supabase Auth identity** can accept or decline the quote. Quote acceptance captures the name, user ID and timestamp.
+- Only the **specific verified portal user designated by Kocre on the written offer** can accept or decline. This authority is bound to a server-created order, **not** a primary-contact flag editable in the client contact matrix. Acceptance captures name, verified user ID, and timestamp.
 - Acceptance is explicitly *commercial quote acceptance*, not an executed MSA/DPA. It does not charge a payment method.
 - Accepted clients can see exactly which operational checks Kocre has recorded. **Remote, Managed, Secure, One-Time and Custom** get different checklists.
 - Support is shown as active only after Kocre performs an explicit backend activation.
@@ -25,13 +25,13 @@ The AI-native MSP primary vision remains [unchanged](AI-NATIVE-MSP-PRIMARY-VISIO
 ## Kocre operator experience
 
 - Admin navigation includes **Client Activation**. A specific client can be selected or opened by organization ID.
-- Kocre creates the only current offer for the chosen service request. Source selection/revision are checked before publication, and public-pilot price overrides require a written explanation.
+- Kocre creates the only current offer for the chosen service request and explicitly designates the customer portal user authorized to sign. Source selection/revision are checked before publication, and public-pilot price overrides require a written explanation.
 - The offer is published **in the portal**; no email is sent automatically. Kocre must notify the primary contact separately.
 - Kocre waits for acceptance, starts onboarding, and enters a verifiable reference for an executed non-draft agreement and a paid external invoice/receipt.
 - Kocre must attest to personally checking the evidence. The portal cannot itself verify that an external payment cleared or that a document is legally executed.
 - An evidence reference is required for every service-specific check (e.g., endpoint enrollment, patch baseline, security agent and backup scope for Secure Desk).
-- The backend refuses activation if any mandatory condition is missing and records which verified user performed the transition.
-- Direct browser writes to organization commercial fields are blocked by a database trigger. The old admin client editor no longer offers plan/payment/activation toggles, and the old admin onboarding activation button links to the evidence-backed workflow.
+- The backend refuses activation if any mandatory condition is missing, records the verified operator, and supports retries after a persisted order transition fails to sync the organization. The admin console exposes the recovery action.
+- The migration adds `one_time` to the existing `plan_tier` enum so one-time activation can synchronize correctly. Direct browser writes to organization commercial fields are blocked by a database trigger. The old admin client editor no longer offers plan/payment/activation toggles, and the old admin onboarding activation button links to the evidence-backed workflow.
 
 ## Important limits
 
@@ -44,12 +44,12 @@ The AI-native MSP primary vision remains [unchanged](AI-NATIVE-MSP-PRIMARY-VISIO
 
 ## Deployment prerequisite — do not skip
 
-The code needs **`techdesk-pro/supabase/migrations/20261030040638_client_activation_orders.sql`** applied to the actual Kocre Supabase project before deployment. The Supabase connector currently exposed other projects but not an identifiable Kocre project; no production migration was applied as part of this work.
+The code needs **`techdesk-pro/supabase/migrations/20261030040638_client_activation_orders.sql`** applied to the actual Kocre Supabase project before deployment. The Supabase connector in ChatGPT currently exposes a different organization, but the Mac's authenticated Supabase CLI **read-only verified** Kocre IT project ref `ibmdgjfhuxlxmyejqqdx` (active). The live database has `organizations`/`profiles`, but no `service_orders`, and its `plan_tier` enum lacked `one_time`. The migration has **not** been applied. The database migration history differs from the repository filename history; do not blindly run `supabase db push` across all earlier migrations.
 
 Before enabling in production:
 
-1. Identify and independently verify the **Kocre** Supabase project reference.
-2. Review/apply the migration in that project using the project's normal migration workflow (do not apply it to Korent, Couranr or any other database).
+1. **Identified:** Kocre IT project reference `ibmdgjfhuxlxmyejqqdx`; independently verify the deployment's configured Supabase project points to this ref before writing production schema.
+2. Review/apply only the single new migration in that specific Kocre project using an explicit, recorded migration procedure (do not replay other historical migrations or apply it to Korent/Couranr).
 3. Confirm `service_orders` exists with RLS enabled; cross-tenant reads and all browser writes are rejected, admin-only API mutations work, and the organization commercial-field trigger blocks direct browser bypass.
 4. Use a **disposable authenticated QA organization** and test quote publication, primary-only acceptance, exact prices, declined/expired offers, evidence gates, partial-failure retry, and activation to active support.
 5. Verify the portal renders consistently on phone/desktop and that the route handles missing database configuration truthfully.
