@@ -13,11 +13,11 @@ import ServiceRequestSummary from '../../components/ServiceRequestSummary'
 import { deriveSupportReadiness } from '../../../lib/readiness'
 
 const CLIENT_STATUS_LABELS = {
-  lead: 'Lead',
-  onboarding: 'Onboarding',
-  active: 'Active',
-  paused: 'Paused',
-  former: 'Former',
+  lead: 'Request under review',
+  onboarding: 'Getting set up',
+  active: 'Support active',
+  paused: 'Support paused',
+  former: 'Past service',
 }
 
 const AGREEMENT_STATUS_LABELS = {
@@ -253,103 +253,100 @@ export default function DashboardPage() {
     <div>
       <div className="dashboard-header">
         <div>
-          <h1>{org?.name || 'Your Portal Dashboard'}</h1>
-          <p>
-            Lifecycle: <strong>{toLabel(lifecycle, CLIENT_STATUS_LABELS)}</strong> · Plan:{' '}
-            <strong>{
-              org?.plan === 'pending' || !org?.plan
-                ? 'Pending fit review'
-                : org.plan.toUpperCase()
-            }</strong>
-            {' '}· Tickets this month:{' '}
-            <strong style={{ color: metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
-              {metrics.monthlyUsed}
-              {metrics.monthlyLimit !== null && ` / ${metrics.monthlyLimit}`}
-            </strong>
-            {metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit && (
-              <span style={{ color: '#b45309', fontSize: '0.85em', marginLeft: 6 }}>
-                (at your legacy plan’s allotment — overage will be reviewed in billing)
-              </span>
-            )}
-          </p>
+          <h1>{lifecycle === 'lead' ? `Welcome to Kocre IT` : org?.name || 'Your Portal Dashboard'}</h1>
+          {lifecycle === 'lead' ? (
+            <p>Your account is ready and your service request is with Kocre for review. Nothing has been activated or charged yet.</p>
+          ) : lifecycle === 'onboarding' ? (
+            <p>Your service is moving through setup. We’ll show only the items that need your attention before support goes live.</p>
+          ) : (
+            <p>
+              <strong>{toLabel(lifecycle, CLIENT_STATUS_LABELS)}</strong>
+              {' '}· Tickets this month:{' '}
+              <strong style={{ color: metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit ? '#b45309' : undefined }}>
+                {metrics.monthlyUsed}
+                {metrics.monthlyLimit !== null && ` / ${metrics.monthlyLimit}`}
+              </strong>
+              {metrics.monthlyLimit !== null && metrics.monthlyUsed >= metrics.monthlyLimit && (
+                <span style={{ color: '#b45309', fontSize: '0.85em', marginLeft: 6 }}>
+                  (at your legacy plan’s allotment — overage will be reviewed in billing)
+                </span>
+              )}
+            </p>
+          )}
         </div>
         {lifecycle === 'active' ? (
-          <a href="/portal/tickets/new" className="dashboard-new-ticket">
-            + New Support Request
-          </a>
+          <a href="/portal/tickets/new" className="dashboard-new-ticket">+ New Support Request</a>
+        ) : lifecycle === 'onboarding' ? (
+          <a href="/portal/onboarding" className="dashboard-new-ticket">Continue setup</a>
         ) : (
-          <a href="/portal/onboarding" className="dashboard-new-ticket">
-            Review Onboarding
-          </a>
+          <a href="/portal/services" className="dashboard-new-ticket">Review request</a>
         )}
       </div>
 
       <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
 
-      {(lifecycle === 'lead' || lifecycle === 'onboarding') && (
+      {lifecycle === 'lead' && (
         <>
           <div className="dashboard-section" style={{ marginBottom: 16 }}>
-            <div className="dashboard-section-header">
-              <h2>Support-ready gate</h2>
+            <div className="dashboard-section-header"><h2>What happens next</h2></div>
+            <div style={{ display: 'grid', gap: 12 }}>
+              {[
+                ['1', 'Request received', 'Your selected service and team size are saved in your Kocre workspace.'],
+                ['2', 'Kocre reviews the fit', 'We review scope, workload, devices, security needs and availability.'],
+                ['3', 'We confirm the service', 'You receive the agreed scope, price and any setup requirements before you commit.'],
+                ['4', 'Setup begins', 'Only then do we ask for the contacts, access, agreements or device setup your service actually needs.'],
+              ].map(([step, title, copy]) => (
+                <div key={step} style={{ display: 'grid', gridTemplateColumns: '34px 1fr', gap: 12, alignItems: 'start' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 999, background: 'var(--teal)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: '.82rem' }}>{step}</div>
+                  <div><strong>{title}</strong><div className="admin-table-muted" style={{ marginTop: 3 }}>{copy}</div></div>
+                </div>
+              ))}
             </div>
+          </div>
+          <div className="dashboard-actions" style={{ marginBottom: 20 }}>
+            <a href="/portal/services" className="action-card"><span className="action-icon">🧩</span>Review service request</a>
+            <a href="/portal/settings" className="action-card"><span className="action-icon">🏢</span>Company details</a>
+            <a href="/portal/contacts" className="action-card"><span className="action-icon">👤</span>Primary contact</a>
+          </div>
+        </>
+      )}
 
+      {lifecycle === 'onboarding' && (
+        <>
+          <div className="dashboard-section" style={{ marginBottom: 16 }}>
+            <div className="dashboard-section-header"><h2>Your setup progress</h2></div>
             <div className="stat-card" style={{ width: '100%' }}>
               <div className="stat-card-value">{readiness.percent}%</div>
-              <div className="stat-card-label">
-                {readiness.ready ? 'Ready for support' : 'Still in setup'}
-              </div>
-              <div className="stat-card-bar">
-                <div className="stat-card-bar-fill" style={{ width: `${readiness.percent}%` }} />
-              </div>
-
+              <div className="stat-card-label">{readiness.ready ? 'Ready for activation' : 'Setup in progress'}</div>
+              <div className="stat-card-bar"><div className="stat-card-bar-fill" style={{ width: `${readiness.percent}%` }} /></div>
               <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
                 {readiness.checks.map((check) => (
-                  <div
-                    key={check.key}
-                    style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}
-                  >
+                  <div key={check.key} style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
                     <span className="admin-table-muted">{check.label}</span>
-                    <span
-                      className="ticket-platform"
-                      style={{
-                        background: check.passed ? '#ecfdf3' : '#fef3f2',
-                        color: check.passed ? '#067647' : '#b42318',
-                      }}
-                    >
-                      {check.passed ? 'Done' : 'Missing'}
+                    <span className="ticket-platform" style={{ background: check.passed ? '#ecfdf3' : '#f8fafc', color: check.passed ? '#067647' : '#475467' }}>
+                      {check.passed ? 'Complete' : 'To do'}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
           <div className="dashboard-actions" style={{ marginBottom: 20 }}>
-            <a href="/portal/contacts" className="action-card">
-              <span className="action-icon">👥</span>Contacts
-            </a>
-            <a href="/portal/access" className="action-card">
-              <span className="action-icon">🔐</span>Access
-            </a>
-            <a href="/portal/documents" className="action-card">
-              <span className="action-icon">📄</span>Documents
-            </a>
-            <a href="/portal/settings" className="action-card">
-              <span className="action-icon">🧾</span>Discovery
-            </a>
+            <a href="/portal/onboarding" className="action-card"><span className="action-icon">🧭</span>Continue setup</a>
+            <a href="/portal/agreements" className="action-card"><span className="action-icon">✍️</span>Agreements</a>
+            <a href="/portal/contacts" className="action-card"><span className="action-icon">👥</span>Contacts</a>
+            <a href="/portal/access" className="action-card"><span className="action-icon">🔐</span>Access</a>
           </div>
         </>
       )}
 
       {lifecycle !== 'active' ? (
         <div className="dashboard-section">
-          <div className="dashboard-section-header">
-            <h2>Support availability</h2>
-          </div>
+          <div className="dashboard-section-header"><h2>Support status</h2></div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
-            <p>
-              Your account is in onboarding mode. Complete the remaining readiness items before full support goes live.
-            </p>
+            <p>{lifecycle === 'lead'
+              ? 'Support has not started yet. Kocre will confirm the service scope and next step with you before anything is activated.'
+              : 'Your support service is being prepared. Your onboarding page shows the items that apply to your setup.'}</p>
           </div>
         </div>
       ) : (
