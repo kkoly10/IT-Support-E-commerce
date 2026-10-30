@@ -17,7 +17,12 @@ function database(seed = {}) {
       id: orgId, name: 'Example Client', client_status: 'lead', plan: 'pending',
       discovery_profile: { service_selection: { service: 'managed', users: 1 } },
     }, ...seed.organizations || []],
-    service_orders: [], organization_contacts: [
+    service_orders: [],
+    profiles: [
+      { id: ownerId, organization_id: orgId, role: 'client', full_name: 'Alex Owner', email: 'owner@example.com' },
+      { id: otherId, organization_id: orgId, role: 'client', full_name: 'Other Member', email: 'another@example.com' },
+    ],
+    organization_contacts: [
       { organization_id: orgId, email: 'owner@example.com', is_primary_contact: true },
     ],
   }
@@ -80,6 +85,7 @@ function offerPayload(db) {
   return {
     action: 'offer', organizationId: orgId,
     expectedRequestRevision: discoveryRevision(db.tables.organizations[0].discovery_profile),
+    authorizedSignerUserId: ownerId,
     scopeSummary: 'Covered Windows laptop patching, remote helpdesk and agreed account administration.',
     monthlyCents: 22900, setupCents: 49900, oneTimeCents: null,
   }
@@ -110,12 +116,17 @@ test('admin offer binds the latest saved request and protects against stale cust
   assert.equal((await admin.POST(request(offerPayload(db)))).status, 409)
 })
 
-test('client acceptance requires the verified primary email, not an editable profile flag', async () => {
+test('client acceptance requires Kocre-designated signer identity; editable primary contacts confer no authority', async () => {
   const db = database()
   const admin = handlers(db, 'admin', adminId, 'admin@kocreit.com', orgId)
   const published = await (await admin.POST(request(offerPayload(db)))).json()
   const orderId = published.order.id
   const accept = { action: 'accept', orderId, expectedRevision: 0, acknowledged: true, acceptedName: 'Alex Owner' }
+  // A member may currently modify the contact matrix. Such self-promotion
+  // must never allow a quote to be accepted because the signer is bound
+  // to an immutable Kocre-issued service order.
+  db.tables.organization_contacts[0].is_primary_contact = false
+  db.tables.organization_contacts.push({ organization_id: orgId, email: 'another@example.com', is_primary_contact: true })
   const notPrimary = handlers(db, 'client', otherId, 'another@example.com', orgId)
   assert.equal((await notPrimary.POST(request(accept))).status, 403)
   assert.equal(db.tables.service_orders[0].status, 'offered')
@@ -125,6 +136,24 @@ test('client acceptance requires the verified primary email, not an editable pro
   assert.equal(db.tables.service_orders[0].status, 'accepted')
   assert.equal(db.tables.service_orders[0].accepted_by, ownerId)
   assert.equal(db.tables.organizations[0].client_status, 'lead')
+})
+
+test('onboarding organization sync is retryable without accepting or publishing a second order', async () => {
+  const db = database()
+  const admin = handlers(db, 'admin', adminId, 'admin@kocreit.com', orgId)
+  const owner = handlers(db)
+  const offered = await (await admin.POST(request(offerPayload(db)))).json()
+  const id = offered.order.id
+  const state = () => db.tables.service_orders[0]
+  const act = (action) => admin.POST(request({ action, organizationId: orgId, orderId: id, expectedRevision: state().revision }))
+  assert.equal((await owner.POST(request({ action: 'accept', orderId: id, expectedRevision: 0, acknowledged: true, acceptedName: 'Alex Owner' }))).status, 200)
+  db.failNext('organizations', 'update')
+  assert.equal((await act('begin_onboarding')).status, 503)
+  assert.equal(state().status, 'onboarding')
+  assert.equal(db.tables.organizations[0].client_status, 'lead')
+  assert.equal((await act('begin_onboarding')).status, 200)
+  assert.equal(db.tables.organizations[0].client_status, 'onboarding')
+  assert.equal(state().revision, 2)
 })
 
 test('server refuses activation until quote accepted, verified evidence and tier-specific checks all exist', async () => {
