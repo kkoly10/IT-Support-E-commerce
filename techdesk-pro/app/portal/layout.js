@@ -98,8 +98,8 @@ function breadcrumbLabel(segment) {
   return BREADCRUMB_LABELS[segment] || formatLabel(segment.replace(/-/g, ' '))
 }
 
-function customerLifecycleLabel(status) {
-  if (status === 'lead') return 'Request under review'
+function customerLifecycleLabel(status, hasServiceRequest = false) {
+  if (status === 'lead') return hasServiceRequest ? 'Request under review' : 'Account created'
   if (status === 'onboarding') return 'Getting set up'
   if (status === 'active') return 'Support active'
   if (status === 'paused') return 'Support paused'
@@ -154,6 +154,7 @@ export default function PortalLayout({ children }) {
   }, [router])
 
   const navItems = useMemo(() => buildNav(org), [org])
+  const hasServiceRequest = Boolean(org?.discovery_profile?.service_selection)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -211,14 +212,16 @@ export default function PortalLayout({ children }) {
           <div className="sidebar-org">
             <div className="sidebar-org-name">{org.name}</div>
             <div className="sidebar-org-plan">
-              {(org.plan === 'pending' || !org.plan ? 'Plan under review' : `${formatLabel(org.plan)} plan`)}
+              {(org.plan === 'pending' || !org.plan
+                ? hasServiceRequest ? 'Plan under review' : 'No service requested'
+                : `${formatLabel(org.plan)} plan`)}
               {' · '}
-              {customerLifecycleLabel(org.client_status)}
+              {customerLifecycleLabel(org.client_status, hasServiceRequest)}
             </div>
             {org.client_status === 'lead' ? (
               <div style={{ marginTop: 8 }}>
                 <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: 100, background: '#eef4ff', color: '#3538cd', fontWeight: 600 }}>
-                  Kocre review in progress
+                  {hasServiceRequest ? 'Kocre review in progress' : 'Choose a service'}
                 </span>
               </div>
             ) : org.client_status === 'onboarding' ? (
