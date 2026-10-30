@@ -39,18 +39,12 @@ async function loadOrders(service, orgId) {
   'Client Activation is not configured or is unavailable. Kocre must apply the service-orders migration before using this workflow.') || []
 }
 
-async function primaryContact(service, auth, orgId) {
-  const contacts = checked(await service.from('organization_contacts')
-    .select('email, is_primary_contact').eq('organization_id', orgId),
-  'Could not verify the primary contact.')
-  // An editable profile flag is not authority to accept a commercial offer.
-  // Require the current addressable primary contact to match the email
-  // verified by the authenticated identity provider.
-  const verifiedEmail = String(auth.user.email || '').trim().toLowerCase()
-  return Boolean(verifiedEmail) && (contacts || []).some((contact) =>
-    contact.is_primary_contact &&
-    String(contact.email || '').trim().toLowerCase() === verifiedEmail
-  )
+async function designatedSigners(service, orgId) {
+  const profiles = checked(await service.from('profiles')
+    .select('id, email, full_name, role')
+    .eq('organization_id', orgId).eq('role', 'client'),
+  'Could not load the customer portal members for the offer.')
+  return profiles || []
 }
 
 async function updateOrder(service, order, patch) {
@@ -102,7 +96,10 @@ export function createClientActivationHandlers({ requireUser, now = () => new Da
         selection: org.discovery_profile?.service_selection || null,
         requestRevision: discoveryRevision(org.discovery_profile),
         orders, isAdmin: auth.profile.role === 'admin',
-        canAccept: auth.profile.role === 'client' ? await primaryContact(auth.service, auth, orgId) : false,
+        signerCandidates: auth.profile.role === 'admin' ? await designatedSigners(auth.service, orgId) : [],
+        canAccept: auth.profile.role === 'client' && orders.some((order) =>
+          order.status === 'offered' && order.authorized_signer_user_id === auth.user.id
+        ),
       })
     } catch (error) {
       const known = error instanceof ActivationError
@@ -130,6 +127,10 @@ export function createClientActivationHandlers({ requireUser, now = () => new Da
         }
         const current = (await loadOrders(auth.service, orgId)).find((o) => CURRENT_STATUSES.includes(o.status))
         if (current) throw new ActivationError('A current offer or activated service already exists. Withdraw the old offer before publishing another.', 409)
+        const candidates = await designatedSigners(auth.service, orgId)
+        if (!candidates.some((candidate) => candidate.id === payload.authorizedSignerUserId)) {
+          throw new ActivationError('Choose an existing client portal user as the authorized offer signer.', 403)
+        }
         const offer = createWrittenOffer(org.discovery_profile?.service_selection, payload, auth.user.id, now())
         const inserted = checked(await auth.service.from('service_orders')
           .insert({ ...offer, organization_id: orgId }).select('*').single(),
@@ -145,15 +146,21 @@ export function createClientActivationHandlers({ requireUser, now = () => new Da
       if (!Number.isInteger(payload.expectedRevision) || payload.expectedRevision !== order.revision) {
         throw new ActivationError('This order changed. Reload the latest state before continuing.', 409)
       }
-      // If service-order activation succeeded but the organization sync
-      // failed, a verified operator can retry the exact idempotent sync.
-      if (action === 'activate' && isAdmin && order.status === 'active' && order.activated_at) {
+      // A prior order transition may have succeeded while its organization
+      // update failed. The operator can explicitly retry the idempotent sync.
+      if (isAdmin && (
+        (action === 'activate' && order.status === 'active' && order.activated_at) ||
+        (action === 'begin_onboarding' && order.status === 'onboarding' && order.onboarding_started_at)
+      )) {
         await syncOrganization(auth.service, order)
-        return json({ order, blockers: [] })
+        return json({ order, blockers: order.status === 'onboarding' ? activationBlockers(order) : [] })
       }
       if (['accept', 'decline'].includes(action)) {
-        if (isAdmin || !(await primaryContact(auth.service, auth, orgId))) {
-          throw new ActivationError('Only the client’s current primary contact may accept or decline the written offer.', 403)
+        // The signed-in user must be exactly the Kocre-designated signer for
+        // this order. Editable organization contacts are NOT acceptance
+        // authority and cannot self-promote an ordinary member.
+        if (isAdmin || auth.user.id !== order.authorized_signer_user_id) {
+          throw new ActivationError('Only the Kocre-designated authorized signer may accept or decline this offer.', 403)
         }
       } else if (!isAdmin) {
         throw new ActivationError('Only Kocre can verify setup evidence or activate support.', 403)
