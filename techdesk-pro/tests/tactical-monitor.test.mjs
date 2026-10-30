@@ -112,3 +112,36 @@ test('paginated result envelope does not enroll unbound agents', async () => {
   })
   assert.equal((await monitor.pollAuthorizedAgents([binding()])).length, 1)
 })
+
+test('aborts oversized streaming response without using unbounded response.text', async () => {
+  let count = 0
+  const response = new Response(new ReadableStream({
+    pull(controller) {
+      count += 1
+      controller.enqueue(new Uint8Array(180_000))
+      if (count >= 14) controller.close()
+    },
+  }), { status: 200 })
+  response.text = async () => { throw Error('unexpected unbounded body read') }
+  const monitor = createTacticalMonitor({
+    apiUrl, apiKey: 'synthetic-key', now: () => NOW,
+    fetchImpl: async () => response,
+  })
+  await assert.rejects(monitor.pollAuthorizedAgents([binding()]), {
+    code: 'TACTICAL_RESPONSE_TOO_LARGE',
+  })
+  assert.ok(count <= 13, 'oversized stream must not be read to completion')
+})
+
+test('incomplete paginated provider inventory fails instead of reporting bound agents missing', async () => {
+  const monitor = createTacticalMonitor({
+    apiUrl, apiKey: 'synthetic-key', now: () => NOW,
+    fetchImpl: async () => ok({
+      next: 'https://api-rmm.kocreit.com/agents/?page=2',
+      results: [{ agent_id: 'a1', status: 'online', last_seen: new Date(NOW).toISOString() }],
+    }),
+  })
+  await assert.rejects(monitor.pollAuthorizedAgents([binding('other-page')]), {
+    code: 'TACTICAL_PAGINATION_UNSUPPORTED',
+  })
+})
