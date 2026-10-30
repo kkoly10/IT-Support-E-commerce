@@ -197,6 +197,7 @@ export default function AdminClients() {
   return (
     <div>
       <div className="admin-page-header">
+        <a href='/admin/activation' className='admin-btn-small' style={{ marginLeft: 'auto' }}>Client Activation →</a>
         <div>
           <h1 className="admin-page-title">Clients</h1>
           <p className="admin-page-desc">
@@ -542,13 +543,8 @@ function EditPanel({ org, saving, onSave }) {
     onSave({
       primary_service: primaryService,
       service_types: serviceTypes,
-      client_status: clientStatus,
-      plan,
       team_size: teamSize || null,
       industry: industry || null,
-      agreement_status: agreementStatus,
-      payment_status: paymentStatus,
-      onboarding_status: onboardingStatus,
       needs_human_review: needsReview,
       access_status: accessStatus,
       documentation_status: documentationStatus,
@@ -556,7 +552,6 @@ function EditPanel({ org, saving, onSave }) {
       environment_summary: environmentSummary || null,
       supported_platforms: parseCommaList(supportedPlatforms),
       onboarding_blockers: parseCommaList(onboardingBlockers),
-      support_ready: supportReady,
     })
   }
 
@@ -595,37 +590,8 @@ function EditPanel({ org, saving, onSave }) {
         border: '1px solid var(--border)',
       }}
     >
+      <p style={{ fontSize: '.86rem', lineHeight: 1.6 }}>Quotes, agreements, payments and service activation are managed through <a href={'/admin/activation?organizationId=' + encodeURIComponent(org.id)}>Client Activation</a>. These fields update only operational client details.</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Client Status</label>
-          <select value={clientStatus} onChange={(e) => setClientStatus(e.target.value)} style={selectStyle}>
-            <option value="lead">Lead</option>
-            <option value="onboarding">Onboarding</option>
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="former">Former</option>
-          </select>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Plan</label>
-          <select value={plan} onChange={(e) => setPlan(e.target.value)} style={selectStyle}>
-            <optgroup label="Current plans">
-              <option value="pending">Pending — fit review in progress</option>
-              <option value="founding">Founding Managed Support</option>
-              <option value="remote">Remote Desk</option>
-              <option value="managed">Managed Desk</option>
-              <option value="secure">Secure Desk</option>
-              <option value="custom">Custom Review</option>
-            </optgroup>
-            <optgroup label="Legacy (grandfathered)">
-              <option value="starter">Starter (legacy)</option>
-              <option value="growth">Growth (legacy)</option>
-              <option value="scale">Scale (legacy)</option>
-            </optgroup>
-          </select>
-        </div>
-
         <div style={fieldStyle}>
           <label style={labelStyle}>Primary Service</label>
           <select value={primaryService} onChange={(e) => setPrimaryService(e.target.value)} style={selectStyle}>
@@ -672,36 +638,6 @@ function EditPanel({ org, saving, onSave }) {
             placeholder="e.g. Legal, Retail"
             style={inputStyle}
           />
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Agreement</label>
-          <select value={agreementStatus} onChange={(e) => setAgreementStatus(e.target.value)} style={selectStyle}>
-            <option value="none">None</option>
-            <option value="sent">Sent</option>
-            <option value="signed">Signed</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Payment</label>
-          <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} style={selectStyle}>
-            <option value="none">None</option>
-            <option value="pending">Pending</option>
-            <option value="active">Active</option>
-            <option value="past_due">Past Due</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-
-        <div style={fieldStyle}>
-          <label style={labelStyle}>Onboarding</label>
-          <select value={onboardingStatus} onChange={(e) => setOnboardingStatus(e.target.value)} style={selectStyle}>
-            <option value="not_started">Not Started</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
         </div>
 
         <div style={fieldStyle}>
@@ -772,10 +708,7 @@ function EditPanel({ org, saving, onSave }) {
           Primary contact confirmed
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input type="checkbox" checked={supportReady} onChange={(e) => setSupportReady(e.target.checked)} />
-          Support ready
-        </label>
+
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }}>
           <input type="checkbox" checked={needsReview} onChange={(e) => setNeedsReview(e.target.checked)} />
