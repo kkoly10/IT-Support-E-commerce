@@ -98,13 +98,14 @@ test('a profile write failure can resume the same organization without deleting 
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.service, 'one_time')
 })
 
-test('a contact failure resumes after profile creation and leaves service selection intact', async () => {
+test('a contact failure can retry the same selected-service signup without requiring a revision', async () => {
   const db = database()
+  const payload = { serviceSelection: { service: 'remote', users: 1 } }
   db.failNext('organization_contacts', 'upsert')
-  assert.equal((await handlerFor(db)(request({ serviceSelection: { service: 'remote', users: 1 } }))).status, 503)
+  assert.equal((await handlerFor(db)(request(payload))).status, 503)
   assert.equal(db.tables.profiles.length, 1)
   assert.equal(db.tables.organization_contacts.length, 0)
-  assert.equal((await handlerFor(db)(request({}))).status, 200)
+  assert.equal((await handlerFor(db)(request(payload))).status, 200)
   assert.equal(db.tables.organization_contacts.length, 1)
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.service, 'remote')
 })
