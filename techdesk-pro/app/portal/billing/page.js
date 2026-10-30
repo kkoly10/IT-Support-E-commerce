@@ -167,6 +167,14 @@ export default function BillingPage() {
       </p>
 
       <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
+      <section style={{ border: '1px solid var(--border)', background: '#fff', padding: 18, borderRadius: 12, marginBottom: 22 }}>
+        <strong>Your accepted commercial terms</strong>
+        <p style={{ color: 'var(--ink-muted)', fontSize: '.88rem', lineHeight: 1.6 }}>
+          New service offers, their exact quoted prices, acceptance and external payment verification are recorded separately from the historic plan estimates below.
+          No payment is collected on this page.
+        </p>
+        <a href="/portal/activation" style={{ color: 'var(--teal)', fontWeight: 600 }}>View written offer & activation status →</a>
+      </section>
 
       <div style={{
         display: 'grid',
