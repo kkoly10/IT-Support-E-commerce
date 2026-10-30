@@ -24,7 +24,7 @@ export async function GET(request) {
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
       if (error) return response(destinations.failure)
-    } else if (tokenHash && (type === 'email' || type === 'signup' || (type === 'recovery' && destinations.recovery))) {
+    } else if (tokenHash && (destinations.recovery ? type === 'recovery' : (type === 'email' || type === 'signup'))) {
       const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
       if (error) return response(destinations.failure)
     } else if (tokenHash) {
