@@ -42,24 +42,28 @@ The AI-native MSP primary vision remains [unchanged](AI-NATIVE-MSP-PRIMARY-VISIO
 5. **No automatic notifications:** published offers are visible in the portal, but staff must email/call the client separately.
 6. **Legacy accounts:** existing accepted plan prices are not overwritten. Billing retains legacy display behavior; the new written offer is the authoritative record for a new activation.
 
-## Deployment prerequisite — do not skip
+## Deployment status and remaining operational verification
 
-The code needs **`techdesk-pro/supabase/migrations/20261030040638_client_activation_orders.sql`** applied to the actual Kocre Supabase project before deployment. The Supabase connector in ChatGPT currently exposes a different organization, but the Mac's authenticated Supabase CLI **read-only verified** Kocre IT project ref `ibmdgjfhuxlxmyejqqdx` (active). The live database has `organizations`/`profiles`, but no `service_orders`, and its `plan_tier` enum lacked `one_time`. The migration has **not** been applied. The database migration history differs from the repository filename history; do not blindly run `supabase db push` across all earlier migrations.
+The single migration `techdesk-pro/supabase/migrations/20261030040638_client_activation_orders.sql` was **applied on October 30, 2026** to the verified Kocre IT Supabase project `ibmdgjfhuxlxmyejqqdx`, and its version was recorded in `supabase_migrations.schema_migrations`. The live `kocreit.com/signup` public frontend bundle was independently observed referencing that project. No other business database was changed and no historical migrations were replayed.
 
-Before enabling in production:
+Read-only verification confirmed:
+- `service_orders` exists with RLS enabled and the tenant-read policy installed;
+- the `plan_tier` enum now supports `one_time`;
+- the organization commercial-state protection trigger exists;
+- anonymous role has **no table SELECT permission**;
+- authenticated role has table SELECT but no INSERT, UPDATE or DELETE permission;
+- migration version `20261030040638` is registered.
 
-1. **Identified:** Kocre IT project reference `ibmdgjfhuxlxmyejqqdx`; independently verify the deployment's configured Supabase project points to this ref before writing production schema.
-2. Review/apply only the single new migration in that specific Kocre project using an explicit, recorded migration procedure (do not replay other historical migrations or apply it to Korent/Couranr).
-3. Confirm `service_orders` exists with RLS enabled; cross-tenant reads and all browser writes are rejected, admin-only API mutations work, and the organization commercial-field trigger blocks direct browser bypass.
-4. Use a **disposable authenticated QA organization** and test quote publication, primary-only acceptance, exact prices, declined/expired offers, evidence gates, partial-failure retry, and activation to active support.
-5. Verify the portal renders consistently on phone/desktop and that the route handles missing database configuration truthfully.
-6. Complete legal review and operator payment-evidence process before onboarding a paying client.
+The new API and UI were not yet exercised end-to-end using a real authenticated QA customer at the time of these checks. Before using a paying customer, run a disposable QA customer through offer publication, designated-signer acceptance, excluded/nonstandard pricing, external evidence, service-specific checks, partial-failure recovery, and activation; confirm that cross-tenant access fails and both phone and desktop portal views remain clear.
+
+The MSA/DPA in this repo remain **drafts**. Kocre must obtain a properly executed non-draft agreement and independently verify external payment before marking a real customer active. Publishing an offer does not send an email, take payment, generate an invoice, or provision an endpoint.
 
 ## Validation
 
 - Domain tests in `tests/client-activation.test.mjs`.
 - API/tenant/recovery tests in `tests/client-activation-api.test.mjs`.
 - Existing pricing, signup, health and service-request regressions.
-- Next.js configured/build test (86 routes including the new client and admin activation routes).
+- Full Node test suite: **55 passing**; Next.js configured/build test: **86 routes** including the new client and admin activation routes.
+- Codex's four initial P1/P2 review findings were fixed; subsequent security/UX findings on admin and client state were also addressed and re-reviewed.
 
-Unit tests and a successful build do **not** establish that the production database migration, e-signature, checkout, or live service operations are working.
+Unit tests, a passing build, and successful database migration do **not** establish that independent legal execution, payment collection, authenticated end-to-end behavior, or live endpoint operations are working.
