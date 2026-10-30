@@ -14,6 +14,7 @@ const supabase = createClient()
 const ACTIVE_NAV = [
   { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
   { label: 'Services', href: '/portal/services', icon: '🧩' },
+  { label: 'Offer & Activation', href: '/portal/activation', icon: '✅' },
   { label: 'Support Requests', href: '/portal/tickets', icon: '🎫' },
   { label: 'Website Monitoring', href: '/portal/health', icon: '🛡️' },
   { label: 'Atlas Assistant', href: '/portal/atlas', icon: '🧠' },
@@ -32,6 +33,7 @@ const BREADCRUMB_LABELS = {
   tickets: 'Support Requests',
   dashboard: 'Overview',
   services: 'Services',
+  activation: 'Offer & Activation',
   onboarding: 'Getting Started',
   health: 'Website Monitoring',
   atlas: 'Atlas Assistant',
@@ -53,6 +55,7 @@ function buildNav(org) {
     return [
       { label: 'Overview', href: '/portal/dashboard', icon: '🏠' },
       { label: 'Services', href: '/portal/services', icon: '🧩' },
+      { label: 'Offer & Activation', href: '/portal/activation', icon: '✅' },
       { label: 'Getting Started', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Company Details', href: '/portal/settings', icon: '🏢' },
     ]
@@ -62,6 +65,7 @@ function buildNav(org) {
     return [
       { label: 'Overview', href: '/portal/dashboard', icon: '🏠' },
       { label: 'Services', href: '/portal/services', icon: '🧩' },
+      { label: 'Offer & Activation', href: '/portal/activation', icon: '✅' },
       { label: 'Getting Started', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Agreements', href: '/portal/agreements', icon: '✍️' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
