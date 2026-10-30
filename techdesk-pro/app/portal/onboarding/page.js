@@ -133,24 +133,32 @@ export default function PortalOnboardingPage() {
   }
 
   if (org?.client_status === 'lead') {
+    const requestedSelection = org?.discovery_profile?.service_selection || null
     return (
       <div>
         <div className="portal-page-header" style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: '1.6rem', marginBottom: 4 }}>Getting Started</h1>
           <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem' }}>
-            Your request is with Kocre for review. You do not need to complete a long onboarding checklist before we confirm the service.
+            {requestedSelection
+              ? 'Your request is with Kocre for review. You do not need to complete a long onboarding checklist before we confirm the service.'
+              : 'Your account is ready. Choose a service first; Kocre will show the onboarding steps that actually apply after your request is reviewed.'}
           </p>
         </div>
 
         <div className="dashboard-section" style={{ marginBottom: 20 }}>
           <div className="dashboard-section-header"><h2>Your path to active support</h2></div>
           <div style={{ display: 'grid', gap: 14 }}>
-            {[
+            {(requestedSelection ? [
               ['Request received', 'Your selected service and company details are saved in your workspace.', true],
               ['Kocre review', 'We confirm fit, scope, availability and the price that applies to your environment.', false],
               ['Agreement & setup', 'After the service is confirmed, we show only the agreements, access and setup items that apply to you.', false],
               ['Support goes live', 'Kocre confirms activation before your team begins using the managed support workflow.', false],
-            ].map(([title, copy, done], index) => (
+            ] : [
+              ['Choose a service', 'Tell Kocre whether you need one-time help, ongoing support, managed devices, security, or a custom scope.', false],
+              ['Kocre review', 'After you submit a request, we confirm fit, scope, availability and applicable pricing.', false],
+              ['Agreement & setup', 'Only after the service is confirmed do we show setup items that apply to you.', false],
+              ['Support goes live', 'Kocre confirms activation before managed support begins.', false],
+            ]).map(([title, copy, done], index) => (
               <div key={title} style={{ display: 'grid', gridTemplateColumns: '36px 1fr', gap: 12, alignItems: 'start' }}>
                 <div style={{ width: 32, height: 32, borderRadius: 999, display: 'grid', placeItems: 'center', fontWeight: 700, background: done ? '#ecfdf3' : '#f2f4f7', color: done ? '#067647' : '#475467' }}>
                   {done ? '✓' : index + 1}
