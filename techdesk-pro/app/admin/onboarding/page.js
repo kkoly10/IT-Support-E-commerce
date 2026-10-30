@@ -670,22 +670,7 @@ export default function AdminOnboardingPage() {
                     Mark kickoff complete
                   </button>
 
-                  <button
-                    onClick={() =>
-                      updateOrganizationFields(selectedOrg.id, {
-                        client_status: 'active',
-                        onboarding_status: 'completed',
-                        support_ready: true,
-                        support_activated_at: new Date().toISOString(),
-                        hypercare_status: 'active',
-                        hypercare_start_at: new Date().toISOString(),
-                      })
-                    }
-                    className="admin-btn-small"
-                    disabled={saving || !readiness.ready}
-                  >
-                    Activate support + start hypercare
-                  </button>
+                  <a href={'/admin/activation?organizationId=' + encodeURIComponent(selectedOrg.id)} className="admin-btn-small">Review evidence &amp; activate support</a>
 
                   <button
                     onClick={() =>
