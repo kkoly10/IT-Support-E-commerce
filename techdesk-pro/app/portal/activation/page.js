@@ -112,7 +112,7 @@ export default function ClientActivationPage() {
             <button style={actionStyle} disabled={busy || !acknowledged || acceptedName.trim().length < 2} onClick={() => submit('accept', order)}>{busy ? 'Recording…' : 'Accept quote'}</button>
             <button disabled={busy} onClick={() => submit('decline', order)} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)' }}>Decline</button>
           </div>
-        </> : <p style={muted}>Only your organization’s confirmed primary contact can accept or decline this offer. Contact Kocre if that contact needs to be updated.</p>}
+        </> : <p style={muted}>Only the client portal user specifically designated by Kocre on this offer can accept or decline it. Contact Kocre if the authorized signer must change.</p>}
       </div>}
     </section>}
 
