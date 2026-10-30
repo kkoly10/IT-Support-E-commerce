@@ -222,6 +222,7 @@ export default function ServicesPage() {
         </p>
         <div className="services-next-links">
           <Link href="/portal/dashboard">Back to overview →</Link>
+          <Link href="/portal/activation">Written offer & activation →</Link>
           {onboarding && <Link href="/portal/onboarding">Continue getting started →</Link>}
           {active && <Link href="/portal/tickets/new">Open a support request →</Link>}
           {!active && <a href="mailto:hello@kocreit.com?subject=Service%20request%20question">Ask Kocre a question →</a>}
