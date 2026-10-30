@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
   }
 
   async function retrySignOut() {
-    if (saving || done || passwordChanged) return
+    if (saving || done || !passwordChanged) return
     setSaving(true)
     setError(null)
     try {
