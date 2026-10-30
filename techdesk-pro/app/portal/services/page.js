@@ -210,7 +210,9 @@ export default function ServicesPage() {
         <h2 id="service-next-title">{lead ? 'What happens next' : onboarding ? 'Continue your setup' : active ? 'Your support is active' : 'Next steps'}</h2>
         <p className="services-muted">
           {lead
-            ? 'Your request is saved. Kocre reviews fit, workload, scope and price before asking you to complete service-specific onboarding.'
+            ? saved
+              ? 'Your request is saved. Kocre reviews fit, workload, scope and price before asking you to complete service-specific onboarding.'
+              : 'No service request has been submitted yet. Choose a service above when you are ready, then Kocre will review fit, scope and pricing.'
             : onboarding
               ? 'Your service is in setup. Use Getting Started to see the items that apply to your account.'
               : active
