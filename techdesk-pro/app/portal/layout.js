@@ -30,9 +30,9 @@ const ACTIVE_NAV = [
 const BREADCRUMB_LABELS = {
   portal: 'Client Portal',
   tickets: 'Support Requests',
-  dashboard: 'Dashboard',
+  dashboard: 'Overview',
   services: 'Services',
-  onboarding: 'Onboarding',
+  onboarding: 'Getting Started',
   health: 'Website Monitoring',
   atlas: 'Atlas Assistant',
   training: 'Training',
@@ -51,30 +51,24 @@ function buildNav(org) {
 
   if (clientStatus === 'lead') {
     return [
-      { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
-  { label: 'Services', href: '/portal/services', icon: '🧩' },
-      { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
-      { label: 'Agreements', href: '/portal/agreements', icon: '✍️' },
-      { label: 'Documents', href: '/portal/documents', icon: '📄' },
-      { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
-      { label: 'Access', href: '/portal/access', icon: '🔐' },
-      { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
-      { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
+      { label: 'Overview', href: '/portal/dashboard', icon: '🏠' },
+      { label: 'Services', href: '/portal/services', icon: '🧩' },
+      { label: 'Getting Started', href: '/portal/onboarding', icon: '🧭' },
+      { label: 'Company Details', href: '/portal/settings', icon: '🏢' },
     ]
   }
 
   if (clientStatus === 'onboarding') {
     return [
-      { label: 'Dashboard', href: '/portal/dashboard', icon: '📊' },
-  { label: 'Services', href: '/portal/services', icon: '🧩' },
-      { label: 'Onboarding', href: '/portal/onboarding', icon: '🧭' },
+      { label: 'Overview', href: '/portal/dashboard', icon: '🏠' },
+      { label: 'Services', href: '/portal/services', icon: '🧩' },
+      { label: 'Getting Started', href: '/portal/onboarding', icon: '🧭' },
       { label: 'Agreements', href: '/portal/agreements', icon: '✍️' },
-      { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Contacts', href: '/portal/contacts', icon: '👥' },
       { label: 'Access', href: '/portal/access', icon: '🔐' },
-      { label: 'Launch Pack', href: '/portal/launch', icon: '🚀' },
+      { label: 'Documents', href: '/portal/documents', icon: '📄' },
       { label: 'Billing', href: '/portal/billing', icon: '💳' },
-      { label: 'Settings', href: '/portal/settings', icon: '⚙️' },
+      { label: 'Company Details', href: '/portal/settings', icon: '🏢' },
     ]
   }
 
@@ -102,6 +96,15 @@ function formatLabel(value) {
 function breadcrumbLabel(segment) {
   if (!segment) return ''
   return BREADCRUMB_LABELS[segment] || formatLabel(segment.replace(/-/g, ' '))
+}
+
+function customerLifecycleLabel(status) {
+  if (status === 'lead') return 'Request under review'
+  if (status === 'onboarding') return 'Getting set up'
+  if (status === 'active') return 'Support active'
+  if (status === 'paused') return 'Support paused'
+  if (status === 'former') return 'Past service'
+  return 'Account created'
 }
 
 export default function PortalLayout({ children }) {
@@ -208,23 +211,20 @@ export default function PortalLayout({ children }) {
           <div className="sidebar-org">
             <div className="sidebar-org-name">{org.name}</div>
             <div className="sidebar-org-plan">
-              {(org.plan === 'pending' || !org.plan ? 'Pending fit review' : `${org.plan} plan`)}
+              {(org.plan === 'pending' || !org.plan ? 'Plan under review' : `${formatLabel(org.plan)} plan`)}
               {' · '}
-              {formatLabel(org.client_status || 'lead')}
+              {customerLifecycleLabel(org.client_status)}
             </div>
-            {org.needs_human_review ? (
+            {org.client_status === 'lead' ? (
               <div style={{ marginTop: 8 }}>
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    padding: '3px 8px',
-                    borderRadius: 100,
-                    background: '#e74c3c18',
-                    color: '#e74c3c',
-                    fontWeight: 600,
-                  }}
-                >
-                  Needs review
+                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: 100, background: '#eef4ff', color: '#3538cd', fontWeight: 600 }}>
+                  Kocre review in progress
+                </span>
+              </div>
+            ) : org.client_status === 'onboarding' ? (
+              <div style={{ marginTop: 8 }}>
+                <span style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: 100, background: '#ecfdf3', color: '#067647', fontWeight: 600 }}>
+                  Setup in progress
                 </span>
               </div>
             ) : null}
