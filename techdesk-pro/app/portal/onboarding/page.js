@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../../lib/supabase/client'
+import ClientActivationPage from '../activation/page'
 import {
   ONBOARDING_OWNER_LABELS,
   ONBOARDING_PHASE_LABELS,
@@ -55,9 +56,19 @@ export default function PortalOnboardingPage() {
   const [tasks, setTasks] = useState([])
   const [contacts, setContacts] = useState([])
   const [accessRows, setAccessRows] = useState([])
+  const [activationOrder, setActivationOrder] = useState(null)
 
   useEffect(() => {
     loadData()
+  }, [])
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/client-activation', { cache: 'no-store' })
+      .then(async (res) => res.ok ? await res.json() : null)
+      .then((result) => {
+        if (!cancelled) setActivationOrder(result?.orders?.find((o) => o.status === 'onboarding') || null)
+      }).catch(() => {})
+    return () => { cancelled = true }
   }, [])
 
   async function loadData() {
@@ -131,6 +142,10 @@ export default function PortalOnboardingPage() {
   if (loading) {
     return <div className="portal-page-loading">Loading onboarding checklist...</div>
   }
+
+  // A newly accepted service uses tier-specific evidence, not the legacy
+  // universal readiness percentage and unrelated document requirements.
+  if (org?.client_status === 'onboarding' && activationOrder) return <ClientActivationPage />
 
   if (org?.client_status === 'lead') {
     const requestedSelection = org?.discovery_profile?.service_selection || null
