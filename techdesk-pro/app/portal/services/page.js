@@ -98,6 +98,7 @@ export default function ServicesPage() {
       }
       setData(result)
       restoreForm(result)
+      window.dispatchEvent(new Event('kocre:workspace-updated'))
       setMessage('Your team’s service suggestion is saved for Kocre review. Accepted scope, availability, and charges are confirmed through review and an authorized agreement.')
     } catch (err) {
       setError(err.message || 'Could not save your request. Please retry.')
