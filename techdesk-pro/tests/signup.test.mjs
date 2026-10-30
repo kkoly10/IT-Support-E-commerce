@@ -51,6 +51,8 @@ test('identity and privileges come from verified auth; prices are recomputed and
     fullName: 'Alex', serviceSelection: { service: 'managed', users: 2, monthly: 1, setup: 0 },
   }))
   assert.equal(response.status, 200)
+  const responseBody = await response.json()
+  assert.equal(responseBody.next, '/portal/dashboard?welcome=1')
   const org = db.tables.organizations[0]
   const profile = db.tables.profiles[0]
   assert.equal(profile.id, user.id)
