@@ -3,13 +3,19 @@
 -- the new service-activation routes. It does NOT migrate legacy plans.
 --
 -- The browser may SELECT its own orders. Only the authenticated server
--- service-role route may create offers, accept on behalf of a verified primary
--- contact, record external evidence, and activate service.
+-- service-role route may create offers, bind a Kocre-designated authorized
+-- signer, record their acceptance, verify external evidence, and activate.
+-- Never infer legal acceptance authority from editable organization contacts.
+-- Existing organizations.plan is a plan_tier enum. One-Time Help must be
+-- representable when an order transitions to active.
+alter type public.plan_tier add value if not exists 'one_time';
+
 create table if not exists public.service_orders (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   service_key text not null check (service_key in ('one_time', 'remote', 'managed', 'secure', 'custom')),
   supported_users integer not null check (supported_users between 1 and 250),
+  authorized_signer_user_id uuid not null references auth.users(id) on delete restrict,
   price_version text not null,
   monthly_cents integer check (monthly_cents >= 0),
   setup_cents integer not null default 0 check (setup_cents >= 0),
