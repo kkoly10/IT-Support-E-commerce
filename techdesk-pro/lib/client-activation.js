@@ -75,6 +75,10 @@ export function createWrittenOffer(selection, input, actorId, now = new Date().t
   if (!key || !Object.hasOwn(SERVICE_CATALOG, key)) {
     throw new ActivationError('The customer must select a service before Kocre prepares an offer.', 409)
   }
+  const signer = trimmed(input?.authorizedSignerUserId, 36)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(signer)) {
+    throw new ActivationError('Choose a specific authorized signer for this written offer.')
+  }
   const scope = trimmed(input?.scopeSummary, 8000)
   if (scope.length < 12) throw new ActivationError('Write the specific included scope before publishing the offer.')
   const monthly = cents(input?.monthlyCents, 'Monthly amount', true)
@@ -94,7 +98,8 @@ export function createWrittenOffer(selection, input, actorId, now = new Date().t
     throw new ActivationError('Explain the nonstandard price before publishing a customized offer.')
   }
   return {
-    service_key: key, supported_users: estimate.users, price_version: estimate.priceVersion,
+    service_key: key, supported_users: estimate.users,
+    authorized_signer_user_id: signer, price_version: estimate.priceVersion,
     monthly_cents: monthly, setup_cents: setup, one_time_cents: oneTime,
     scope_summary: scope, exclusions: trimmed(input?.exclusions, 4000),
     external_costs: trimmed(input?.externalCosts, 4000),
