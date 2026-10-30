@@ -35,6 +35,7 @@ export default function AdminActivationPage() {
   const [externalCosts, setExternalCosts] = useState('Third-party licenses, endpoint security, backup storage and cloud usage are separate unless explicitly included.')
   const [supportWindow, setSupportWindow] = useState('Weekdays 9:00 AM–6:00 PM Eastern, excluding US holidays')
   const [pricingExplanation, setPricingExplanation] = useState('')
+  const [authorizedSignerUserId, setAuthorizedSignerUserId] = useState('')
   const [monthly, setMonthly] = useState('')
   const [setup, setSetup] = useState('')
   const [oneTime, setOneTime] = useState('')
@@ -72,6 +73,7 @@ export default function AdminActivationPage() {
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'Unable to load activation record.')
       setData(result)
+      setAuthorizedSignerUserId('')
     } catch (err) { setError(err.message || 'Unable to load activation record.'); setData(null) }
     finally { setLoading(false) }
   }
@@ -99,6 +101,7 @@ export default function AdminActivationPage() {
         ...(action === 'offer' ? {
           expectedRequestRevision: data.requestRevision,
           scopeSummary, exclusions, externalCosts, supportWindow, pricingExplanation,
+          authorizedSignerUserId,
           monthlyCents: toCents(monthly), setupCents: toCents(setup), oneTimeCents: toCents(oneTime),
         } : { orderId: order.id, expectedRevision: order.revision, ...details }),
       }
@@ -109,8 +112,12 @@ export default function AdminActivationPage() {
       if (!response.ok) throw new Error(result.error || 'This activation step could not be completed.')
       setNotice(result.message || 'Activation record updated and saved.')
       await load(orgId)
-    } catch (err) { setError(err.message || 'Unable to save this change.') }
-    finally { setBusy(false) }
+    } catch (err) {
+      // Refresh the order revision after a partially persisted transition.
+      // The repair actions below can then resume the organization sync.
+      await load(orgId)
+      setError(err.message || 'Unable to save this change.')
+    } finally { setBusy(false) }
   }
 
   return <div style={{ maxWidth: 1050 }}>
@@ -138,6 +145,14 @@ export default function AdminActivationPage() {
       <h2 style={{ marginTop: 0 }}>Publish a written offer</h2>
       {data.selection ? <>
         <p style={style.muted}><strong>Requested:</strong> {SERVICE_CATALOG[data.selection.service]?.name || data.selection.service} · {data.selection.users} supported people. A written offer creates no charge and sends no email automatically.</p>
+        <Field label="Authorized client signer — designated by Kocre">
+          <select value={authorizedSignerUserId} onChange={(e) => setAuthorizedSignerUserId(e.target.value)} style={style.input}>
+            <option value="">Select the account authorized to accept this offer</option>
+            {(data.signerCandidates || []).map((person) => (
+              <option key={person.id} value={person.id}>{person.full_name || person.email} ({person.email})</option>
+            ))}
+          </select>
+        </Field>
         <Field label="Included scope — describe exact covered systems and work"><textarea value={scopeSummary} onChange={(e) => setScopeSummary(e.target.value)} rows={4} placeholder={SERVICE_CATALOG[data.selection.service]?.description || 'Describe actual included support and exclusions'} style={style.input} /></Field>
         <Field label="Exclusions"><textarea value={exclusions} onChange={(e) => setExclusions(e.target.value)} rows={2} style={style.input} /></Field>
         <Field label="External provider costs"><textarea value={externalCosts} onChange={(e) => setExternalCosts(e.target.value)} rows={2} style={style.input} /></Field>
@@ -149,7 +164,7 @@ export default function AdminActivationPage() {
         </div>
         <Field label="Pricing explanation for any negotiated rate"><textarea value={pricingExplanation} onChange={(e) => setPricingExplanation(e.target.value)} rows={2} style={style.input} /></Field>
         <p style={style.muted}>Quote validity: 30 days. Amounts are captured in the offer and will not silently change if website prices change. For 3+ people or Custom, enter explicitly agreed pricing.</p>
-        <button style={style.button} disabled={busy || scopeSummary.trim().length < 12} onClick={() => perform('offer')}>{busy ? 'Publishing…' : 'Publish offer in client portal'}</button>
+        <button style={style.button} disabled={busy || !authorizedSignerUserId || scopeSummary.trim().length < 12} onClick={() => perform('offer')}>{busy ? 'Publishing…' : 'Publish offer in client portal'}</button>
       </> : <p style={style.muted}>The customer has not submitted a service request. Ask them to select a service in their portal before preparing an offer.</p>}
     </section>}
 
@@ -167,12 +182,19 @@ export default function AdminActivationPage() {
         <button disabled={busy} onClick={() => perform('withdraw')} style={style.button}>Withdraw unaccepted offer</button>
       </>}
       {order.status === 'accepted' && <>
-        <p style={style.muted}>Accepted by {order.accepted_name || 'primary contact'} at {new Date(order.accepted_at).toLocaleString('en-US')}. Commercial quote acceptance is not the executed MSA.</p>
+        <p style={style.muted}>Accepted by {order.accepted_name || 'designated authorized signer'} at {new Date(order.accepted_at).toLocaleString('en-US')}. Commercial quote acceptance is not the executed MSA.</p>
         <button disabled={busy} style={style.button} onClick={() => perform('begin_onboarding')}>Start client onboarding</button>
       </>}
     </section>}
 
     {order && order.status === 'onboarding' && <section style={style.panel}>
+      {data?.organization?.clientStatus !== 'onboarding' && (
+        <div role="alert" style={{ padding: 14, marginBottom: 16, background: '#fff4e6', borderRadius: 8 }}>
+          <strong>Onboarding synchronization incomplete.</strong>
+          <p style={style.muted}>The accepted order is saved but the client account is not yet in onboarding.</p>
+          <button style={style.button} disabled={busy} onClick={() => perform('begin_onboarding')}>Repair onboarding synchronization</button>
+        </div>
+      )}
       <h2 style={{ marginTop: 0 }}>Activation evidence</h2>
       <p style={style.muted}>These are human-verified external records, not payment or signature functionality. Do not enter a reference unless you have examined the underlying executed agreement or payment receipt.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
@@ -214,8 +236,18 @@ export default function AdminActivationPage() {
     </section>}
 
     {order?.status === 'active' && <section style={style.panel}>
-      <h2>Service activated</h2>
-      <p style={style.muted}>Support activated {new Date(order.activated_at).toLocaleString('en-US')} after recorded agreement, payment and service readiness checks. <Link href={'/admin/tickets'}>Open ticket operations →</Link></p>
+      {data?.organization?.clientStatus !== 'active' || data?.organization?.plan !== order.service_key ? (
+        <div role="alert" style={{ padding: 14, background: '#fff4e6', borderRadius: 8 }}>
+          <h2>Activation synchronization incomplete</h2>
+          <p style={style.muted}>The service order is active, but the customer account has not reflected the activation. Repair the account before telling the customer service is live.</p>
+          <button style={style.button} disabled={busy} onClick={() => perform('activate')}>Repair activation synchronization</button>
+        </div>
+      ) : (
+        <>
+          <h2>Service activated</h2>
+          <p style={style.muted}>Support activated {new Date(order.activated_at).toLocaleString('en-US')} after recorded agreement, payment and service readiness checks. <Link href="/admin/tickets">Open ticket operations →</Link></p>
+        </>
+      )}
     </section>}
   </div>
 }
