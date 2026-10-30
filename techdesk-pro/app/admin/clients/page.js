@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useMemo, useState } from 'react'
+import ServiceRequestSummary from '../../components/ServiceRequestSummary'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabase = createBrowserClient(
@@ -395,6 +396,8 @@ export default function AdminClients() {
                         </button>
                       </div>
                     </div>
+
+                    <ServiceRequestSummary selection={org.discovery_profile?.service_selection} operator />
 
                     {isEditing && (
                       <EditPanel

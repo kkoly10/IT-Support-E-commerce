@@ -1,123 +1,157 @@
-// File: app/portal/health/page.js (new — mkdir -p app/portal/health)
-
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '../../../lib/supabase/client'
+import { deriveHealthState, getCheckTimestamp } from '../../../lib/health-status.mjs'
+
+const supabase = createClient()
+
+const STATUS_CONFIG = {
+  loading: { icon: '…', label: 'Loading monitoring checks', color: '#475569', bg: '#f8fafc' },
+  error: { icon: '⚠️', label: 'Monitoring data unavailable', color: '#b42318', bg: '#fff5f5' },
+  unknown: { icon: '?', label: 'Monitoring status unknown', color: '#475569', bg: '#f8fafc' },
+  stale: { icon: '◷', label: 'Monitoring data is stale', color: '#92400e', bg: '#fffbeb' },
+  current: { icon: '✓', label: 'Latest recorded checks passed', color: '#166534', bg: '#ecfdf5' },
+  warning: { icon: '⚠️', label: 'Latest checks reported a warning', color: '#92400e', bg: '#fffbeb' },
+  critical: { icon: '!', label: 'Latest checks reported an issue', color: '#b42318', bg: '#fff5f5' },
+}
 
 export default function HealthPage() {
   const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [overallStatus, setOverallStatus] = useState('healthy')
-  const supabase = createClient()
+  const [loadState, setLoadState] = useState('loading')
+  const [error, setError] = useState(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  const loadHealth = useCallback(async () => {
+    setLoadState('loading')
+    setError(null)
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        throw new Error('Your sign-in could not be verified. Sign in again to view monitoring checks.')
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (profileError) throw new Error('Your workspace could not be loaded. Please try refreshing.')
+      if (!profile?.organization_id) {
+        throw new Error('No workspace is linked to this account. Contact Kocre IT for setup help.')
+      }
+
+      const { data, error: checksError } = await supabase
+        .from('activity_log')
+        .select('*')
+        .eq('organization_id', profile.organization_id)
+        .eq('resource_type', 'sentinel_check')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (checksError) throw new Error('Monitoring checks could not be loaded. Please try refreshing.')
+
+      setEvents(data || [])
+      setLoadState('loaded')
+    } catch (err) {
+      setError(err.message || 'Monitoring checks could not be loaded. Please try refreshing.')
+      setLoadState('error')
+    } finally {
+      setNow(Date.now())
+    }
+  }, [])
 
   useEffect(() => {
     loadHealth()
+  }, [loadHealth])
+
+  // A page left open must age into a stale state even without another fetch.
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(interval)
   }, [])
 
-  async function loadHealth() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setLoading(false)
-      return
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (!profile) {
-      setLoading(false)
-      return
-    }
-
-    const { data } = await supabase
-      .from('activity_log')
-      .select('*')
-      .eq('organization_id', profile.organization_id)
-      .eq('resource_type', 'sentinel_check')
-      .order('created_at', { ascending: false })
-      .limit(50)
-
-    const items = data || []
-    setEvents(items)
-
-    // Determine overall status from latest checks
-    if (items.length > 0) {
-      const latest = items[0].created_at
-      const cutoff = new Date(new Date(latest).getTime() - 5 * 60 * 1000).toISOString()
-      const recentChecks = items.filter(e => e.created_at >= cutoff)
-      const hasCritical = recentChecks.some(e => e.metadata?.severity === 'critical')
-      const hasWarning = recentChecks.some(e => e.metadata?.severity === 'warning')
-      setOverallStatus(hasCritical ? 'critical' : hasWarning ? 'warning' : 'healthy')
-    }
-
-    setLoading(false)
-  }
-
-  const statusConfig = {
-    healthy: { icon: '✅', label: 'All Systems Operational', color: '#27ae60', bg: '#ecfdf5' },
-    warning: { icon: '⚠️', label: 'Minor Issues Detected', color: '#f39c12', bg: '#fffdf5' },
-    critical: { icon: '🚨', label: 'Issues Detected', color: '#e74c3c', bg: '#fff5f5' },
-  }
-
-  const config = statusConfig[overallStatus]
+  const health = deriveHealthState({ events, loadState, now })
+  const config = STATUS_CONFIG[health.status]
+  const loading = loadState === 'loading'
 
   const severityIcon = (severity) => {
     const icons = { info: '✅', warning: '⚠️', critical: '🚨' }
     return icons[severity] || '📋'
   }
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleString('en-US', {
-      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
-    })
-  }
+  const formatTime = (value) => new Date(value).toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+    hour12: true, timeZoneName: 'short',
+  })
 
-  if (loading) {
-    return <div style={{ textAlign: 'center', color: 'var(--ink-muted)', padding: 60 }}>Loading health status...</div>
-  }
+  const statusDetail = health.status === 'error'
+    ? error
+    : health.status === 'stale'
+      ? 'The latest recorded check is more than two hours old. Current website status has not been verified.'
+      : health.status === 'unknown'
+        ? health.reason === 'unreliable_timestamp'
+          ? 'The recorded check time could not be verified. Ask Kocre IT to review monitoring setup.'
+          : 'Recent successful monitoring has not been confirmed. Ask Kocre IT to verify setup if needed.'
+        : health.status === 'loading'
+          ? 'Retrieving saved monitoring results.'
+          : 'This status describes the latest recorded checks. See their details below.'
 
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-          <span style={{ fontSize: '1.3rem' }}>🛡️</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: '1.6rem', margin: 0 }}>Website Monitoring</h1>
+          <button
+            type="button"
+            onClick={loadHealth}
+            disabled={loading}
+            style={{
+              padding: '8px 14px', border: '1px solid var(--border)', borderRadius: 8,
+              background: 'white', color: 'var(--ink)', font: 'inherit',
+              cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.65 : 1,
+            }}
+          >
+            {loading ? 'Refreshing…' : 'Refresh saved results'}
+          </button>
         </div>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.92rem' }}>
-          Hourly uptime and response-time checks on the URLs you've shared with us.
+          Review recorded website checks. Results older than two hours are marked stale.
         </p>
       </div>
 
-      {/* Overall status banner */}
-      <div style={{
+      <div role={health.status === 'error' ? 'alert' : 'status'} aria-busy={loading} style={{
         background: config.bg, border: `1px solid ${config.color}30`,
         borderRadius: 12, padding: '20px 24px', marginBottom: 24,
         display: 'flex', alignItems: 'center', gap: 12
       }}>
-        <span style={{ fontSize: '1.5rem' }}>{config.icon}</span>
+        <span aria-hidden="true" style={{ fontSize: '1.5rem' }}>{config.icon}</span>
         <div>
           <div style={{ fontWeight: 700, fontSize: '1.05rem', color: config.color }}>{config.label}</div>
+          <div style={{ fontSize: '0.88rem', color: 'var(--ink-muted)', marginTop: 6 }}>{statusDetail}</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--ink-muted)', marginTop: 2 }}>
-            Last checked: {events.length > 0 ? formatTime(events[0].created_at) : 'Never'}
+            Last recorded check: {health.latestCheckedAt
+              ? <time dateTime={health.latestCheckedAt}>{formatTime(health.latestCheckedAt)}</time>
+              : 'Unavailable'}
           </div>
         </div>
       </div>
 
-      {/* Events log */}
-      {events.length === 0 ? (
+      {loadState === 'loaded' && events.length === 0 && (
         <div style={{
           background: 'white', border: '1px solid var(--border)', borderRadius: 12,
           padding: 40, textAlign: 'center'
         }}>
           <p style={{ color: 'var(--ink-muted)' }}>
-            No monitoring data yet. Sentinel AI will begin monitoring your services automatically.
+            No monitoring checks have been recorded for this workspace. Contact Kocre IT to confirm
+            which URLs are configured and whether monitoring is enabled.
           </p>
         </div>
-      ) : (
+      )}
+
+      {events.length > 0 && (
         <div style={{
           background: 'white', border: '1px solid var(--border)', borderRadius: 12,
           overflow: 'hidden'
@@ -127,10 +161,11 @@ export default function HealthPage() {
             fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink-muted)',
             textTransform: 'uppercase', letterSpacing: '0.06em'
           }}>
-            Recent Checks
+            {loadState === 'error' ? 'Previously loaded checks' : 'Recorded checks'}
           </div>
           {events.map((event, i) => {
             const meta = event.metadata || {}
+            const checkedAt = getCheckTimestamp(event)
             return (
               <div
                 key={event.id || i}
@@ -143,16 +178,16 @@ export default function HealthPage() {
                 <span style={{ fontSize: '1rem' }}>{severityIcon(meta.severity)}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.88rem', color: 'var(--ink)', fontWeight: 500 }}>
-                    {meta.message}
+                    {meta.message || 'Monitoring check recorded.'}
                   </div>
-                  {meta.response_time && (
+                  {Number.isFinite(meta.response_time) && (
                     <span style={{ fontSize: '0.75rem', color: 'var(--ink-muted)' }}>
                       {meta.response_time}ms response time
                     </span>
                   )}
                 </div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>
-                  {formatTime(event.created_at)}
+                  {checkedAt === null ? 'Timestamp unavailable' : formatTime(checkedAt)}
                 </span>
               </div>
             )

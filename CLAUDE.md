@@ -18,7 +18,7 @@ remotely across the **US, Canada, UK & Ireland**.
 - Name: **Kocre IT Services** · Founder: Komlan Kouhiko
 - Base: Stafford, Virginia, USA (remote-only; **no public street address** — service-area business)
 - Phone: (540) 573-8366 · Email: hello@ / legal@ / privacy@ kocreit.com
-- Plans: Starter $499/mo, Growth $999/mo, Scale $1,999/mo (month-to-month after onboarding)
+- New inquiries: see `techdesk-pro/lib/service-catalog.js` for versioned pricing. One-time remote help $125/session up to 60 minutes; Remote $149 first person + $49 each additional, $199 setup; Managed $199 first person + $89 each additional, $499 setup. Published pilot rates apply to 1–2 people; 3–10-person totals are illustrative and require a written quote; larger/complex needs use custom scope. Preserve existing accepted plans (including legacy Starter/Growth/Scale) until a new agreement is approved. Free signup does not activate or purchase service.
 - Role: **processor** for client business data; **controller** for own website/marketing data
 
 ---
