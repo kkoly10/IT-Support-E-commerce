@@ -9,6 +9,7 @@ function offer(service = 'remote', users = 1) {
   const setup = service === 'one_time' ? 0 : service === 'remote' ? 19900 : service === 'managed' ? 49900 : service === 'secure' ? 69900 : 10000
   const oneTime = service === 'one_time' ? 12500 : null
   return createWrittenOffer({ service, users }, {
+    authorizedSignerUserId: actor,
     scopeSummary: 'Diagnose, configure and maintain agreed systems.',
     monthlyCents: monthly, setupCents: setup, oneTimeCents: oneTime,
     exclusions: 'Hardware separate', externalCosts: 'Licenses separate',
@@ -44,12 +45,14 @@ test('plan-specific onboarding differs between one-time, remote, managed, secure
 
 test('custom and larger-team quotes need explicit written amounts', () => {
   const large = createWrittenOffer({ service: 'remote', users: 5 }, {
+    authorizedSignerUserId: actor,
     scopeSummary: 'Remote support for five named employees and their agreed accounts.',
     monthlyCents: 59000, setupCents: 50000, oneTimeCents: null,
   }, actor, now)
   assert.equal(large.supported_users, 5)
   assert.equal(large.monthly_cents, 59000)
   assert.throws(() => createWrittenOffer({ service: 'remote', users: 1 }, {
+    authorizedSignerUserId: actor,
     scopeSummary: 'Remote support for this customer.',
     monthlyCents: 25000, setupCents: 19900, oneTimeCents: null,
   }, actor, now), { status: 400 })
