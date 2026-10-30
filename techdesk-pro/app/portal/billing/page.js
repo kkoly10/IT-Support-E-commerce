@@ -13,6 +13,11 @@ const PLAN_CATALOG = {
     pricing: { type: 'pending' },
     note: 'Plan and pricing are confirmed during the fit review before activation.',
   },
+  one_time: {
+    label: 'One-Time IT Help',
+    pricing: { type: 'one_time' },
+    note: 'Single eligible remote session; see the accepted written offer for the agreed fee and scope.',
+  },
   founding: {
     label: 'Founding Managed Support',
     pricing: { type: 'flat', monthly: 399 },
@@ -89,6 +94,7 @@ function priceLine(plan, userCount) {
   if (plan.pricing.type === 'pending') {
     return 'Set during fit review'
   }
+  if (plan.pricing.type === 'one_time') return 'See accepted one-time offer'
   return 'Quoted by review'
 }
 
@@ -151,6 +157,7 @@ export default function BillingPage() {
   const paymentStatus = org?.payment_status || 'unknown'
   const isQuote = plan.pricing.type === 'quote'
   const isPending = plan.pricing.type === 'pending'
+  const isOneTime = plan.pricing.type === 'one_time'
 
   // For legacy plans the "/ Y" denominator still has meaning. For new plans
   // we measure usage but don't pretend a hard ticket cap exists.
@@ -220,8 +227,10 @@ export default function BillingPage() {
               ? overLegacyLimit
                 ? 'At your legacy plan’s monthly allotment — overage will be reviewed.'
                 : 'Within your legacy plan’s monthly allotment.'
-              : isQuote
-                ? 'Fair-use volume is defined in your signed quote.'
+              : isOneTime
+                ? 'One-time support is limited to the accepted session scope, not a monthly support allotment.'
+                : isQuote
+                  ? 'Fair-use volume is defined in your signed quote.'
                 : isPending
                   ? 'Tracked from day one — fair-use limits are set when your plan is confirmed.'
                   : overFairUse
@@ -236,7 +245,7 @@ export default function BillingPage() {
             {String(paymentStatus).replace(/_/g, ' ')}
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--ink-muted)' }}>
-            Invoiced monthly, month-to-month after onboarding.
+            {isOneTime ? 'Single-session service; no recurring monthly subscription is implied.' : 'Recurring services are invoiced monthly under the accepted order.'}
           </div>
         </div>
       </div>
