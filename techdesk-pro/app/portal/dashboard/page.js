@@ -203,6 +203,7 @@ export default function DashboardPage() {
   }
 
   const lifecycle = org?.client_status || 'lead'
+  const requestedSelection = org?.discovery_profile?.service_selection || null
 
   const readiness = useMemo(
     () =>
@@ -255,7 +256,9 @@ export default function DashboardPage() {
         <div>
           <h1>{lifecycle === 'lead' ? `Welcome to Kocre IT` : org?.name || 'Your Portal Dashboard'}</h1>
           {lifecycle === 'lead' ? (
-            <p>Your account is ready and your service request is with Kocre for review. Nothing has been activated or charged yet.</p>
+            <p>{requestedSelection
+              ? 'Your account is ready and your service request is with Kocre for review. Nothing has been activated or charged yet.'
+              : 'Your account is ready. Choose the kind of IT help you need when you are ready to send Kocre a service request.'}</p>
           ) : lifecycle === 'onboarding' ? (
             <p>Your service is moving through setup. We’ll show only the items that need your attention before support goes live.</p>
           ) : (
@@ -279,13 +282,13 @@ export default function DashboardPage() {
         ) : lifecycle === 'onboarding' ? (
           <a href="/portal/onboarding" className="dashboard-new-ticket">Continue setup</a>
         ) : (
-          <a href="/portal/services" className="dashboard-new-ticket">Review request</a>
+          <a href="/portal/services" className="dashboard-new-ticket">{requestedSelection ? 'Review request' : 'Choose a service'}</a>
         )}
       </div>
 
       <ServiceRequestSummary selection={org?.discovery_profile?.service_selection} />
 
-      {lifecycle === 'lead' && (
+      {lifecycle === 'lead' && requestedSelection && (
         <>
           <div className="dashboard-section" style={{ marginBottom: 16 }}>
             <div className="dashboard-section-header"><h2>What happens next</h2></div>
@@ -307,6 +310,21 @@ export default function DashboardPage() {
             <a href="/portal/services" className="action-card"><span className="action-icon">🧩</span>Review service request</a>
             <a href="/portal/settings" className="action-card"><span className="action-icon">🏢</span>Company details</a>
             <a href="/portal/contacts" className="action-card"><span className="action-icon">👤</span>Primary contact</a>
+          </div>
+        </>
+      )}
+
+      {lifecycle === 'lead' && !requestedSelection && (
+        <>
+          <div className="dashboard-section" style={{ marginBottom: 16 }}>
+            <div className="dashboard-section-header"><h2>Choose your support path</h2></div>
+            <div className="dashboard-empty" style={{ textAlign: 'left' }}>
+              <p>You created a Kocre account without choosing a service. Compare One-Time Help, Remote Desk, Managed Desk, Secure Desk, or request a custom scope when you are ready.</p>
+            </div>
+          </div>
+          <div className="dashboard-actions" style={{ marginBottom: 20 }}>
+            <a href="/portal/services" className="action-card"><span className="action-icon">🧩</span>Choose a service</a>
+            <a href="/portal/settings" className="action-card"><span className="action-icon">🏢</span>Company details</a>
           </div>
         </>
       )}
@@ -345,7 +363,9 @@ export default function DashboardPage() {
           <div className="dashboard-section-header"><h2>Support status</h2></div>
           <div className="dashboard-empty" style={{ textAlign: 'left' }}>
             <p>{lifecycle === 'lead'
-              ? 'Support has not started yet. Kocre will confirm the service scope and next step with you before anything is activated.'
+              ? requestedSelection
+                ? 'Support has not started yet. Kocre will confirm the service scope and next step with you before anything is activated.'
+                : 'No support service has been requested yet. Choose a service when you are ready; creating the account alone does not activate or charge anything.'
               : 'Your support service is being prepared. Your onboarding page shows the items that apply to your setup.'}</p>
           </div>
         </div>

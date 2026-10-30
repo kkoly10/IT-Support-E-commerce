@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { calculateEstimate } from './service-catalog.js'
 import { normalizeSignupContext } from './signup-context.js'
-import { mayRequestServices, ServiceRequestError, updateDiscoveryWithCAS } from './service-request.js'
+import { discoveryRevision, mayRequestServices, ServiceRequestError, updateDiscoveryWithCAS } from './service-request.js'
 
 export class SignupError extends Error {
   constructor(message, status = 503) {
@@ -135,15 +135,41 @@ export async function completeVerifiedSignup({ service, user, payload = {}, now 
   // workspace, using CAS, without touching accepted plan or lifecycle fields.
   if (Object.hasOwn(payload, 'serviceSelection') && context.serviceSelection) {
     if (!mayRequestServices(profile, user, org.id)) throw new SignupError('Only verified members of this workspace can suggest service needs.', 403)
-    org = await updateDiscoveryWithCAS(service, {
-      organizationId: org.id, previous: org.discovery_profile, markReview: true,
-      next: {
-        ...(org.discovery_profile || {}),
-        service_selection: {
-          ...calculateEstimate(context.serviceSelection), requestedAt: now, source: 'signup', status: 'requested', requestedBy: user.id,
+    const previousSelection = org.discovery_profile?.service_selection || {}
+    const requestedEstimate = calculateEstimate(context.serviceSelection)
+    const replayingIncompleteSignup =
+      !creatingWorkspace &&
+      org.id === signupRecordId('organization', user.id) &&
+      previousSelection.source === 'signup' &&
+      previousSelection.service === requestedEstimate.service &&
+      previousSelection.users === requestedEstimate.users
+
+    if (!creatingWorkspace && !replayingIncompleteSignup) {
+      if (typeof payload.expectedRevision !== 'string' || !/^[a-f0-9]{64}$/.test(payload.expectedRevision)) {
+        throw new SignupError('Reload this page before submitting your service request.', 409)
+      }
+      if (payload.expectedRevision !== discoveryRevision(org.discovery_profile)) {
+        throw new SignupError('Your workspace changed while this form was open. Reload the latest request before saving.', 409)
+      }
+    }
+
+    if (!replayingIncompleteSignup) {
+      const preservedContext = {
+        ...(Array.isArray(previousSelection.systems) ? { systems: previousSelection.systems } : {}),
+        ...(Array.isArray(previousSelection.projects) ? { projects: previousSelection.projects } : {}),
+        ...(typeof previousSelection.note === 'string' ? { note: previousSelection.note } : {}),
+      }
+      org = await updateDiscoveryWithCAS(service, {
+        organizationId: org.id, previous: org.discovery_profile, markReview: true,
+        next: {
+          ...(org.discovery_profile || {}),
+          service_selection: {
+            ...requestedEstimate, ...preservedContext,
+            requestedAt: now, source: 'signup', status: 'requested', requestedBy: user.id,
+          },
         },
-      },
-    })
+      })
+    }
   }
 
   await ensurePrimaryContact(service, profile, user, context.fullName)

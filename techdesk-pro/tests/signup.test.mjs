@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createSignupHandler, completeVerifiedSignup, linkOwnedAssessment, signupRecordId } from '../lib/signup-completion.js'
 import { normalizeSignupContext, safeAuthNext, signupResumeHref } from '../lib/signup-context.js'
+import { discoveryRevision } from '../lib/service-request.js'
 import { database } from './helpers/memory-db.mjs'
 
 const now = '2026-10-29T12:00:00.000Z'
@@ -97,13 +98,14 @@ test('a profile write failure can resume the same organization without deleting 
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.service, 'one_time')
 })
 
-test('a contact failure resumes after profile creation and leaves service selection intact', async () => {
+test('a contact failure can retry the same selected-service signup without requiring a revision', async () => {
   const db = database()
+  const payload = { serviceSelection: { service: 'remote', users: 1 } }
   db.failNext('organization_contacts', 'upsert')
-  assert.equal((await handlerFor(db)(request({ serviceSelection: { service: 'remote', users: 1 } }))).status, 503)
+  assert.equal((await handlerFor(db)(request(payload))).status, 503)
   assert.equal(db.tables.profiles.length, 1)
   assert.equal(db.tables.organization_contacts.length, 0)
-  assert.equal((await handlerFor(db)(request({}))).status, 200)
+  assert.equal((await handlerFor(db)(request(payload))).status, 200)
   assert.equal(db.tables.organization_contacts.length, 1)
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.service, 'remote')
 })
@@ -137,26 +139,82 @@ test('sign-in recovery never replays old metadata over an existing plan or disco
   assert.equal(db.writes.length, 0)
 })
 
-test('existing client selection is explicit, preserves unrelated discovery data, and does not activate service', async () => {
+test('existing client selection is explicit, revision-bound, preserves request context, and does not activate service', async () => {
   const db = database({
     profiles: [{ id: user.id, organization_id: 'existing-org', role: 'client', is_primary_contact: true }],
-    organizations: [{ id: 'existing-org', plan: 'pending', client_status: 'lead', discovery_profile: { notes: 'keep' } }],
+    organizations: [{
+      id: 'existing-org', plan: 'pending', client_status: 'lead',
+      discovery_profile: {
+        notes: 'keep',
+        service_selection: { service: 'remote', users: 1, systems: ['Windows'], projects: ['Email migration'], note: 'Keep this context.' },
+      },
+    }],
     organization_contacts: [{ id: 'primary', organization_id: 'existing-org', is_primary_contact: true }],
   })
-  await completeVerifiedSignup({ service: db, user, payload: { serviceSelection: { service: 'remote', users: 5 } }, now })
   const org = db.tables.organizations[0]
+  await completeVerifiedSignup({
+    service: db, user,
+    payload: {
+      serviceSelection: { service: 'remote', users: 5 },
+      expectedRevision: discoveryRevision(org.discovery_profile),
+    },
+    now,
+  })
   assert.equal(org.discovery_profile.notes, 'keep')
   assert.equal(org.discovery_profile.service_selection.monthly, null)
   assert.equal(org.discovery_profile.service_selection.requiresQuote, true)
+  assert.deepEqual(org.discovery_profile.service_selection.systems, ['Windows'])
+  assert.deepEqual(org.discovery_profile.service_selection.projects, ['Email migration'])
+  assert.equal(org.discovery_profile.service_selection.note, 'Keep this context.')
   assert.equal(org.plan, 'pending')
   assert.equal(org.client_status, 'lead')
   db.tables.profiles[0].is_primary_contact = false
-  await completeVerifiedSignup({ service: db, user, payload: { serviceSelection: { service: 'managed', users: 1 } }, now })
+  await completeVerifiedSignup({
+    service: db, user,
+    payload: {
+      serviceSelection: { service: 'managed', users: 1 },
+      expectedRevision: discoveryRevision(org.discovery_profile),
+    },
+    now,
+  })
   assert.equal(org.discovery_profile.service_selection.service, 'managed')
   assert.equal(org.discovery_profile.service_selection.requestedBy, user.id)
   assert.equal(org.discovery_profile.service_selection.status, 'requested')
   assert.equal(org.plan, 'pending')
   assert.equal(org.client_status, 'lead')
+})
+
+test('existing client signup selection rejects a stale revision instead of overwriting a newer request', async () => {
+  const db = database({
+    profiles: [{ id: user.id, organization_id: 'existing-org', role: 'client', is_primary_contact: true }],
+    organizations: [{
+      id: 'existing-org', plan: 'pending', client_status: 'lead',
+      discovery_profile: {
+        notes: 'original',
+        service_selection: { service: 'remote', users: 1, systems: ['Windows'], note: 'Original request' },
+      },
+    }],
+    organization_contacts: [{ id: 'primary', organization_id: 'existing-org', is_primary_contact: true }],
+  })
+  const org = db.tables.organizations[0]
+  const staleRevision = discoveryRevision(org.discovery_profile)
+  org.discovery_profile = {
+    ...org.discovery_profile,
+    notes: 'newer edit',
+    service_selection: { service: 'secure', users: 2, systems: ['Windows', 'Microsoft 365'], note: 'Newer request' },
+  }
+
+  await assert.rejects(
+    completeVerifiedSignup({
+      service: db, user,
+      payload: { serviceSelection: { service: 'managed', users: 1 }, expectedRevision: staleRevision },
+      now,
+    }),
+    { status: 409 }
+  )
+  assert.equal(org.discovery_profile.notes, 'newer edit')
+  assert.equal(org.discovery_profile.service_selection.service, 'secure')
+  assert.equal(org.discovery_profile.service_selection.note, 'Newer request')
 })
 
 test('ordinary legacy sign-in never creates or promotes contacts, even if its editable primary flag is true', async () => {
@@ -175,7 +233,14 @@ test('an invited member cannot trigger automatic primary contact provisioning fo
     profiles: [{ id: user.id, organization_id: otherOwnerOrg, role: 'client', is_primary_contact: true }],
     organizations: [{ id: otherOwnerOrg, plan: 'pending', client_status: 'lead', discovery_profile: {} }],
   })
-  await completeVerifiedSignup({ service: db, user, payload: { serviceSelection: { service: 'one_time', users: 1 } }, now })
+  await completeVerifiedSignup({
+    service: db, user,
+    payload: {
+      serviceSelection: { service: 'one_time', users: 1 },
+      expectedRevision: discoveryRevision(db.tables.organizations[0].discovery_profile),
+    },
+    now,
+  })
   assert.equal(db.tables.organization_contacts.length, 0)
   assert.equal(db.tables.organizations[0].discovery_profile.service_selection.requestedBy, user.id)
   assert.equal(db.tables.organizations[0].plan, 'pending')

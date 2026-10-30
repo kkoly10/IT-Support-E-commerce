@@ -21,6 +21,7 @@ export default function SignupPage() {
   const [assessmentId, setAssessmentId] = useState(null)
   const [sessionUser, setSessionUser] = useState(null)
   const [existingWorkspace, setExistingWorkspace] = useState(false)
+  const [serviceRevision, setServiceRevision] = useState(null)
   const [initializing, setInitializing] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -86,6 +87,23 @@ export default function SignupPage() {
           if (cancelled) return
           setExistingWorkspace(Boolean(profile?.organization_id))
           if (profile?.organization_id && profile.full_name) setFullName(profile.full_name)
+          if (profile?.organization_id && !querySelection) {
+            // Old signup metadata is recovery context, not a new service request
+            // for an already-provisioned workspace. Only an explicit current
+            // service URL may populate the existing-client request form.
+            setSelection(null)
+            setServiceRevision(null)
+          } else if (profile?.organization_id && querySelection) {
+            const serviceResponse = await fetch('/api/services/selection', { cache: 'no-store' })
+            const serviceState = await serviceResponse.json().catch(() => ({}))
+            if (!serviceResponse.ok || typeof serviceState.revision !== 'string') {
+              throw new Error(serviceState.error || 'Could not load the latest service request. Please refresh and try again.')
+            }
+            if (cancelled) return
+            setServiceRevision(serviceState.revision)
+          } else {
+            setServiceRevision(null)
+          }
         }
         setInitializing(false)
         // Confirmation and incomplete-account login resume the original
@@ -119,6 +137,14 @@ export default function SignupPage() {
       fullName, companyName: forBusiness ? companyName : '',
       accountType: forBusiness ? 'business' : 'personal', serviceSelection: selection, assessmentId,
     })
+    if (existingWorkspace && selection?.service && !serviceRevision) {
+      setError('Reload this page to get the latest service request before saving.')
+      setLoading(false)
+      return
+    }
+    const completionPayload = existingWorkspace && selection?.service
+      ? { ...context, expectedRevision: serviceRevision }
+      : context
     try {
       if (!sessionUser) {
         const confirmUrl = new URL('/auth/confirm', window.location.origin)
@@ -142,7 +168,7 @@ export default function SignupPage() {
         }
         setSessionUser(data.user)
       }
-      await finishAccount(context)
+      await finishAccount(completionPayload)
     } catch (err) {
       setError(err.message || 'Could not create your account. Please try again.')
     } finally {
