@@ -118,6 +118,7 @@ export default function PortalLayout({ children }) {
   const pathname = usePathname()
 
   useEffect(() => {
+    let cancelled = false
     async function loadProfile() {
       const {
         data: { user },
@@ -139,6 +140,7 @@ export default function PortalLayout({ children }) {
         .eq('id', user.id)
         .maybeSingle()
 
+      if (cancelled) return
       if (profileData) {
         setProfile(profileData)
         setOrg(profileData.organizations)
@@ -150,7 +152,13 @@ export default function PortalLayout({ children }) {
       setLoading(false)
     }
 
+    const refreshWorkspace = () => { loadProfile() }
     loadProfile()
+    window.addEventListener('kocre:workspace-updated', refreshWorkspace)
+    return () => {
+      cancelled = true
+      window.removeEventListener('kocre:workspace-updated', refreshWorkspace)
+    }
   }, [router])
 
   const navItems = useMemo(() => buildNav(org), [org])
