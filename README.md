@@ -95,11 +95,11 @@ Do not confuse an existing page with a finished service. The product should repr
 
 ## Temporary RMM bridge
 
-**Live recovery status (October 30, 2026):** Existing Tactical agents remain installed on both owner Windows machines, but the former Hetzner RMM server and API are unreachable. The internal read-only sensor prototype has tests, not a verified live provider connection. Recovery, tenancy, credentials, Mesh ownership, human takeover and production validation are tracked in [Tactical RMM recovery and internal bridge](docs/TACTICAL-RMM-RECOVERY-2026-10-30.md). Do not claim monitoring is activated based on installed services or the presence of the adapter.
+**Recovery status (October 31, 2026):** Existing Tactical agents remain installed on both owner Windows machines, but the former Hetzner RMM server and API are unreachable. The internal read-only sensor prototype has tests, not a verified live provider connection. Recovery, tenancy, credentials, Mesh ownership, human takeover and production validation are tracked in [Tactical RMM recovery and internal bridge](docs/TACTICAL-RMM-RECOVERY-2026-10-30.md). Do not claim monitoring is activated based on installed services or the presence of the adapter.
 
 Tactical RMM may be used tactically while Personal Commands grows into the long-term RMM/NOC layer. Its purpose would be to provide commodity monitoring, patching, inventory and alerting sooner—not to replace Personal Commands as the AI/control architecture.
 
-Avoid unnecessary duplicate agents or overlapping remote-control ownership. If Tactical RMM is activated, deliberately choose whether it should run without its Mesh component or integrate with the existing Mesh architecture.
+**One-Droplet decision (October 31, 2026):** Use the freshly provisioned 4 GB Debian 13 DigitalOcean Droplet for Tactical RMM **and the MeshCentral instance bundled by Tactical's supported installer**. The owner authorizes replacing/breaking the old independent Mesh sessions; do not migrate them simply to preserve historical enrollment. Once the new bundled Mesh + Tactical agent monitoring + manual takeover have been verified, retire the redundant Ubuntu 22.04 Mesh-only Droplet. The $28.80/month target is not achieved until the duplicate is actually deleted. Do not expose Tactical as a customer-facing SaaS or confuse its monitoring feed with Personal Commands' privileged endpoint control.
 
 ## Product discipline
 
