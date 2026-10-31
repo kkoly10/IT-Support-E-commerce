@@ -70,5 +70,9 @@ Official documentation:
 
 - **Completed:** provider requirements researched, both hosts inspected, Debian 13 target selected and SSH verified, canonical domains defined, three successful apt operations on target, old Mesh snapshot created and confirmed, old Mesh Droplet 612825810 deleted and absent from DO list, DO weekly backups enabled on target, read-only monitoring bridge tested in earlier draft PR.
 - **Not completed:** Tactical install, DNS owner confirmation, wildcard certificate, actual bundled Mesh deployment, Windows re-enrollment, functional human remote takeover, AI closed loop, first restored backup, prorated billing readback, stale `remote.kocreit.com` DNS cleanup.
+
+- **Post-deletion external probe:** `remote.kocreit.com` continues resolving to the old address 138.197.144.46. After provider resource deletion, a fresh TCP port 22 probe to that IP produced a connection response; this **does not prove the old host is still owned by Kocre** and may reflect reassignment or networking state. **Treat the old DNS name and IP as untrusted** and retire that A record through normal owner-authorized Vercel DNS administration. Do not attempt to authenticate to this IP or reinstall clients pointed to it.
+- **Final repo check:** Kocre Node suite at `858d75c` passed **63 tests, zero failures**, git diff whitespace check clean, Vercel preview status success. Source tests do not qualify live Tactical infrastructure or agent Take Control.
+
 - **Do not call this operational or cost-saving accomplished until verified.** In particular, the existing frontend/DNS and running Windows service do not prove connectivity to the new RMM.
 
